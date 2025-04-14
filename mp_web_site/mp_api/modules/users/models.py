@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from uuid import uuid4
 
-from modules.users.roles import UserRole
+from mp_web_site.mp_api.modules.users.roles import UserRole
 
 
 class UserBase(BaseModel):
