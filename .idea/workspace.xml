@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.projenrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/.projenrc.py" afterDir="false" />
+    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="feat: add DynamoDB configuration with Pydantic settings">
+      <change afterPath="$PROJECT_DIR$/mp_web_site/mp_api/database/operations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mp_web_site/mp_api/modules/users/operations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/mp_api/database/db_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/mp_api/database/db_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/mp_api/modules/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/mp_api/modules/users/models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +28,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/poetry.toml" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/pyproject.toml" root0="SKIP_INSPECTION" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -102,9 +107,23 @@
       <workItem from="1745071997762" duration="6200000" />
       <workItem from="1745238430888" duration="2504000" />
     </task>
+    <task id="LOCAL-00001" summary="feat: add DynamoDB configuration with Pydantic settings">
+      <option name="closed" value="true" />
+      <created>1745244724077</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745244724077</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: add database configuration and Docker setup for DynamoDB" />
+    <MESSAGE value="feat: add DynamoDB configuration with Pydantic settings" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add DynamoDB configuration with Pydantic settings" />
   </component>
 </project>

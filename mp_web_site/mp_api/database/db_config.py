@@ -1,12 +1,14 @@
+import boto3
+
 from functools import lru_cache
 from pydantic_settings import BaseSettings
-import boto3
+
 
 class DynamoDBSettings(BaseSettings):
   """DynamoDB configuration settings."""
   aws_access_key_id: str
   aws_secret_access_key: str
-  region_name: str = "us-east-1"
+  region_name: str = "eu-central-1"
   endpoint_url: str = None  # For local DynamoDB, use "http://localhost:8000"
 
   class Config:
