@@ -20,7 +20,8 @@ project = PythonProject(
     "PyJWT@2.10.1",
     "passlib@1.7.4",
     "boto3@1.35.88",
-    "pynamodb@6.0.2",
+    "pydantic@2.11.3",
+    "pydantic-settings@2.9.1",
   ],
 
   # Development dependencies
