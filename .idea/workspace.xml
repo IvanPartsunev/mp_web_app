@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="" />
+    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mp_web_site/mp_api/database/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mp_web_site/mp_api/database/db_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/mp_web_site.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/mp_web_site.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.projen/deps.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.projenrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/.projenrc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,6 +40,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Docker.docker-compose.yaml: Compose Deployment.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
@@ -53,6 +64,27 @@
       <recent name="$PROJECT_DIR$/mp_web_site" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yaml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.yaml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker.docker-compose.yaml: Compose Deployment" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -71,7 +103,9 @@
       <updated>1743442622401</updated>
       <workItem from="1743442623858" duration="7938000" />
       <workItem from="1743603904638" duration="601000" />
-      <workItem from="1744454857329" duration="9340000" />
+      <workItem from="1744454857329" duration="11865000" />
+      <workItem from="1745071997762" duration="6200000" />
+      <workItem from="1745238430888" duration="2504000" />
     </task>
     <servers />
   </component>

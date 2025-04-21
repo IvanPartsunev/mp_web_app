@@ -14,9 +14,13 @@ project = PythonProject(
 
   # Main project dependencies (CDK infrastructure)
   deps=[
-    f'python@{python_version}.*',
-    "aws-cdk-lib@^2.38.0",
-    "constructs@^10.0.0",
+    f"python@{python_version}.*",
+    "aws-cdk-lib@2.38.0",
+    "constructs@10.0.0",
+    "PyJWT@2.10.1",
+    "passlib@1.7.4",
+    "boto3@1.35.88",
+    "pynamodb@6.0.2",
   ],
 
   # Development dependencies
