@@ -14,6 +14,11 @@
       "type": "devenv"
     },
     {
+      "name": "argon2-cffi",
+      "version": "^23.1.0",
+      "type": "runtime"
+    },
+    {
       "name": "aws-cdk-lib",
       "version": "2.38.0",
       "type": "runtime"
@@ -29,11 +34,6 @@
       "type": "runtime"
     },
     {
-      "name": "passlib",
-      "version": "1.7.4",
-      "type": "runtime"
-    },
-    {
       "name": "pydantic-settings",
       "version": "2.9.1",
       "type": "runtime"
@@ -45,7 +45,7 @@
     },
     {
       "name": "PyJWT",
-      "version": "2.10.1",
+      "version": "^2.10.1",
       "type": "runtime"
     },
     {

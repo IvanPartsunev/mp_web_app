@@ -4,8 +4,9 @@ from datetime import datetime
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from decimal import Decimal
-from mp_web_site.mp_api.core.db.dynamodb_config import get_dynamodb_resource
-from mp_web_site.mp_api.modules.users.schemas import UserCreate, UserUpdate, User
+
+from mp_web_site.mp_api.database.db_config import get_dynamodb_resource
+from mp_web_site.mp_api.modules.users.models import User
 
 
 class UserRepository:

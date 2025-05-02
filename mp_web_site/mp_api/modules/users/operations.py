@@ -1,16 +1,18 @@
 from datetime import datetime
-from tomllib._types import Key
+
+
 from typing import Optional, List
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
+from mp_web_site.mp_api.database.operations import UserRepository
 from mp_web_site.mp_api.modules.users.models import UserCreate, User, UserUpdate
 
 
 async def create_user(self, user_data: UserCreate) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
-  now= datetime.now(ZoneInfo("Europe/Helsinki"))
+  now = datetime.now(ZoneInfo("Europe/Helsinki"))
 
   user_item = {
     'id': user_id,
@@ -19,9 +21,9 @@ async def create_user(self, user_data: UserCreate) -> User:
     'role': user_data.role,
     'active': user_data.active,
     'created_at': now,
-    'updated_at': now
+    'updated_at': now,
     # In a real application, you would hash the password before storing
-    # 'password_hash': hash_password(user_data.password)
+    'password_hash': hash_password(user_data.password)
   }
 
   self.table.put_item(Item=user_item)
@@ -43,7 +45,7 @@ async def get_user_by_email(self, email: str) -> Optional[User]:
   """Get a user by email from DynamoDB using the GSI."""
   response = self.table.query(
     IndexName='email-index',
-    KeyConditionExpression=Key('email').eq(email)
+    # KeyConditionExpression=Key('email').eq(email)
   )
 
   if not response['Items']:
@@ -121,3 +123,30 @@ async def delete_user(self, user_id: str) -> bool:
 
   self.table.delete_item(Key={'id': user_id})
   return True
+
+
+def get_user_repository():
+  """Dependency to get the user repository."""
+  repo = UserRepository()
+  # Ensure the table exists
+  repo.create_table_if_not_exists()
+  return repo
+
+
+def hash_password(password, salt):
+  from argon2 import PasswordHasher
+  ph = PasswordHasher()
+  password_with_salt = password + str(salt)
+  hashed_password = ph.hash(password_with_salt)
+  return hashed_password
+
+
+def verify_password(password_hash, password, salt):
+  from argon2 import exceptions, PasswordHasher
+
+  ph = PasswordHasher()
+  password_with_salt = password + str(salt)
+  try:
+    return ph.verify(password_hash, password_with_salt)
+  except (exceptions.VerifyMismatchError, exceptions.VerificationError):
+    return False

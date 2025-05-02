@@ -3,10 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from uuid import uuid4
 
-
-class UserRole:
-    ADMIN = "admin"
-    REGULAR_USER = "regular_user"
+from mp_web_site.mp_api.modules.users.roles import UserRole
 
 
 class UserBase(BaseModel):
@@ -30,8 +27,9 @@ class UserUpdate(BaseModel):
 
 class UserInDB(UserBase):
     id: str = Field(default_factory=lambda: str(uuid4()))
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    user_code: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
 
 class User(UserInDB):
