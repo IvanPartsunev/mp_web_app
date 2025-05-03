@@ -1,7 +1,7 @@
 from datetime import datetime
+from decimal import Decimal
 
-
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -9,7 +9,41 @@ from mp_web_site.backend.database.operations import UserRepository
 from mp_web_site.backend.modules.users.models import UserCreate, User, UserUpdate
 
 
-async def create_user(user_data: UserCreate) -> User:
+def get_user_repository() -> UserRepository:
+  """Dependency to get the user repository."""
+  repo = UserRepository()
+  return repo
+
+
+def convert_item_to_user(item: Dict[str, Any]) -> User:
+  """Convert a DynamoDB item to a User model."""
+  # Convert Decimal to int for phone
+  if 'phone' in item and isinstance(item['phone'], Decimal):
+    item['phone'] = int(item['phone'])
+
+  return User(**item)
+
+
+def hash_password(password: str, salt: str) -> str:
+  from argon2 import PasswordHasher
+  ph = PasswordHasher()
+  password_with_salt = password + str(salt)
+  hashed_password = ph.hash(password_with_salt)
+  return hashed_password
+
+
+def verify_password(password_hash: str, password: str, salt: str) -> bool:
+  from argon2 import exceptions, PasswordHasher
+
+  ph = PasswordHasher()
+  password_with_salt = password + str(salt)
+  try:
+    return ph.verify(password_hash, password_with_salt)
+  except (exceptions.VerifyMismatchError, exceptions.VerificationError):
+    return False
+
+
+async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
   salt = str(uuid4())[:8]
@@ -29,9 +63,9 @@ async def create_user(user_data: UserCreate) -> User:
     "password_hash": hashed_password,
   }
 
-  self.table.put_item(Item=user_item)
+  repo.table.put_item(Item=user_item)
 
-  return convert_to_user(user_item)
+  return convert_item_to_user(user_item)
 
 
 async def get_user_by_id(self, user_id: str) -> Optional[User]:
@@ -126,30 +160,3 @@ async def delete_user(self, user_id: str) -> bool:
 
   self.table.delete_item(Key={"id": user_id})
   return True
-
-
-def get_user_repository():
-  """Dependency to get the user repository."""
-  repo = UserRepository()
-  # Ensure the table exists
-  repo.create_table_if_not_exists()
-  return repo
-
-
-def hash_password(password, salt):
-  from argon2 import PasswordHasher
-  ph = PasswordHasher()
-  password_with_salt = password + str(salt)
-  hashed_password = ph.hash(password_with_salt)
-  return hashed_password
-
-
-def verify_password(password_hash, password, salt):
-  from argon2 import exceptions, PasswordHasher
-
-  ph = PasswordHasher()
-  password_with_salt = password + str(salt)
-  try:
-    return ph.verify(password_hash, password_with_salt)
-  except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-    return False
