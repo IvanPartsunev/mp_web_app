@@ -82,6 +82,6 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
-mp_web_site/mp_api/poetry.lock
+mp_web_site/backend/poetry.lock
 .env/
 !/.projenrc.py
