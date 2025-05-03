@@ -58,6 +58,7 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
 
   try:
     repo.table.put_item(Item=user_item)
+  # TODO: Make better error handling with custom error
   except Exception as e:
     raise
 

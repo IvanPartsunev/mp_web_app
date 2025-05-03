@@ -4,18 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="fix: correct import path and method calls in user operations">
-      <change beforePath="$PROJECT_DIR$/.idea/aws.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/aws.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.projen/tasks.json" beforeDir="false" afterPath="$PROJECT_DIR$/.projen/tasks.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.projenrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/.projenrc.py" afterDir="false" />
+    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="fix: update user creation process and pydantic dependencies">
       <change beforePath="$PROJECT_DIR$/.qodo/history.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/.qodo/history.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/database/db_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/database/db_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.qodo/indexes.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/.qodo/indexes.sqlite" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mp_web_site/backend/modules/users/operations.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/modules/users/operations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/modules/users/routers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/modules/users/routers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +149,7 @@
       <workItem from="1744454857329" duration="11865000" />
       <workItem from="1745071997762" duration="6200000" />
       <workItem from="1745238430888" duration="2504000" />
-      <workItem from="1746304186867" duration="1088000" />
+      <workItem from="1746304186867" duration="1446000" />
     </task>
     <task id="LOCAL-00001" summary="feat: add DynamoDB configuration with Pydantic settings">
       <option name="closed" value="true" />
@@ -231,7 +223,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746304007451</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="fix: update user creation process and pydantic dependencies">
+      <option name="closed" value="true" />
+      <created>1746305636048</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1746305636048</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -247,7 +247,8 @@
     <MESSAGE value="feat: implement user sign-up endpoint" />
     <MESSAGE value="refactor: reorganize user operations and fix database methods" />
     <MESSAGE value="fix: correct import path and method calls in user operations" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: correct import path and method calls in user operations" />
+    <MESSAGE value="fix: update user creation process and pydantic dependencies" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: update user creation process and pydantic dependencies" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/mp_web_site$app.coverage" NAME="app Coverage Results" MODIFIED="1746304708874" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
