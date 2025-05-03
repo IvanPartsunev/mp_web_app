@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from pydantic import EmailStr
-from tomllib._types import Key
+from boto3.dynamodb.conditions import Key
 
 from typing import Optional, List, Dict, Any
 from uuid import uuid4
@@ -58,7 +58,7 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
 
   repo.table.put_item(Item=user_item)
 
-  return convert_item_to_user(user_item)
+  return repo.convert_item_to_user(user_item)
 
 
 async def get_user_by_id(user_id: str, repo: UserRepository) -> Optional[User]:
@@ -68,7 +68,7 @@ async def get_user_by_id(user_id: str, repo: UserRepository) -> Optional[User]:
   if "Item" not in response:
     return None
 
-  return repo.convert_to_user(response["Item"])
+  return repo.convert_item_to_user(response["Item"])
 
 
 async def get_user_by_email(email: EmailStr, repo: UserRepository) -> Optional[User]:
