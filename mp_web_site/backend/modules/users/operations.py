@@ -1,5 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
+from pydantic import EmailStr
+from tomllib._types import Key
 
 from typing import Optional, List, Dict, Any
 from uuid import uuid4
@@ -13,15 +15,6 @@ def get_user_repository() -> UserRepository:
   """Dependency to get the user repository."""
   repo = UserRepository()
   return repo
-
-
-def convert_item_to_user(item: Dict[str, Any]) -> User:
-  """Convert a DynamoDB item to a User model."""
-  # Convert Decimal to int for phone
-  if 'phone' in item and isinstance(item['phone'], Decimal):
-    item['phone'] = int(item['phone'])
-
-  return User(**item)
 
 
 def hash_password(password: str, salt: str) -> str:
@@ -68,27 +61,27 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   return convert_item_to_user(user_item)
 
 
-async def get_user_by_id(self, user_id: str) -> Optional[User]:
+async def get_user_by_id(user_id: str, repo: UserRepository) -> Optional[User]:
   """Get a user by ID from DynamoDB."""
-  response = self.table.get_item(Key={"id": user_id})
+  response = repo.table.get_item(Key={"id": user_id})
 
   if "Item" not in response:
     return None
 
-  return self._convert_to_user(response["Item"])
+  return repo.convert_to_user(response["Item"])
 
 
-async def get_user_by_email(self, email: str) -> Optional[User]:
+async def get_user_by_email(email: EmailStr, repo: UserRepository) -> Optional[User]:
   """Get a user by email from DynamoDB using the GSI."""
-  response = self.table.query(
+  response = repo.table.query(
     IndexName="email-index",
-    # KeyConditionExpression=Key("email").eq(email)
+    KeyConditionExpression=Key("email").eq(email)
   )
 
   if not response["Items"]:
     return None
 
-  return self._convert_to_user(response["Items"][0])
+  return repo.convert_item_to_user(response["Items"][0])
 
 
 async def list_users(self) -> List[User]:

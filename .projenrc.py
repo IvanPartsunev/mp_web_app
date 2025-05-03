@@ -32,6 +32,7 @@ project = PythonProject(
 
 # Add .gitignore entries for API-specific files
 project.add_git_ignore("mp_web_site/backend/poetry.lock")
+project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
 
 # Task: Initialize the API component with Poetry
