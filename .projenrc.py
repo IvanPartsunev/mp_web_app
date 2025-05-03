@@ -1,6 +1,6 @@
 from projen.python import PythonProject
 
-python_version = "3.12"
+python_version = "3.12.8"
 
 project = PythonProject(
   description="MP Web Site with CDK infrastructure and FastAPI backend",
@@ -14,14 +14,10 @@ project = PythonProject(
 
   # Main project dependencies (CDK infrastructure)
   deps=[
-    f"python@{python_version}.*",
+    f"python@{python_version}",
     "aws-cdk-lib@2.38.0",
     "constructs@10.0.0",
-    "PyJWT@^2.10.1",
-    "argon2-cffi@^23.1.0",
     "boto3@1.35.88",
-    "pydantic@2.11.3",
-    "pydantic-settings@2.9.1",
   ],
 
   # Development dependencies
@@ -36,12 +32,23 @@ project = PythonProject(
 
 # Add .gitignore entries for API-specific files
 project.add_git_ignore("mp_web_site/mp_api/poetry.lock")
-project.add_git_ignore("mp_web_site/mp_api/.venv/")
+project.add_git_ignore(".env/")
 
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
 project.add_task("api:init",
-                 exec="cd mp_web_site/mp_web_site/mp_api && poetry init -n --name mp-api --python '^3.9' && poetry add fastapi uvicorn mangum pydantic")
+                 exec=f"cd mp_web_site/mp_web_site/mp_api && poetry init -n --name mp-api --python '{python_version}'")
+
+# Task: Add needed deps for backend with Poetry
+project.add_task( "api:add-deps",
+                  exec="cd mp_web_site/mp_web_site/mp_api "
+                       "&& poetry add fastapi@0.115.12"
+                       "&& poetry add pydantic[all]@2.11.3"
+                       "&& poetry add uvicorn@0.34.2"
+                       "&& poetry add mangum@0.19.0"
+                       "&& poetry add PyJWT@^2.10.1"
+                       "&& poetry add argon2-cffi@^23.1.0"
+                       "&& poetry add pydantic-settings@2.9.1")
 
 # Task: Install API dependencies
 # This installs all dependencies for the API component

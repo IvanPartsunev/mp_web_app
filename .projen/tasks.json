@@ -1,10 +1,18 @@
 {
   "tasks": {
+    "api:add-deps": {
+      "name": "api:add-deps",
+      "steps": [
+        {
+          "exec": "cd mp_web_site/mp_web_site/mp_api && poetry add fastapi@0.115.12&& poetry add pydantic[all]@2.11.3&& poetry add uvicorn@0.34.2&& poetry add mangum@0.19.0&& poetry add PyJWT@^2.10.1&& poetry add argon2-cffi@^23.1.0&& poetry add pydantic-settings@2.9.1"
+        }
+      ]
+    },
     "api:init": {
       "name": "api:init",
       "steps": [
         {
-          "exec": "cd mp_web_site/mp_web_site/mp_api && poetry init -n --name mp-api --python '^3.9' && poetry add fastapi uvicorn mangum pydantic"
+          "exec": "cd mp_web_site/mp_web_site/mp_api && poetry init -n --name mp-api --python '3.12.8'"
         }
       ]
     },
