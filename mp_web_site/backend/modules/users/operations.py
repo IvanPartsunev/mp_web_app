@@ -9,56 +9,59 @@ from mp_web_site.backend.database.operations import UserRepository
 from mp_web_site.backend.modules.users.models import UserCreate, User, UserUpdate
 
 
-async def create_user(self, user_data: UserCreate) -> User:
+async def create_user(user_data: UserCreate) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
+  salt = str(uuid4())[:8]
+  hashed_password = hash_password(user_data.password, salt)
   now = datetime.now(ZoneInfo("Europe/Helsinki"))
 
   user_item = {
-    'id': user_id,
-    'email': user_data.email,
-    'phone': user_data.phone,
-    'role': user_data.role,
-    'active': user_data.active,
-    'created_at': now,
-    'updated_at': now,
-    # In a real application, you would hash the password before storing
-    'password_hash': hash_password(user_data.password)
+    "id": user_id,
+    "email": user_data.email,
+    "phone": user_data.phone,
+    "role": user_data.role,
+    "user_code": user_data,
+    "active": user_data.active,
+    "created_at": now,
+    "updated_at": now,
+    "salt": salt,
+    "password_hash": hashed_password,
   }
 
   self.table.put_item(Item=user_item)
 
-  return self._convert_to_user(user_item)
+  return convert_to_user(user_item)
 
 
 async def get_user_by_id(self, user_id: str) -> Optional[User]:
   """Get a user by ID from DynamoDB."""
-  response = self.table.get_item(Key={'id': user_id})
+  response = self.table.get_item(Key={"id": user_id})
 
-  if 'Item' not in response:
+  if "Item" not in response:
     return None
 
-  return self._convert_to_user(response['Item'])
+  return self._convert_to_user(response["Item"])
 
 
 async def get_user_by_email(self, email: str) -> Optional[User]:
   """Get a user by email from DynamoDB using the GSI."""
   response = self.table.query(
-    IndexName='email-index',
-    # KeyConditionExpression=Key('email').eq(email)
+    IndexName="email-index",
+    # KeyConditionExpression=Key("email").eq(email)
   )
 
-  if not response['Items']:
+  if not response["Items"]:
     return None
 
-  return self._convert_to_user(response['Items'][0])
+  return self._convert_to_user(response["Items"][0])
 
 
 async def list_users(self) -> List[User]:
   """List all users from DynamoDB."""
   response = self.table.scan()
 
-  return [self._convert_to_user(item) for item in response['Items']]
+  return [self._convert_to_user(item) for item in response["Items"]]
 
 
 async def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
@@ -104,14 +107,14 @@ async def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[Use
 
   # Update the item
   response = self.table.update_item(
-    Key={'id': user_id},
+    Key={"id": user_id},
     UpdateExpression=update_expression,
     ExpressionAttributeValues=expression_attribute_values,
     ExpressionAttributeNames=expression_attribute_names,
     ReturnValues="ALL_NEW"
   )
 
-  return self._convert_to_user(response['Attributes'])
+  return self._convert_to_user(response["Attributes"])
 
 
 async def delete_user(self, user_id: str) -> bool:
@@ -121,7 +124,7 @@ async def delete_user(self, user_id: str) -> bool:
   if not existing_user:
     return False
 
-  self.table.delete_item(Key={'id': user_id})
+  self.table.delete_item(Key={"id": user_id})
   return True
 
 

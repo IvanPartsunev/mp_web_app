@@ -1,10 +1,25 @@
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from mp_web_site.backend.modules.users.models import User, UserCreate
+from mp_web_site.backend.modules.users.operations import get_user_repository
 
 user_router = APIRouter()
-@user_router.post("/sign-up")
-def user_sign_up():
-  pass
+
+@user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
+async def sign_up(
+  user_data: UserCreate,
+  repo: UserRepository = Depends(get_user_repository)
+):
+  """Create a new user."""
+  # Check if user with this email already exists
+  existing_user = await repo.get_user_by_email(user_data.email)
+  if existing_user:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="User with this email already exists"
+    )
+
+  return await repo.create_user(user_data)
 
 
 @user_router.post("/sign-in")
@@ -24,8 +39,7 @@ def user_activate_account():
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
-from mp_web_site.mp_api.modules.users.schemas import User, UserCreate, UserUpdate
-from mp_web_site.mp_api.modules.users.repository import UserRepository
+
 
 router = APIRouter(prefix="/users", tags=["users"])
 
