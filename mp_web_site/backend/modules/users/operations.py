@@ -5,8 +5,8 @@ from typing import Optional, List
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from mp_web_site.mp_api.database.operations import UserRepository
-from mp_web_site.mp_api.modules.users.models import UserCreate, User, UserUpdate
+from mp_web_site.backend.database.operations import UserRepository
+from mp_web_site.backend.modules.users.models import UserCreate, User, UserUpdate
 
 
 async def create_user(self, user_data: UserCreate) -> User:

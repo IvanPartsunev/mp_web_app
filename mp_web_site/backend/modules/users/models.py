@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from uuid import uuid4
 
-from mp_web_site.mp_api.modules.users.roles import UserRole
+from mp_web_site.backend.modules.users.roles import UserRole
 
 
 class UserBase(BaseModel):
