@@ -15,14 +15,14 @@ async def sign_up(
 ):
   """Create a new user."""
   # Check if user with this email already exists
-  existing_user = await get_user_by_email(user_data.email, repo.table)
+  existing_user = await get_user_by_email(user_data.email, repo)
   if existing_user:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
       detail="User with this email already exists"
     )
 
-  return await create_user(user_data)
+  return await create_user(user_data, repo)
 
 
 @user_router.post("/sign-in")

@@ -45,7 +45,7 @@ project.add_task( "api:add-deps",
                   exec="cd mp_web_site/backend "
                        "&& poetry add "
                        "fastapi@0.115.12 "
-                       "pydantic[all]@2.11.3 "
+                       "pydantic[email]@2.11.3 "
                        "uvicorn@0.34.2 "
                        "mangum@0.19.0 "
                        "PyJWT@^2.10.1 "

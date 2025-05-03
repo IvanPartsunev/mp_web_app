@@ -4,8 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="feat: implement user repository and CRUD operations for DynamoDB">
+    <list default="true" id="b6185f16-28fc-4398-8210-c88037e0b334" name="Changes" comment="fix: correct import path and method calls in user operations">
+      <change beforePath="$PROJECT_DIR$/.idea/aws.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/aws.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.projen/tasks.json" beforeDir="false" afterPath="$PROJECT_DIR$/.projen/tasks.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.projenrc.py" beforeDir="false" afterPath="$PROJECT_DIR$/.projenrc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.qodo/history.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/.qodo/history.sqlite" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/database/db_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/database/db_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/modules/users/operations.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/modules/users/operations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/modules/users/routers.py" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/modules/users/routers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mp_web_site/backend/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/mp_web_site/backend/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +33,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/poetry.toml" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/.gitattributes" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/pyproject.toml" root0="SKIP_INSPECTION" />
   </component>
   <component name="ProjectColorInfo">{
@@ -34,22 +44,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Docker.docker-compose.yaml: Compose Deployment.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/ivanparcunev/PycharmProjects/mp_web_site/mp_web_site/mp_api&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Docker.docker-compose.yaml: Compose Deployment.executor": "Run",
+    "FastAPI.app.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/ivanparcunev/PycharmProjects/mp_web_site/mp_web_site/mp_api",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/mp_web_site/mp_api" />
@@ -60,7 +71,46 @@
       <recent name="$PROJECT_DIR$/mp_web_site" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="FastAPI.app">
+    <configuration name="app" type="Python.FastAPI">
+      <option name="additionalOptions" value="--reload --port 8002" />
+      <option name="appName" value="app" />
+      <option name="file" value="$PROJECT_DIR$/mp_web_site/backend/api.py" />
+      <module name="mp_web_site" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="DYNAMODB_AWS_ACCESS_KEY_ID" value="dummy" />
+        <env name="DYNAMODB_AWS_SECRET_ACCESS_KEY" value="dummy" />
+        <env name="DYNAMODB_REGION_NAME" value="us-west-2" />
+        <env name="DYNAMODB_ENDPOINT_URL" value="http://localhost:8005" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/.env/bin/python3.12" />
+      <option name="SDK_NAME" value="Python 3.12 virtualenv at ~/PycharmProjects/mp_web_site/.env" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <EXTENSION ID="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        </ENTRIES>
+      </EXTENSION>
+      <EXTENSION ID="software.aws.toolkits.jetbrains.core.execution.PythonAwsConnectionExtension">
+        <option name="credential" />
+        <option name="region" />
+        <option name="useCurrentConnection" value="false" />
+      </EXTENSION>
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
         <settings />
@@ -70,11 +120,16 @@
     <configuration name="docker-compose.yaml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
       <deployment type="docker-compose.yml">
         <settings>
+          <option name="envFilePath" value="" />
           <option name="sourceFilePath" value="docker-compose.yaml" />
         </settings>
       </deployment>
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Docker.docker-compose.yaml: Compose Deployment" />
+      <item itemvalue="FastAPI.app" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Docker.docker-compose.yaml: Compose Deployment" />
@@ -102,6 +157,7 @@
       <workItem from="1744454857329" duration="11865000" />
       <workItem from="1745071997762" duration="6200000" />
       <workItem from="1745238430888" duration="2504000" />
+      <workItem from="1746304186867" duration="1088000" />
     </task>
     <task id="LOCAL-00001" summary="feat: add DynamoDB configuration with Pydantic settings">
       <option name="closed" value="true" />
@@ -119,7 +175,63 @@
       <option name="project" value="LOCAL" />
       <updated>1745246155620</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="refactor: reorganize project structure and update dependencies">
+      <option name="closed" value="true" />
+      <created>1746280459084</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1746280459084</updated>
+    </task>
+    <task id="LOCAL-00004" summary="refactor: update project paths from mp_api to backend directory structure, and add a task to add deps in backend">
+      <option name="closed" value="true" />
+      <created>1746281073023</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1746281073023</updated>
+    </task>
+    <task id="LOCAL-00005" summary="refactor: update import paths from mp_api to backend directory structure">
+      <option name="closed" value="true" />
+      <created>1746281136537</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1746281136537</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: implement user sign-up endpoint">
+      <option name="closed" value="true" />
+      <created>1746300902317</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1746300902317</updated>
+    </task>
+    <task id="LOCAL-00007" summary="refactor: reorganize user operations and fix database methods">
+      <option name="closed" value="true" />
+      <created>1746302045131</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1746302045131</updated>
+    </task>
+    <task id="LOCAL-00008" summary="refactor: reorganize user operations and fix database methods">
+      <option name="closed" value="true" />
+      <created>1746303794282</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1746303794282</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix: correct import path and method calls in user operations">
+      <option name="closed" value="true" />
+      <created>1746304007451</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1746304007451</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -129,6 +241,15 @@
     <MESSAGE value="feat: add database configuration and Docker setup for DynamoDB" />
     <MESSAGE value="feat: add DynamoDB configuration with Pydantic settings" />
     <MESSAGE value="feat: implement user repository and CRUD operations for DynamoDB" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: implement user repository and CRUD operations for DynamoDB" />
+    <MESSAGE value="refactor: reorganize project structure and update dependencies" />
+    <MESSAGE value="refactor: update project paths from mp_api to backend directory structure, and add a task to add deps in backend" />
+    <MESSAGE value="refactor: update import paths from mp_api to backend directory structure" />
+    <MESSAGE value="feat: implement user sign-up endpoint" />
+    <MESSAGE value="refactor: reorganize user operations and fix database methods" />
+    <MESSAGE value="fix: correct import path and method calls in user operations" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: correct import path and method calls in user operations" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/mp_web_site$app.coverage" NAME="app Coverage Results" MODIFIED="1746304708874" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

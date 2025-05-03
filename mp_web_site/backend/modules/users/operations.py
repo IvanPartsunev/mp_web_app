@@ -48,15 +48,18 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
     "email": user_data.email,
     "phone": user_data.phone,
     "role": user_data.role,
-    "user_code": user_data,
+    "user_code": "",
     "active": user_data.active,
-    "created_at": now,
-    "updated_at": now,
+    "created_at": now.isoformat(),
+    "updated_at": now.isoformat(),
     "salt": salt,
     "password_hash": hashed_password,
   }
 
-  repo.table.put_item(Item=user_item)
+  try:
+    repo.table.put_item(Item=user_item)
+  except Exception as e:
+    raise
 
   return repo.convert_item_to_user(user_item)
 

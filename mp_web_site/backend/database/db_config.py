@@ -9,11 +9,11 @@ class DynamoDBSettings(BaseSettings):
   aws_access_key_id: str
   aws_secret_access_key: str
   region_name: str = None
-  endpoint_url: str = None  # For local DynamoDB, use "http://localhost:8000"
+  endpoint_url: str = None
 
   class Config:
     env_prefix = "DYNAMODB_"
-    env_file = ".envvar"
+    env_file = ".env"
 
 
 @lru_cache()
