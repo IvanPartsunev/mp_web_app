@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 
+from mp_web_site.backend.auth.models import Token
+from mp_web_site.backend.auth.operations import create_access_token, create_refresh_token, \
+  get_current_user
 from mp_web_site.backend.database.operations import UserRepository
-from mp_web_site.backend.users.models import UserCreate
-from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user
-from mp_web_site.backend.users.responses import UserResponse
+from mp_web_site.backend.users.models import UserCreate, User
+from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user, authenticate_user
 
 user_router = APIRouter(tags=["users"])
 
 user_repository = UserRepository()
 
-@user_router.post("/sign-up", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
 async def sign_up(
   user_data: UserCreate,
   repo: UserRepository = Depends(get_user_repository)
@@ -29,13 +32,20 @@ async def sign_up(
 
 
 @user_router.post("/sign-in")
-def user_sign_in():
-  pass
+def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
+    repo: UserRepository = Depends(get_user_repository)
+):
+    user = authenticate_user(form_data.username, form_data.password, repo)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    access_token = create_access_token({"sub": user.id, "role": user.role})
+    refresh_token = create_refresh_token({"sub": user.id, "role": user.role})
+    return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @user_router.post("/reset-password")
-def user_reset_password():
-  pass
+def user_reset_password(auth=Depends(get_current_user)):
+  raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 
 @user_router.post("/activate-account")
