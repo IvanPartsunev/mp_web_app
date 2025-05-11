@@ -34,6 +34,7 @@ project = PythonProject(
 project.add_git_ignore("mp_web_site/backend/poetry.lock")
 project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
+project.add_git_ignore(".idea/")
 
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
@@ -48,7 +49,7 @@ project.add_task( "api:add-deps",
                        "pydantic[email]@2.11.3 "
                        "uvicorn@0.34.2 "
                        "mangum@0.19.0 "
-                       "PyJWT@^2.10.1 "
+                       "python-jose@^3.4.0 "
                        "argon2-cffi@^23.1.0 "
                        "pydantic-settings@2.9.1")
 
@@ -60,7 +61,7 @@ project.add_task("api:install",
 # Task: Run the API locally
 # This starts the FastAPI server on port 8001 with auto-reload
 project.add_task("api:run",
-                 exec="cd mp_web_site/backend && poetry run uvicorn mp_web_site.backend.api:app --reload --port 8001")
+                 exec="cd mp_web_site/backend && poetry run uvicorn api:app --reload --port 8001")
 
 # Task: Generate requirements.txt for Lambda deployment
 # This exports Poetry dependencies to a requirements.txt file for AWS Lambda

@@ -254,24 +254,24 @@ files = [
 
 [[package]]
 name = "jsii"
-version = "1.111.0"
+version = "1.112.0"
 description = "Python client for jsii runtime"
 optional = false
 python-versions = "~=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "jsii-1.111.0-py3-none-any.whl", hash = "sha256:3084e31173e73d2eefee678c8ee31aa49428830509043057a421a4c0dde94434"},
-    {file = "jsii-1.111.0.tar.gz", hash = "sha256:db523ab9b6575c84d6ed8779cdbdc739abd48a7cb0723b66beb84c1a9dc31c7c"},
+    {file = "jsii-1.112.0-py3-none-any.whl", hash = "sha256:6510c223074d9b206fd0570849a791e4d9ecfff7ffe68428de73870cea9f55a1"},
+    {file = "jsii-1.112.0.tar.gz", hash = "sha256:6b7d19f361c2565b76828ecbe8cbed8b8d6028a82aa98a46b206a4ee5083157e"},
 ]
 
 [package.dependencies]
 attrs = ">=21.2,<26.0"
 cattrs = ">=1.8,<24.2"
-importlib-resources = ">=5.2.0"
+importlib_resources = ">=5.2.0"
 publication = ">=0.0.3"
 python-dateutil = "*"
 typeguard = ">=2.13.3,<4.5.0"
-typing-extensions = ">=3.8,<5.0"
+typing_extensions = ">=3.8,<5.0"
 
 [[package]]
 name = "packaging"
@@ -303,19 +303,19 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "projen"
-version = "0.91.20"
+version = "0.92.3"
 description = "CDK for software projects"
 optional = false
 python-versions = "~=3.9"
 groups = ["dev"]
 files = [
-    {file = "projen-0.91.20-py3-none-any.whl", hash = "sha256:022f162c5f098413a0bda46bf89184a9de141eb48ff530be2ffa7eaa28c3e3ae"},
-    {file = "projen-0.91.20.tar.gz", hash = "sha256:6312c36a815e98ed90e0ef476c6713126c3f1a067b1b169b3f53a97248bd02a3"},
+    {file = "projen-0.92.3-py3-none-any.whl", hash = "sha256:429469cd6d9e6466237687d187e56d80a3cc96cc84bf1c2fa61d998aed6499fb"},
+    {file = "projen-0.92.3.tar.gz", hash = "sha256:9d7b7a3ea2065030ddf1864ba660df9d45f11651ab976984db614fafae749da7"},
 ]
 
 [package.dependencies]
 constructs = ">=10.0.0,<11.0.0"
-jsii = ">=1.109.0,<2.0.0"
+jsii = ">=1.112.0,<2.0.0"
 publication = ">=0.0.3"
 typeguard = ">=2.13.3,<4.3.0"
 
@@ -465,4 +465,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "3.12.8"
-content-hash = "62f76e774663d97794562d3e23633a29e4ff994ce9e84e429e079363a150bd48"
+content-hash = "8a6a612fde3cf8f0cb25614492fa5c9b9d5438c9f677bf49fe421c916a536ce4"

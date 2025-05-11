@@ -2,7 +2,7 @@
   "dependencies": [
     {
       "name": "projen",
-      "version": "0.91.20",
+      "version": "0.92.3",
       "type": "devenv"
     },
     {
