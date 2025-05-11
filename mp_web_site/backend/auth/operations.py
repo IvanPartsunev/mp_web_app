@@ -10,12 +10,11 @@ from jose import jwt, JWTError
 from mp_web_site.app_config import JWTSettings
 from mp_web_site.backend.users.operations import get_user_repository
 
-# SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-key")
-# ALGORITHM = "HS256"
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/sign-in")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/sign-in")
 
 @lru_cache()
 def get_jwt_settings() -> JWTSettings:

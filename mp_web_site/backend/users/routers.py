@@ -31,7 +31,7 @@ async def sign_up(
   return await create_user(user_data, repo)
 
 
-@user_router.post("/sign-in")
+@user_router.post("/sign-in", response_model=Token)
 def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
     repo: UserRepository = Depends(get_user_repository)
 ):
