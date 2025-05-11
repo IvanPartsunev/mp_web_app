@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from decimal import Decimal
 from mp_web_site.backend.database.db_config import get_dynamodb_resource
-from mp_web_site.backend.users.models import User
+from mp_web_site.backend.users.models import User, UserSecret
 
 
 class UserRepository:
@@ -17,6 +17,11 @@ class UserRepository:
       item['phone'] = int(item['phone'])
 
     return User(**item)
+
+  @staticmethod
+  def convert_item_to_user_secret(item: Dict[str, Any]) -> UserSecret:
+    """Convert a DynamoDB item to a UserSecret model containing password and salt."""
+    return UserSecret(**item)
 
   def create_table_if_not_exists(self):
     """Create the users table if it doesn't exist."""

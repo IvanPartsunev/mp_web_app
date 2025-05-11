@@ -1,13 +1,13 @@
+import re
 from datetime import datetime
-from pydantic import EmailStr
+
 from boto3.dynamodb.conditions import Key
 
-from typing import Optional, List, re
+from typing import Optional, List
 from uuid import uuid4
-from zoneinfo import ZoneInfo
 
 from mp_web_site.backend.database.operations import UserRepository
-from mp_web_site.backend.users.models import UserCreate, User, UserUpdate
+from mp_web_site.backend.users.models import UserCreate, User, UserUpdate, UserSecret
 from mp_web_site.backend.users.roles import UserRole
 
 
@@ -36,7 +36,7 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
     return False
 
 
-def _validate_password(password):
+def validate_password(password):
   if len(password) > 30:
     raise ValueError("Password must be at less than 30 characters long")
   if len(password) < 8:
@@ -83,17 +83,19 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   return repo.convert_item_to_user(user_item)
 
 
-async def get_user_by_id(user_id: str, repo: UserRepository) -> Optional[User]:
+async def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by ID from DynamoDB."""
   response = repo.table.get_item(Key={"id": user_id})
 
   if "Item" not in response:
     return None
 
+  if secret:
+    return repo.convert_item_to_user_secret(response["Item"])
   return repo.convert_item_to_user(response["Item"])
 
 
-async def get_user_by_email(email: EmailStr, repo: UserRepository) -> Optional[User]:
+def get_user_by_email(email: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
   response = repo.table.query(
     IndexName="email-index",
@@ -103,7 +105,20 @@ async def get_user_by_email(email: EmailStr, repo: UserRepository) -> Optional[U
   if not response["Items"]:
     return None
 
+  if secret:
+    return repo.convert_item_to_user_secret(response["Items"][0])
   return repo.convert_item_to_user(response["Items"][0])
+
+
+def authenticate_user(email: str, password: str, repo: UserRepository) -> Optional[UserSecret]:
+  user = get_user_by_email(email, repo, secret=True)
+
+  if not user:
+    return None
+
+  if verify_password(password_hash=user.password_hash, password=password, salt=user.salt):
+    return user
+  return None
 
 
 async def list_users(self) -> List[User]:
