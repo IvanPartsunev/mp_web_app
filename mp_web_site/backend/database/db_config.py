@@ -3,17 +3,7 @@ import boto3
 from functools import lru_cache
 from pydantic_settings import BaseSettings
 
-
-class DynamoDBSettings(BaseSettings):
-  """DynamoDB configuration settings."""
-  aws_access_key_id: str
-  aws_secret_access_key: str
-  region_name: str = None
-  endpoint_url: str = None
-
-  class Config:
-    env_prefix = "DYNAMODB_"
-    env_file = ".env"
+from mp_web_site.app_config import DynamoDBSettings
 
 
 @lru_cache()
