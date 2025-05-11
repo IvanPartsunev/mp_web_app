@@ -1,19 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from mp_web_site.backend.database.operations import UserRepository
-from mp_web_site.backend.modules.users.models import User, UserCreate
-from mp_web_site.backend.modules.users.operations import get_user_repository, get_user_by_email, create_user
+from mp_web_site.backend.users.models import UserCreate
+from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user
+from mp_web_site.backend.users.responses import UserResponse
 
 user_router = APIRouter(tags=["users"])
 
 user_repository = UserRepository()
 
-@user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
+@user_router.post("/sign-up", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def sign_up(
   user_data: UserCreate,
   repo: UserRepository = Depends(get_user_repository)
 ):
   """Create a new user."""
+  # TODO: Consider make "migrations" class for db tables instead of creating table if dont exists.
+  # user_repository.create_table_if_not_exists()
   # Check if user with this email already exists
   existing_user = await get_user_by_email(user_data.email, repo)
   if existing_user:

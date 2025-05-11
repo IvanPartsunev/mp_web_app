@@ -1,14 +1,14 @@
 from datetime import datetime
-from decimal import Decimal
 from pydantic import EmailStr
 from boto3.dynamodb.conditions import Key
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, re
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from mp_web_site.backend.database.operations import UserRepository
-from mp_web_site.backend.modules.users.models import UserCreate, User, UserUpdate
+from mp_web_site.backend.users.models import UserCreate, User, UserUpdate
+from mp_web_site.backend.users.roles import UserRole
 
 
 def get_user_repository() -> UserRepository:
@@ -36,22 +36,40 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
     return False
 
 
+def _validate_password(password):
+  if len(password) > 30:
+    raise ValueError("Password must be at less than 30 characters long")
+  if len(password) < 8:
+    raise ValueError("Password must be at least 8 characters long")
+  if not re.search(r'[A-Z]', password):
+    raise ValueError("Password must contain at least one uppercase letter")
+  if not re.search(r'[a-z]', password):
+    raise ValueError("Password must contain at least one lowercase letter")
+  if not re.search(r'[0-9]', password):
+    raise ValueError("Password must contain at least one digit")
+  if not re.search(r'[!@#$%^&?]', password):
+    raise ValueError("Password must contain at least one special symbol: !@#$%^&?")
+
+  return password
+
+
 async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
+  user_role = [UserRole.REGULAR_USER]
   salt = str(uuid4())[:8]
   hashed_password = hash_password(user_data.password, salt)
-  now = datetime.now(ZoneInfo("Europe/Helsinki"))
 
+  # TODO: Make validations for phone number, and password
   user_item = {
     "id": user_id,
     "email": user_data.email,
     "phone": user_data.phone,
-    "role": user_data.role,
+    "role": user_role,
     "user_code": "",
     "active": user_data.active,
-    "created_at": now.isoformat(),
-    "updated_at": now.isoformat(),
+    "created_at": user_data.created_at.isoformat(),
+    "updated_at": user_data.updated_at.isoformat(),
     "salt": salt,
     "password_hash": hashed_password,
   }

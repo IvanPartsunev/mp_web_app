@@ -1,11 +1,7 @@
-from typing import List, Optional, Dict, Any
-from uuid import uuid4
-from datetime import datetime
-import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from typing import Dict, Any
 from decimal import Decimal
 from mp_web_site.backend.database.db_config import get_dynamodb_resource
-from mp_web_site.backend.modules.users.models import User
+from mp_web_site.backend.users.models import User
 
 
 class UserRepository:
