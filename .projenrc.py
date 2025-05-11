@@ -51,7 +51,8 @@ project.add_task( "api:add-deps",
                        "mangum@0.19.0 "
                        "python-jose@^3.4.0 "
                        "argon2-cffi@^23.1.0 "
-                       "pydantic-settings@2.9.1")
+                       "pydantic-settings@2.9.1 "
+                       "python-multipart@^0.0.20 ")
 
 # Task: Install API dependencies
 # This installs all dependencies for the API component
