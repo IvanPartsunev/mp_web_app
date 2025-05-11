@@ -6,18 +6,6 @@ class UserDoesNotExistException(Exception):
   ...
 
 
-class WrongCredentialsException(Exception):
-  ...
-
-
-class RefreshTokenDoesNotExistException(Exception):
-  ...
-
-
-class ExpiredRefreshTokenException(Exception):
-  ...
-
-
 class FailedToSendEmailException(Exception):
   def __init__(self, status_code: int, text: str):
     self.status_code = status_code

@@ -21,7 +21,15 @@ class UserUpdate(BaseModel):
     phone: Optional[int] = None
     role: Optional[List[str]] = None
     active: Optional[bool] = None
-    password: Optional[str] = None
+    # password: Optional[str] = None
+
+
+class UserSecret(BaseModel):
+    id: str
+    email: EmailStr
+    role: List[str]
+    salt: str
+    password_hash: str
 
 
 class UserInDB(UserBase):
@@ -38,3 +46,4 @@ class User(UserInDB):
     role: List[str]
     created_at: datetime
     updated_at: datetime
+
