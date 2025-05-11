@@ -3,3 +3,5 @@ services:
     image: amazon/dynamodb-local
     ports:
       - "8005:8000"
+    volumes:
+      - ./dynamodb_data:/home/dynamodblocal/data
