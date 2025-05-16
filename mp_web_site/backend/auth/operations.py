@@ -1,15 +1,17 @@
 import os
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 
 from mp_web_site.app_config import JWTSettings
-from mp_web_site.backend.users.operations import get_user_repository
-
+from mp_web_site.backend.database.operations import UserRepository
+from mp_web_site.backend.users.models import User
+from mp_web_site.backend.users.operations import get_user_repository, get_user_by_id
+from mp_web_site.backend.users.roles import UserRole, ROLE_HIERARCHY
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -58,12 +60,30 @@ def is_token_expired(token: str):
     return datetime.now(timezone.utc).timestamp() > exp
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), repo=Depends(get_user_repository)):
+def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository =Depends(get_user_repository)):
     payload = decode_token(token)
     if not payload or payload.get("type") != "access":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-    user_id = payload.get("sub")
-    user = repo.get_user_by_id(user_id)
+    user_id: str = payload.get("sub")
+    user = get_user_by_id(user_id, repo)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
+
+
+def role_required(required_roles: List[UserRole]):
+    def dependency(current_user: User = Depends(get_current_user)):
+        user_role = current_user.role
+        if not isinstance(user_role, UserRole):
+            user_role = UserRole(user_role)
+
+        allowed_roles = ROLE_HIERARCHY.get(user_role, [])
+
+        if user_role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have access to this resource",
+            )
+
+        return current_user
+    return dependency

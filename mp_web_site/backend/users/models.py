@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 from uuid import uuid4
 
@@ -19,7 +19,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[int] = None
-    role: Optional[List[str]] = None
+    role: Optional[str] = None
     active: Optional[bool] = None
     # password: Optional[str] = None
 
@@ -27,7 +27,7 @@ class UserUpdate(BaseModel):
 class UserSecret(BaseModel):
     id: str
     email: EmailStr
-    role: List[str]
+    role: str
     salt: str
     password_hash: str
 
@@ -35,7 +35,7 @@ class UserSecret(BaseModel):
 class UserInDB(UserBase):
     id: str = Field(default_factory=lambda: str(uuid4()))
     user_code: Optional[str] = None
-    role: List[str] = [UserRole.REGULAR_USER]
+    role: str = UserRole.REGULAR_USER
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -43,7 +43,7 @@ class UserInDB(UserBase):
 class User(UserInDB):
     id: str
     user_code: Optional[str] = None
-    role: List[str]
+    role: str
     created_at: datetime
     updated_at: datetime
 
