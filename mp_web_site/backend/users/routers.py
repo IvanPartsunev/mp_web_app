@@ -22,7 +22,7 @@ async def sign_up(
   # TODO: Consider make "migrations" class for db tables instead of creating table if dont exists.
   # user_repository.create_table_if_not_exists()
   # Check if user with this email already exists
-  existing_user = get_user_by_email(user_data.email, repo)
+  existing_user = await get_user_by_email(user_data.email, repo)
   if existing_user:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -45,7 +45,7 @@ def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
 
 
 @user_router.post("/reset-password")
-def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
+def user_reset_password(user=Depends(role_required([UserRole.ADMIN]))):
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 

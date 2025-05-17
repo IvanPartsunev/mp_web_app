@@ -86,7 +86,7 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   return repo.convert_item_to_user(user_item)
 
 
-async def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
+def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by ID from DynamoDB."""
   response = repo.table.get_item(Key={"id": user_id})
 
