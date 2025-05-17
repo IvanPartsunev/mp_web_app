@@ -79,7 +79,7 @@ def role_required(required_roles: List[UserRole]):
 
         allowed_roles = ROLE_HIERARCHY.get(user_role, [])
 
-        if user_role not in allowed_roles:
+        if not any(role in allowed_roles for role in required_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have access to this resource",

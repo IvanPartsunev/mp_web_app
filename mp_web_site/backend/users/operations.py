@@ -56,8 +56,11 @@ def validate_password(password):
 async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
-  user_role = [UserRole.REGULAR_USER]
+  user_role = UserRole.REGULAR_USER.value
+  active = False
   salt = str(uuid4())[:8]
+  created_at: datetime = datetime.now()
+  updated_at: datetime = datetime.now()
   hashed_password = hash_password(user_data.password, salt)
 
   # TODO: Make validations for phone number, and password
@@ -67,9 +70,9 @@ async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
     "phone": user_data.phone,
     "role": user_role,
     "user_code": "",
-    "active": user_data.active,
-    "created_at": user_data.created_at.isoformat(),
-    "updated_at": user_data.updated_at.isoformat(),
+    "active": active,
+    "created_at": created_at.isoformat(),
+    "updated_at": updated_at.isoformat(),
     "salt": salt,
     "password_hash": hashed_password,
   }

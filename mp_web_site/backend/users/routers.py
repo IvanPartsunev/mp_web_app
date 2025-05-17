@@ -3,10 +3,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from mp_web_site.backend.auth.models import Token
 from mp_web_site.backend.auth.operations import create_access_token, create_refresh_token, \
-  get_current_user
+  get_current_user, role_required
 from mp_web_site.backend.database.operations import UserRepository
 from mp_web_site.backend.users.models import UserCreate, User
 from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user, authenticate_user
+from mp_web_site.backend.users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
 
@@ -21,7 +22,7 @@ async def sign_up(
   # TODO: Consider make "migrations" class for db tables instead of creating table if dont exists.
   # user_repository.create_table_if_not_exists()
   # Check if user with this email already exists
-  existing_user = await get_user_by_email(user_data.email, repo)
+  existing_user = get_user_by_email(user_data.email, repo)
   if existing_user:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -44,7 +45,7 @@ def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
 
 
 @user_router.post("/reset-password")
-def user_reset_password(auth=Depends(get_current_user)):
+def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 

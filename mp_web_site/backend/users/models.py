@@ -11,8 +11,9 @@ class UserBase(BaseModel):
     phone: int
 
 class UserCreate(UserBase):
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
+    # created_at: datetime = Field(default_factory=datetime.now)
+    # updated_at: datetime = Field(default_factory=datetime.now)
+    # active: bool
     password: str
 
 
@@ -35,12 +36,13 @@ class UserSecret(BaseModel):
 class UserInDB(UserBase):
     id: str = Field(default_factory=lambda: str(uuid4()))
     user_code: Optional[str] = None
-    role: str = UserRole.REGULAR_USER
+    role: str = UserRole.REGULAR_USER.value
+    active: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
-class User(UserInDB):
+class User(UserBase):
     id: str
     user_code: Optional[str] = None
     role: str
