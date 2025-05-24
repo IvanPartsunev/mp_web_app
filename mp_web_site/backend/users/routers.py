@@ -45,7 +45,7 @@ async def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
 
 
 @user_router.post("/reset-password")
-def user_reset_password(user=Depends(role_required([UserRole.ADMIN]))):
+def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 
