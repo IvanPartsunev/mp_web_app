@@ -42,8 +42,10 @@ async def user_sign_in(
   user = authenticate_user(form_data.username, form_data.password, repo)
   if not user:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
   access_token = create_access_token({"sub": user.id, "role": user.role})
   refresh_token = create_refresh_token({"sub": user.id, "role": user.role})
+
   response.set_cookie(
     key="refresh_token",
     value=refresh_token,
