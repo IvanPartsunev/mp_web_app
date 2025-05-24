@@ -87,3 +87,5 @@ mp_web_site/backend/poetry.lock
 .env/
 .idea/
 !/.projenrc.py
+
+.qodo
