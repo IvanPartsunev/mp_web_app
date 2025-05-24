@@ -6,6 +6,8 @@ from boto3.dynamodb.conditions import Key
 from typing import Optional, List
 from uuid import uuid4
 
+from pydantic import EmailStr
+
 from mp_web_site.backend.database.operations import UserRepository
 from mp_web_site.backend.users.models import UserCreate, User, UserUpdate, UserSecret
 from mp_web_site.backend.users.roles import UserRole
@@ -98,7 +100,7 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
   return repo.convert_item_to_user(response["Item"])
 
 
-def get_user_by_email(email: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
+def get_user_by_email(email: EmailStr, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
   response = repo.table.query(
     IndexName="email-index",
