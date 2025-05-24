@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from mp_web_site.backend.auth.models import Token
 from mp_web_site.backend.auth.operations import create_access_token, create_refresh_token, \
-  get_current_user, role_required
-from mp_web_site.backend.database.operations import UserRepository
+  get_current_user, role_required, get_auth_repository
+from mp_web_site.backend.database.operations import UserRepository, AuthRepository
 from mp_web_site.backend.users.models import UserCreate, User
 from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user, authenticate_user
 from mp_web_site.backend.users.roles import UserRole
@@ -37,14 +37,15 @@ async def sign_up(
 async def user_sign_in(
   response: Response,
   form_data: OAuth2PasswordRequestForm = Depends(),
-  repo: UserRepository = Depends(get_user_repository),
+  user_repo: UserRepository = Depends(get_user_repository),
+  auth_repo: AuthRepository = Depends(get_auth_repository),
 ):
-  user = authenticate_user(form_data.username, form_data.password, repo)
+  user = authenticate_user(form_data.username, form_data.password, user_repo)
   if not user:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
   access_token = create_access_token({"sub": user.id, "role": user.role})
-  refresh_token = create_refresh_token({"sub": user.id, "role": user.role})
+  refresh_token = create_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
 
   response.set_cookie(
     key="refresh_token",

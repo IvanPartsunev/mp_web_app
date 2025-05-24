@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from decimal import Decimal
+
 from mp_web_site.backend.database.db_config import get_dynamodb_resource
 from mp_web_site.backend.users.models import User, UserSecret
 
@@ -75,3 +76,38 @@ class UserRepository:
       self.table.meta.client.get_waiter('table_exists').wait(TableName='users')
 
     return self.table
+
+
+class AuthRepository:
+  def __init__(self):
+    self.dynamodb = get_dynamodb_resource()
+    self.table = self.dynamodb.Table('refresh')
+
+  def create_table_if_not_exists(self):
+    """Create the jwt refresh token table if it doesn't exist."""
+    try:
+      # Check if table exists
+      self.dynamodb.meta.client.describe_table(TableName='refresh')
+    except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
+      # Create table
+      self.table = self.dynamodb.create_table(
+        TableName='refresh',
+        KeySchema=[
+          {
+            'AttributeName': 'id',
+            'KeyType': 'HASH'  # Partition key
+          }
+        ],
+        AttributeDefinitions=[
+          {
+            'AttributeName': 'id',
+            'AttributeType': 'S'
+          },
+        ],
+        ProvisionedThroughput={
+          'ReadCapacityUnits': 5,
+          'WriteCapacityUnits': 5
+        }
+      )
+      # Wait until the table exists
+      self.table.meta.client.get_waiter('table_exists').wait(TableName='refresh')

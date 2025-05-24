@@ -15,8 +15,7 @@ from mp_web_site.backend.users.roles import UserRole
 
 def get_user_repository() -> UserRepository:
   """Dependency to get the user repository."""
-  repo = UserRepository()
-  return repo
+  return UserRepository()
 
 
 def hash_password(password: str, salt: str) -> str:
