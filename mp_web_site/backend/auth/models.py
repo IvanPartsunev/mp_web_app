@@ -12,7 +12,8 @@ class TokenRefreshRequest(BaseModel):
 
 
 class TokenPayload(BaseModel):
-  sub: str # user id or email
+  sub: str # user id
   role: str
   exp: int
   type: str
+  jti: str | None = None

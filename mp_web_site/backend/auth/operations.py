@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Optional, List
+from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -9,7 +10,7 @@ from jose import jwt, JWTError
 
 from mp_web_site.app_config import JWTSettings
 from mp_web_site.backend.auth.models import TokenPayload
-from mp_web_site.backend.database.operations import UserRepository
+from mp_web_site.backend.database.operations import UserRepository, AuthRepository
 from mp_web_site.backend.users.models import User
 from mp_web_site.backend.users.operations import get_user_repository, get_user_by_id
 from mp_web_site.backend.users.roles import UserRole, ROLE_HIERARCHY
@@ -26,6 +27,11 @@ def get_jwt_settings() -> JWTSettings:
   return JWTSettings()
 
 
+def get_auth_repository():
+  """Dependency to get the auth repository."""
+  repo = AuthRepository()
+  return repo
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
@@ -35,11 +41,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   return encoded_jwt
 
 
-def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
   expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
-  to_encode.update({"exp": expire, "type": "refresh"})
+  jti = str(uuid4())
+
+  # TODO: Better exception handling
+  try:
+    repo.create_table_if_not_exists()
+    refresh = {
+      "id": jti,
+      "user_id": data["sub"],
+      "valid": True
+    }
+    repo.table.put_item(Item=refresh)
+  except Exception:
+    raise
+
+  to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
   encoded_jwt = jwt.encode(to_encode, settings.secret_key, settings.algorithm)
   return encoded_jwt
 
