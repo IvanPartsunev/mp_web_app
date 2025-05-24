@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from mp_web_site.backend.auth.models import Token
@@ -12,6 +12,7 @@ from mp_web_site.backend.users.roles import UserRole
 user_router = APIRouter(tags=["users"])
 
 user_repository = UserRepository()
+
 
 @user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
 async def sign_up(
@@ -33,15 +34,25 @@ async def sign_up(
 
 
 @user_router.post("/sign-in", response_model=Token)
-async def user_sign_in(form_data: OAuth2PasswordRequestForm = Depends(),
-    repo: UserRepository = Depends(get_user_repository)
+async def user_sign_in(
+  response: Response,
+  form_data: OAuth2PasswordRequestForm = Depends(),
+  repo: UserRepository = Depends(get_user_repository),
 ):
-    user = authenticate_user(form_data.username, form_data.password, repo)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    access_token = create_access_token({"sub": user.id, "role": user.role})
-    refresh_token = create_refresh_token({"sub": user.id, "role": user.role})
-    return Token(access_token=access_token, refresh_token=refresh_token)
+  user = authenticate_user(form_data.username, form_data.password, repo)
+  if not user:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+  access_token = create_access_token({"sub": user.id, "role": user.role})
+  refresh_token = create_refresh_token({"sub": user.id, "role": user.role})
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    secure=True,
+    samesite="strict",
+    max_age=7 * 24 * 60 * 60,
+  )
+  return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @user_router.post("/reset-password")
@@ -52,7 +63,6 @@ def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
 @user_router.post("/activate-account")
 def user_activate_account():
   pass
-
 
 # TODO: Assess the need of separate endpoints for getting use by email, id ect. or all to be combined in get_user.
 # @router.get("/{user_id}", response_model=User)
