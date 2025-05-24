@@ -100,7 +100,7 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
   return repo.convert_item_to_user(response["Item"])
 
 
-def get_user_by_email(email: EmailStr, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
+def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
   response = repo.table.query(
     IndexName="email-index",
