@@ -1,4 +1,4 @@
-import os
+import time
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Optional, List
@@ -46,6 +46,8 @@ def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Option
   to_encode = data.copy()
   expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
   jti = str(uuid4())
+  # TODO: Make TTL for dynamo to automatically delete expired tokens
+  expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
   # TODO: Better exception handling
   try:
@@ -53,7 +55,8 @@ def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Option
     refresh = {
       "id": jti,
       "user_id": data["sub"],
-      "valid": True
+      "valid": True,
+      "expires_at": expires_at,
     }
     repo.table.put_item(Item=refresh)
   except Exception:

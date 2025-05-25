@@ -36,7 +36,7 @@ class UserRepository:
         KeySchema=[
           {
             'AttributeName': 'id',
-            'KeyType': 'HASH'  # Partition key
+            'KeyType': 'HASH'
           }
         ],
         AttributeDefinitions=[
@@ -95,7 +95,7 @@ class AuthRepository:
         KeySchema=[
           {
             'AttributeName': 'id',
-            'KeyType': 'HASH'  # Partition key
+            'KeyType': 'HASH'
           }
         ],
         AttributeDefinitions=[
