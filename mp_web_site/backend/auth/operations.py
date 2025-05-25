@@ -102,6 +102,31 @@ def verify_refresh_token(token: str) -> TokenPayload:
     )
 
 
+def invalidate_token(payload: TokenPayload, repo: AuthRepository):
+  jti = payload.jti
+  user_id = payload.sub
+
+  response = repo.table.get_item(Key={"id": jti})
+  item = response.get("Item")
+
+  if not item:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Refresh token not found"
+    )
+
+  if item.get("user_id") != user_id:
+    raise HTTPException(
+      status_code=status.HTTP_403_FORBIDDEN,
+      detail="This token does not belong to the user"
+    )
+
+  repo.table.update_item(
+    Key={"id": jti},
+    UpdateExpression="SET valid = :v",
+    ExpressionAttributeValues={":v": False}
+  )
+
 def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
   payload = decode_token(token)
   if not payload or payload.get("type") != "access" or payload.get("type") != "refresh":

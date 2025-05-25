@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from decimal import Decimal
 
+from mp_web_site.backend.auth.models import TokenPayload
 from mp_web_site.backend.database.db_config import get_dynamodb_resource
 from mp_web_site.backend.users.models import User, UserSecret
 
@@ -82,6 +83,11 @@ class AuthRepository:
   def __init__(self):
     self.dynamodb = get_dynamodb_resource()
     self.table = self.dynamodb.Table('refresh')
+
+  @staticmethod
+  def convert_item_to_token(item: Dict[str, Any]) -> TokenPayload:
+    """Convert a DynamoDB item to a Token model."""
+    return TokenPayload(**item)
 
   def create_table_if_not_exists(self):
     """Create the jwt refresh token table if it doesn't exist."""
