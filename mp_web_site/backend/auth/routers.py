@@ -15,11 +15,11 @@ async def refresh(
 ):
   if not refresh_token:
     raise HTTPException(status_code=401, detail="Missing refresh token")
-  payload = verify_refresh_token(refresh_token)
+  payload = await verify_refresh_token(refresh_token)
   if not payload:
     raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-  invalidate_token(payload, auth_repo)
+  await invalidate_token(payload, auth_repo)
 
   new_access_token = create_access_token({"sub": payload.sub, "role": payload.role})
   new_refresh_token = create_refresh_token({"sub": payload.sub, "role": payload.role}, auth_repo)

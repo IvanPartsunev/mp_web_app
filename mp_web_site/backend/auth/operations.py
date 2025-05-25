@@ -32,6 +32,7 @@ def get_auth_repository():
   repo = AuthRepository()
   return repo
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
@@ -67,7 +68,7 @@ def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Option
   return encoded_jwt
 
 
-def decode_token(token: str):
+async def decode_token(token: str):
   settings = get_jwt_settings()
   try:
     payload = jwt.decode(token, settings.secret_key, settings.algorithm)
@@ -76,8 +77,8 @@ def decode_token(token: str):
     return None
 
 
-def is_token_expired(token: str):
-  payload = decode_token(token)
+async def is_token_expired(token: str):
+  payload = await decode_token(token)
   if not payload:
     return True
   exp = payload.get("exp")
@@ -86,13 +87,18 @@ def is_token_expired(token: str):
   return datetime.now(timezone.utc).timestamp() > exp
 
 
-def verify_refresh_token(token: str) -> TokenPayload:
+async def verify_refresh_token(token: str) -> TokenPayload:
   try:
-    payload = decode_token(token)
+    payload = await decode_token(token)
     if payload.get("type") != "refresh":
       raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token type",
+      )
+    if not payload.get("valid"):
+      raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token",
       )
     return TokenPayload(**payload)
   except JWTError:
@@ -102,7 +108,7 @@ def verify_refresh_token(token: str) -> TokenPayload:
     )
 
 
-def invalidate_token(payload: TokenPayload, repo: AuthRepository):
+async def invalidate_token(payload: TokenPayload, repo: AuthRepository):
   jti = payload.jti
   user_id = payload.sub
 
@@ -127,8 +133,9 @@ def invalidate_token(payload: TokenPayload, repo: AuthRepository):
     ExpressionAttributeValues={":v": False}
   )
 
-def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
-  payload = decode_token(token)
+
+async def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
+  payload = await decode_token(token)
   if not payload or payload.get("type") != "access" or payload.get("type") != "refresh":
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
   user_id: str = payload.get("sub")
