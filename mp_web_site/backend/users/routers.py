@@ -30,7 +30,7 @@ async def sign_up(
       detail="User with this email already exists"
     )
 
-  return await create_user(user_data, repo)
+  return create_user(user_data, repo)
 
 
 @user_router.post("/sign-in", response_model=Token)
@@ -59,12 +59,12 @@ async def user_sign_in(
 
 
 @user_router.post("/reset-password")
-def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
+async def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 
 @user_router.post("/activate-account")
-def user_activate_account():
+async def user_activate_account(user=Depends(role_required([UserRole.REGULAR_USER]))):
   pass
 
 # TODO: Assess the need of separate endpoints for getting use by email, id ect. or all to be combined in get_user.

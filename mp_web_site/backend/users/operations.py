@@ -54,7 +54,7 @@ def validate_password(password):
   return password
 
 
-async def create_user(user_data: UserCreate, repo: UserRepository) -> User:
+def create_user(user_data: UserCreate, repo: UserRepository) -> User:
   """Create a new user in DynamoDB."""
   user_id = str(uuid4())
   user_role = UserRole.REGULAR_USER.value
@@ -125,17 +125,17 @@ def authenticate_user(email: str, password: str, repo: UserRepository) -> Option
   return None
 
 
-async def list_users(self) -> List[User]:
+def list_users(self) -> List[User]:
   """List all users from DynamoDB."""
   response = self.table.scan()
 
   return [self._convert_to_user(item) for item in response["Items"]]
 
 
-async def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
+def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
   """Update a user in DynamoDB."""
   # First, check if the user exists
-  existing_user = await self.get_user_by_id(user_id)
+  existing_user = self.get_user_by_id(user_id)
   if not existing_user:
     return None
 
@@ -185,12 +185,12 @@ async def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[Use
   return self._convert_to_user(response["Attributes"])
 
 
-async def delete_user(self, user_id: str) -> bool:
+def delete_user(user_id: str, repo: UserRepository) -> bool:
   """Delete a user from DynamoDB."""
   # First, check if the user exists
-  existing_user = await self.get_user_by_id(user_id)
+  existing_user = get_user_by_id(user_id, repo)
   if not existing_user:
     return False
 
-  self.table.delete_item(Key={"id": user_id})
+  repo.table.delete_item(Key={"id": user_id})
   return True
