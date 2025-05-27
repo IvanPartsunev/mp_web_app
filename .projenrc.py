@@ -41,7 +41,7 @@ project.add_git_ignore(".idea/")
 project.add_task("api:init",
                  exec=f"cd mp_web_site/backend && poetry init -n --name mp-api --python '{python_version}'")
 
-# TODO: Fix this, and make some kind of mapping for deps
+# TODO: Fix this, and make some kind of mapping for deps (SUBPROJECT)
 # Task: Add needed deps for backend with Poetry
 project.add_task( "api:add-deps",
                   exec="cd mp_web_site/backend "
