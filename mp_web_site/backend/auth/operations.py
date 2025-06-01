@@ -136,7 +136,7 @@ def invalidate_token(payload: TokenPayload, repo: AuthRepository):
 
 def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
   payload = decode_token(token)
-  if not payload or payload.get("type") != "access" or payload.get("type") != "refresh":
+  if not payload or payload.get("type") != "access" and payload.get("type") != "refresh":
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
   user_id: str = payload.get("sub")
   user = get_user_by_id(user_id, repo)
