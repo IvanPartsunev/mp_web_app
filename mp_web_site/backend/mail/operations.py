@@ -155,7 +155,7 @@ def send_news_notification(
                     <p style="margin:24px 0 0 0;">Ако не сте заявили абонамент за новини, моля игнорирайте този имейл.</p>
                     <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
                       Това е автоматично съобщение, моля не отговаряйте на този имейл.<br>
-                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#1976d2;">отпишете се тук {unsubscribe_link}</a>.
+                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#1976d2;">отпишете се тук</a>.
                     </p>
                   </td>
                 </tr>
@@ -185,6 +185,6 @@ def construct_verification_link(user_id: str, email: EmailStr | str, request: Re
 
 
 def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
-  token = generate_unsubscribe_token(email)
+  token = generate_unsubscribe_token(user_id, email)
   base_url = str(request.base_url).rstrip("/")
   return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"

@@ -1,23 +1,27 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from starlette.responses import HTMLResponse
 from mp_web_site.backend.auth.operations import decode_token, is_token_expired
 from mp_web_site.backend.database.operations import UserRepository
+from mp_web_site.backend.mail.operations import send_news_notification
 from mp_web_site.backend.users.models import UserUpdate
-from mp_web_site.backend.users.operations import update_user
+from mp_web_site.backend.users.operations import update_user, get_user_repository
 
 mail_router = APIRouter(tags=["email"])
 
+@mail_router.post("/send-news")
+async def send_notification(request: Request):
+  user_id = "3902d331-0752-4785-9694-ab5afa5b18b7"
+  user_email = "ivan.parcunev@gmail.com"
+  link = "https://webcafe.bg/musiccafe/nay-dobrite-instrumentali-vav-veliki-rok-i-metal-albumi.html"
+  send_news_notification(request, user_id, user_email, link)
 
-@mail_router.post("/unsubscribe", response_class=HTMLResponse)
-def unsubscribe(user_id: str, email: str, token: str):
-  # TODO: Validate token and mark user as unsubscribed in your database
-  # For now, just show a confirmation page
-  # Implement your own logic to securely handle unsubscription
+@mail_router.get("/unsubscribe", response_class=HTMLResponse)
+def unsubscribe(email: str, token: str, repo: UserRepository = Depends(get_user_repository)):
+  user_data = UserUpdate(subscribed=False)
   payload = decode_token(token)
+  user_id = payload.get("user_id")
 
-  if not is_token_expired(token) and token == payload.get("sub") and payload.get("type") != "unsubscribe":
-    repo = UserRepository()
-    user_data = UserUpdate(subscribed=False)
+  if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "unsubscribe":
     update_user(user_id, email, user_data, repo)
     return """
         <html>

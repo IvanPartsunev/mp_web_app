@@ -84,10 +84,10 @@ async def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]
 @user_router.get("/activate-account", response_model=User, status_code=status.HTTP_201_CREATED)
 async def user_activate_account(email: EmailStr | str, token: str, repo: UserRepository = Depends(get_user_repository)):
   user_data = UserUpdate(active=True)
-  email = email
   payload = decode_token(token)
   user_id = payload.get("user_id")
-  if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") != "activation":
+
+  if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "activation":
     return update_user(user_id, email, user_data, repo)
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
