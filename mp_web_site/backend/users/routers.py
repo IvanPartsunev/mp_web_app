@@ -8,7 +8,7 @@ from mp_web_site.backend.auth.operations import (
   generate_refresh_token,
   role_required,
   get_auth_repository,
-  decode_token
+  decode_token, is_token_expired
 )
 from mp_web_site.backend.database.operations import UserRepository, AuthRepository
 from mp_web_site.backend.mail.operations import construct_verification_link, send_verification_email
@@ -87,7 +87,7 @@ async def user_activate_account(email: EmailStr | str, token: str, repo: UserRep
   email = email
   payload = decode_token(token)
   user_id = payload.get("user_id")
-  if email == payload.get("sub"):
+  if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") != "activation":
     return update_user(user_id, email, user_data, repo)
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 

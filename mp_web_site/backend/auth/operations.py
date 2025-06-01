@@ -80,10 +80,11 @@ def generate_activation_token(user_id: str, email: EmailStr | str) -> str:
   return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
-def generate_unsubscribe_token(email: str) -> str:
+def generate_unsubscribe_token(user_id: str, email: str) -> str:
   settings = get_jwt_settings()
   payload = {
     "sub": email,
+    "user_id": user_id,
     "type": "unsubscribe",
     "exp": datetime.now() + timedelta(minutes=15),
   }
