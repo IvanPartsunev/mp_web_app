@@ -1,18 +1,18 @@
-from datetime import datetime, timedelta
+import boto3
+
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import lru_cache
 
-import boto3
 from botocore.exceptions import ClientError
-from fastapi import BackgroundTasks
 from typing import Optional, Dict
 
-from jose import jwt
+from fastapi import HTTPException, Request
+from pydantic import EmailStr
 
-from mp_web_site.app_config import SesSettings
-from mp_web_site.backend.auth.operations import get_jwt_settings
+from mp_web_site.backend.app_config import SesSettings
+from mp_web_site.backend.auth.operations import generate_activation_token, generate_unsubscribe_token
 
 
 @lru_cache
@@ -71,10 +71,119 @@ def send_email_ses(
     print(f"Error sending email: {e.response['Error']['Message']}")
     raise
 
-def generate_unsubscribe_token(email: str) -> str:
-  settings = get_jwt_settings()
-  payload = {
-    "email": email,
-    "exp": datetime.now() + timedelta(days=30)
-  }
-  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+
+def send_verification_email(
+  email: EmailStr | str,
+  verification_link: str,
+):
+  subject = "Verify your MySite account"
+
+  html_body = f"""
+    <!DOCTYPE html>
+    <html lang="bg">
+      <head>
+        <meta charset="UTF-8">
+        <title>Потвърдете Вашия акаунт</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:#f8f9fa;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
+          <tr>
+            <td align="center">
+              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
+                    <p style="margin:0 0 16px 0;">Здравейте,</p>
+                    <p style="margin:0 0 24px 0;">Моля, потвърдете Вашия акаунт, като натиснете бутона по-долу:</p>
+                    <a href="{verification_link}"
+                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                      Кликнете тук
+                    </a>
+                    <p style="margin:24px 0 0 0;">Ако не сте заявили регистрация, моля игнорирайте този имейл.</p>
+                    <p style="margin:24px 0 0 0;font-size:13px;">С уважение, от екипа на<br>ГПК "Мурджов пожар"<br>с. Славейно</p>
+                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
+                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+  try:
+    send_email_ses(
+      to_address=email,
+      subject=subject,
+      html_body=html_body,
+    )
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+
+
+def send_news_notification(
+  request: Request,
+  email: str,
+  news_link: str,
+):
+  unsubscribe_link = construct_unsubscribe_link(email, request)
+
+  subject = "Какво ново в MySite"
+
+  html_body = f"""
+    <!DOCTYPE html>
+    <html lang="bg">
+      <head>
+        <meta charset="UTF-8">
+        <title>Нова новина в MySite</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:#f8f9fa;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
+          <tr>
+            <td align="center">
+              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
+                    <p style="margin:0 0 16px 0;">Здравейте,</p>
+                    <p style="margin:0 0 24px 0;">Има нова новина на нашия сайт! Можете да я прочетете, като натиснете бутона по-долу:</p>
+                    <a href="{news_link}"
+                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                      Кликнете тук
+                    </a>
+                    <p style="margin:24px 0 0 0;">Ако не сте заявили абонамент за новини, моля игнорирайте този имейл.</p>
+                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
+                      Това е автоматично съобщение, моля не отговаряйте на този имейл.<br>
+                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#1976d2;">отпишете се тук {unsubscribe_link}</a>.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+  try:
+    send_email_ses(
+      to_address=email,
+      subject=subject,
+      html_body=html_body,
+      headers={
+        "List-Unsubscribe": f"<{unsubscribe_link}>"
+      }
+    )
+  except Exception as e:
+    raise HTTPException(status_code=500, detail="Failed to send email")
+
+def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
+  token = generate_activation_token(user_id, email)
+  base_url = str(request.base_url).rstrip("/")
+  return f"{base_url}/api/users/activate-account?email={email}&token={token}"
+
+
+def construct_unsubscribe_link(email: EmailStr | str, request: Request) -> str:
+  token = generate_unsubscribe_token(email)
+  base_url = str(request.base_url).rstrip("/")
+  return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
