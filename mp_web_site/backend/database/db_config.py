@@ -1,9 +1,8 @@
 import boto3
 
 from functools import lru_cache
-from pydantic_settings import BaseSettings
 
-from mp_web_site.app_config import DynamoDBSettings
+from mp_web_site.backend.app_config import DynamoDBSettings
 
 
 @lru_cache()
