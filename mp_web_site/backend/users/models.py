@@ -11,9 +11,6 @@ class UserBase(BaseModel):
     phone: int
 
 class UserCreate(UserBase):
-    # created_at: datetime = Field(default_factory=datetime.now)
-    # updated_at: datetime = Field(default_factory=datetime.now)
-    # active: bool
     password: str
 
 
@@ -23,23 +20,15 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     active: Optional[bool] = None
     # password: Optional[str] = None
+    subscribed: Optional[bool] = None
 
-
-class UserSecret(BaseModel):
-    id: str
-    email: EmailStr
-    role: str
-    salt: str
-    password_hash: str
-
-
-class UserInDB(UserBase):
-    id: str = Field(default_factory=lambda: str(uuid4()))
-    user_code: Optional[str] = None
-    role: str = UserRole.REGULAR_USER.value
-    active: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
+# class UserInDB(UserBase):
+#     id: str = Field(default_factory=lambda: str(uuid4()))
+#     user_code: Optional[str] = None
+#     role: str = UserRole.REGULAR_USER.value
+#     active: bool = Field(default=False)
+#     created_at: datetime = Field(default_factory=datetime.now)
+#     updated_at: datetime = Field(default_factory=datetime.now)
 
 
 class User(UserBase):
@@ -48,4 +37,13 @@ class User(UserBase):
     role: str
     created_at: datetime
     updated_at: datetime
+    subscribed: bool
 
+
+class UserSecret(BaseModel):
+    id: str
+    email: EmailStr
+    role: str
+    salt: str
+    password_hash: str
+    # subscribed: bool

@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import datetime
 
@@ -6,6 +7,8 @@ from boto3.dynamodb.conditions import Key
 from typing import Optional, List
 from uuid import uuid4
 
+from botocore.exceptions import ClientError
+from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
 from mp_web_site.backend.database.operations import UserRepository
@@ -54,8 +57,9 @@ def validate_password(password):
   return password
 
 
-def create_user(user_data: UserCreate, repo: UserRepository) -> User:
+def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -> User:
   """Create a new user in DynamoDB."""
+
   user_id = str(uuid4())
   user_role = UserRole.REGULAR_USER.value
   active = False
@@ -76,13 +80,23 @@ def create_user(user_data: UserCreate, repo: UserRepository) -> User:
     "updated_at": updated_at.isoformat(),
     "salt": salt,
     "password_hash": hashed_password,
+    "subscribed": True
   }
 
   try:
     repo.table.put_item(Item=user_item)
-  # TODO: Make better error handling with custom error
+  except ClientError as e:
+    logging.error(f"DynamoDB ClientError: {e.response['Error']['Message']}")
+    raise HTTPException(
+      status_code=500,
+      detail=f"Database error: {e.response['Error']['Message']}"
+    )
   except Exception as e:
-    raise
+    logging.error(f"Unexpected error: {str(e)}")
+    raise HTTPException(
+      status_code=500,
+      detail="An unexpected error occurred while creating the user."
+    )
 
   return repo.convert_item_to_user(user_item)
 
@@ -132,10 +146,10 @@ def list_users(self) -> List[User]:
   return [self._convert_to_user(item) for item in response["Items"]]
 
 
-def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
+def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[User]:
   """Update a user in DynamoDB."""
-  # First, check if the user exists
-  existing_user = self.get_user_by_id(user_id)
+
+  existing_user = get_user_by_email(user_email, repo)
   if not existing_user:
     return None
 
@@ -146,7 +160,7 @@ def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
 
   # Add updated_at timestamp
   update_expression_parts.append("#updated_at = :updated_at")
-  expression_attribute_values[":updated_at"] = datetime.utcnow().isoformat()
+  expression_attribute_values[":updated_at"] = datetime.now().isoformat()
   expression_attribute_names["#updated_at"] = "updated_at"
 
   # Add other fields if they are provided
@@ -170,19 +184,24 @@ def update_user(self, user_id: str, user_data: UserUpdate) -> Optional[User]:
     expression_attribute_values[":active"] = user_data.active
     expression_attribute_names["#active"] = "active"
 
+  if user_data.subscribed is not None:
+    update_expression_parts.append("#subscribed = :subscribed")
+    expression_attribute_values[":subscribed"] = user_data.subscribed
+    expression_attribute_names["#subscribed"] = "subscribed"
+
   # Build the update expression
   update_expression = "SET " + ", ".join(update_expression_parts)
 
   # Update the item
-  response = self.table.update_item(
+  response = repo.table.update_item(
     Key={"id": user_id},
     UpdateExpression=update_expression,
     ExpressionAttributeValues=expression_attribute_values,
     ExpressionAttributeNames=expression_attribute_names,
-    ReturnValues="ALL_NEW"
+    ReturnValues="ALL_NEW",
   )
 
-  return self._convert_to_user(response["Attributes"])
+  return repo.convert_item_to_user(response["Attributes"])
 
 
 def delete_user(user_id: str, repo: UserRepository) -> bool:

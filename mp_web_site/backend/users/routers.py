@@ -1,12 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr
 
 from mp_web_site.backend.auth.models import Token
-from mp_web_site.backend.auth.operations import create_access_token, create_refresh_token, \
-  get_current_user, role_required, get_auth_repository
+from mp_web_site.backend.auth.operations import (
+  generate_access_token,
+  generate_refresh_token,
+  role_required,
+  get_auth_repository,
+  decode_token
+)
 from mp_web_site.backend.database.operations import UserRepository, AuthRepository
-from mp_web_site.backend.users.models import UserCreate, User
-from mp_web_site.backend.users.operations import get_user_repository, get_user_by_email, create_user, authenticate_user
+from mp_web_site.backend.mail.operations import construct_verification_link, send_verification_email
+from mp_web_site.backend.users.models import UserCreate, User, UserUpdate
+from mp_web_site.backend.users.operations import (
+  get_user_repository,
+  get_user_by_email,
+  create_user,
+  authenticate_user,
+  update_user
+)
 from mp_web_site.backend.users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
@@ -16,6 +29,7 @@ user_repository = UserRepository()
 
 @user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
 async def sign_up(
+  request: Request,
   user_data: UserCreate,
   repo: UserRepository = Depends(get_user_repository)
 ):
@@ -30,7 +44,11 @@ async def sign_up(
       detail="User with this email already exists"
     )
 
-  return create_user(user_data, repo)
+  user = create_user(user_data, request, repo)
+  verification_link = construct_verification_link(user.id, user.email, request)
+  send_verification_email(user.email, verification_link)
+
+  return user
 
 
 @user_router.post("/sign-in", response_model=Token)
@@ -44,8 +62,8 @@ async def user_sign_in(
   if not user:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-  access_token = create_access_token({"sub": user.id, "role": user.role})
-  refresh_token = create_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
+  access_token = generate_access_token({"sub": user.id, "role": user.role})
+  refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
 
   response.set_cookie(
     key="refresh_token",
@@ -63,9 +81,15 @@ async def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 
-@user_router.post("/activate-account")
-async def user_activate_account(user=Depends(role_required([UserRole.REGULAR_USER]))):
-  pass
+@user_router.get("/activate-account", response_model=User, status_code=status.HTTP_201_CREATED)
+async def user_activate_account(email: EmailStr | str, token: str, repo: UserRepository = Depends(get_user_repository)):
+  user_data = UserUpdate(active=True)
+  email = email
+  payload = decode_token(token)
+  user_id = payload.get("user_id")
+  if email == payload.get("sub"):
+    return update_user(user_id, email, user_data, repo)
+  raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 # TODO: Assess the need of separate endpoints for getting use by email, id ect. or all to be combined in get_user.
 # @router.get("/{user_id}", response_model=User)
