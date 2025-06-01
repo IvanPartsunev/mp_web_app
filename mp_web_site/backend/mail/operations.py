@@ -124,10 +124,11 @@ def send_verification_email(
 
 def send_news_notification(
   request: Request,
+  user_id: str,
   email: str,
   news_link: str,
 ):
-  unsubscribe_link = construct_unsubscribe_link(email, request)
+  unsubscribe_link = construct_unsubscribe_link(user_id, email, request)
 
   subject = "Какво ново в MySite"
 
@@ -183,7 +184,7 @@ def construct_verification_link(user_id: str, email: EmailStr | str, request: Re
   return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 
-def construct_unsubscribe_link(email: EmailStr | str, request: Request) -> str:
+def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_unsubscribe_token(email)
   base_url = str(request.base_url).rstrip("/")
   return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
