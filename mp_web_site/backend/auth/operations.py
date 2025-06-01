@@ -7,8 +7,9 @@ from uuid import uuid4
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
+from pydantic import EmailStr
 
-from mp_web_site.app_config import JWTSettings
+from mp_web_site.backend.app_config import JWTSettings
 from mp_web_site.backend.auth.models import TokenPayload
 from mp_web_site.backend.database.operations import UserRepository, AuthRepository
 from mp_web_site.backend.users.models import User
@@ -33,7 +34,7 @@ def get_auth_repository():
   return repo
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def generate_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
   expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -42,7 +43,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   return encoded_jwt
 
 
-def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Optional[timedelta] = None):
+def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
   expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
@@ -66,6 +67,27 @@ def create_refresh_token(data: dict, repo: AuthRepository, expires_delta: Option
   to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
   encoded_jwt = jwt.encode(to_encode, settings.secret_key, settings.algorithm)
   return encoded_jwt
+
+
+def generate_activation_token(user_id: str, email: EmailStr | str) -> str:
+  settings = get_jwt_settings()
+  payload = {
+    "sub": email,
+    "user_id": user_id,
+    "type": "activation",
+    "exp": datetime.now() + timedelta(hours=1),
+  }
+  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+
+
+def generate_unsubscribe_token(email: str) -> str:
+  settings = get_jwt_settings()
+  payload = {
+    "sub": email,
+    "type": "unsubscribe",
+    "exp": datetime.now() + timedelta(minutes=15),
+  }
+  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
 def decode_token(token: str):
