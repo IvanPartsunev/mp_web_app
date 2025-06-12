@@ -22,8 +22,8 @@ project = PythonProject(
 
   # Development dependencies
   dev_deps=[
-    "pytest",  # For testing
-    "pytest-cov",  # For test coverage
+    "pytest",
+    "pytest-cov",
   ],
 
   # Configure pytest
@@ -35,6 +35,7 @@ project.add_git_ignore("mp_web_site/backend/poetry.lock")
 project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
 project.add_git_ignore(".idea/")
+project.add_git_ignore("dynamodb_data/")
 
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
