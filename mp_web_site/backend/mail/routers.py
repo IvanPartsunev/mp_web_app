@@ -9,10 +9,10 @@ from mp_web_site.backend.users.operations import update_user, get_user_repositor
 mail_router = APIRouter(tags=["email"])
 
 @mail_router.post("/send-news")
-async def send_notification(request: Request):
-  user_id = "3902d331-0752-4785-9694-ab5afa5b18b7"
-  user_email = "ivan.parcunev@gmail.com"
-  link = "https://webcafe.bg/musiccafe/nay-dobrite-instrumentali-vav-veliki-rok-i-metal-albumi.html"
+async def send_notification(request: Request, user_id: str, user_email: str, link: str):
+  user_id = user_id
+  user_email = user_email
+  link = link
   send_news_notification(request, user_id, user_email, link)
 
 @mail_router.get("/unsubscribe", response_class=HTMLResponse)
