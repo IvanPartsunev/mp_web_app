@@ -19,16 +19,7 @@ class UserUpdate(BaseModel):
     phone: Optional[int] = None
     role: Optional[str] = None
     active: Optional[bool] = None
-    # password: Optional[str] = None
     subscribed: Optional[bool] = None
-
-# class UserInDB(UserBase):
-#     id: str = Field(default_factory=lambda: str(uuid4()))
-#     user_code: Optional[str] = None
-#     role: str = UserRole.REGULAR_USER.value
-#     active: bool = Field(default=False)
-#     created_at: datetime = Field(default_factory=datetime.now)
-#     updated_at: datetime = Field(default_factory=datetime.now)
 
 
 class User(UserBase):
@@ -46,4 +37,3 @@ class UserSecret(BaseModel):
     role: str
     salt: str
     password_hash: str
-    # subscribed: bool

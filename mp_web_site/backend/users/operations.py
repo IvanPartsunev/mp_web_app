@@ -128,17 +128,6 @@ def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool 
   return repo.convert_item_to_user(response["Items"][0])
 
 
-def authenticate_user(email: str, password: str, repo: UserRepository) -> Optional[UserSecret]:
-  user = get_user_by_email(email, repo, secret=True)
-
-  if not user:
-    return None
-
-  if verify_password(password_hash=user.password_hash, password=password, salt=user.salt):
-    return user
-  return None
-
-
 def list_users(self) -> List[User]:
   """List all users from DynamoDB."""
   response = self.table.scan()

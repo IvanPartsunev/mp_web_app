@@ -12,8 +12,8 @@ from pydantic import EmailStr
 from mp_web_site.backend.app_config import JWTSettings
 from mp_web_site.backend.auth.models import TokenPayload
 from mp_web_site.backend.database.operations import UserRepository, AuthRepository
-from mp_web_site.backend.users.models import User
-from mp_web_site.backend.users.operations import get_user_repository, get_user_by_id
+from mp_web_site.backend.users.models import User, UserSecret
+from mp_web_site.backend.users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
 from mp_web_site.backend.users.roles import UserRole, ROLE_HIERARCHY
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -166,6 +166,17 @@ def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository =
   if not user:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
   return user
+
+
+def authenticate_user(email: str, password: str, repo: UserRepository) -> Optional[UserSecret]:
+  user = get_user_by_email(email, repo, secret=True)
+
+  if not user:
+    return None
+
+  if verify_password(password_hash=user.password_hash, password=password, salt=user.salt):
+    return user
+  return None
 
 
 def role_required(required_roles: List[UserRole]):
