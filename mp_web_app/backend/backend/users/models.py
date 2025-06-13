@@ -1,9 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
-from uuid import uuid4
-
-from mp_web_site.backend.users.roles import UserRole
 
 
 class UserBase(BaseModel):

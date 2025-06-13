@@ -1,3 +1,4 @@
+from projen.javascript import NodeProject, NodePackageManager
 from projen.python import PythonProject
 
 python_version = "3.12.8"
@@ -6,11 +7,11 @@ project = PythonProject(
   description="MP Web Site with CDK infrastructure and FastAPI backend",
   author_email="ivan.parcunev@gmail.com",
   author_name="Ivan Partsunev",
-  module_name="mp_web_site",
-  name="mp-web-site",
+  module_name="mp_web_app",
+  name="mp-web-app",
   version="0.1.0",
   poetry=True,
-  poetry_options={},
+  poetry_options={"package_mode": False},
 
   # Main project dependencies (CDK infrastructure)
   deps=[
@@ -30,8 +31,41 @@ project = PythonProject(
   pytest=True,  # Enable pytest for testing
 )
 
+PythonProject(
+  parent=project,
+  outdir="mp_web_app/backend",
+  module_name="backend",
+  name="backend",
+  version="0.1.0",
+  poetry=True,
+  author_email="ivan.parcunev@gmail.com",
+  author_name="Ivan Partsunev",
+  deps=[
+    f"python@{python_version}",
+    "fastapi@0.115.12",
+    "pydantic@2.10.3",
+    "pydantic@{version = '2.11.3', extras = ['email']}",
+    "uvicorn@0.34.2",
+    "mangum@0.19.0",
+    "python-jose@^3.4.0",
+    "argon2-cffi@^23.1.0",
+    "pydantic-settings@2.9.1",
+    "python-multipart@^0.0.20",
+  ],
+)
+
+NodeProject(
+    parent=project,
+    outdir="mp_web_app/frontend",
+    name="frontend",
+    default_release_branch="main",
+    package_manager=NodePackageManager.PNPM,
+    deps=[],
+    dev_deps=["typescript", "vite"],
+)
+
 # Add .gitignore entries for API-specific files
-project.add_git_ignore("mp_web_site/backend/poetry.lock")
+project.add_git_ignore("mp_web_app/backend/poetry.lock")
 project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
 project.add_git_ignore(".idea/")
@@ -40,36 +74,22 @@ project.add_git_ignore("dynamodb_data/")
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
 project.add_task("api:init",
-                 exec=f"cd mp_web_site/backend && poetry init -n --name mp-api --python '{python_version}'")
-
-# TODO: Fix this, and make some kind of mapping for deps (SUBPROJECT)
-# Task: Add needed deps for backend with Poetry
-project.add_task( "api:add-deps",
-                  exec="cd mp_web_site/backend "
-                       "&& poetry add "
-                       "fastapi@0.115.12 "
-                       "pydantic[email]@2.11.3 "
-                       "uvicorn@0.34.2 "
-                       "mangum@0.19.0 "
-                       "python-jose@^3.4.0 "
-                       "argon2-cffi@^23.1.0 "
-                       "pydantic-settings@2.9.1 "
-                       "python-multipart@^0.0.20 ")
+                 exec=f"cd mp_web_app/backend/backend && poetry init -n --name mp-api --python '{python_version}'")
 
 # Task: Install API dependencies
 # This installs all dependencies for the API component
 project.add_task("api:install",
-                 exec="cd mp_web_site/backend && poetry install --no-root")
+                 exec="cd mp_web_app/backend/backend && poetry install --no-root")
 
 # Task: Run the API locally
 # This starts the FastAPI server on port 8001 with auto-reload
 project.add_task("api:run",
-                 exec="cd mp_web_site/backend && poetry run uvicorn api:app --reload --port 8001")
+                 exec="cd mp_web_app/backend/backend && poetry run uvicorn api:app --reload --port 8001")
 
 # Task: Generate requirements.txt for Lambda deployment
 # This exports Poetry dependencies to a requirements.txt file for AWS Lambda
 project.add_task("api:requirements",
-                 exec="cd mp_web_site/backend && poetry export -f requirements.txt --output requirements.txt --without-hashes")
+                 exec="cd mp_web_app/backend/backend && poetry export -f requirements.txt --output requirements.txt --without-hashes")
 
 # CDK-specific tasks
 # Task: Synthesize CloudFormation template

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from starlette.responses import HTMLResponse
-from mp_web_site.backend.auth.operations import decode_token, is_token_expired
-from mp_web_site.backend.database.operations import UserRepository
-from mp_web_site.backend.mail.operations import send_news_notification
-from mp_web_site.backend.users.models import UserUpdate
-from mp_web_site.backend.users.operations import update_user, get_user_repository
+from backend.auth.operations import decode_token, is_token_expired
+from backend.database.operations import UserRepository
+from backend.mail.operations import send_news_notification
+from backend.users.models import UserUpdate
+from backend.users.operations import update_user, get_user_repository
 
 mail_router = APIRouter(tags=["email"])
 

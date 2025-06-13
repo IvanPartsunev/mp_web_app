@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
-from mp_web_site.backend.auth.models import Token
-from mp_web_site.backend.auth.operations import (
+from backend.auth.models import Token
+from backend.auth.operations import (
   verify_refresh_token,
   generate_access_token,
   generate_refresh_token,
   get_auth_repository,
   invalidate_token,
 )
-from mp_web_site.backend.database.operations import AuthRepository
+from backend.database.operations import AuthRepository
 
 auth_router = APIRouter(tags=["auth"])
 
