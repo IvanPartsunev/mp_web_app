@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
-from backend.auth.models import Token
-from backend.auth.operations import (
+from auth.models import Token
+from auth.operations import (
   verify_refresh_token,
   generate_access_token,
   generate_refresh_token,
   get_auth_repository,
   invalidate_token,
 )
-from backend.database.operations import AuthRepository
+from database.operations import AuthRepository
 
 auth_router = APIRouter(tags=["auth"])
 

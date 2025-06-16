@@ -1,9 +1,9 @@
 from typing import Dict, Any
 from decimal import Decimal
 
-from backend.auth.models import TokenPayload
-from backend.database.db_config import get_dynamodb_resource
-from backend.users.models import User, UserSecret
+from auth.models import TokenPayload
+from database.db_config import get_dynamodb_resource
+from users.models import User, UserSecret
 
 
 class UserRepository:

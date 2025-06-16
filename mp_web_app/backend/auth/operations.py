@@ -9,12 +9,12 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from pydantic import EmailStr
 
-from backend.app_config import JWTSettings
-from backend.auth.models import TokenPayload
-from backend.database.operations import UserRepository, AuthRepository
-from backend.users.models import User, UserSecret
-from backend.users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
-from backend.users.roles import UserRole, ROLE_HIERARCHY
+from app_config import JWTSettings
+from auth.models import TokenPayload
+from database.operations import UserRepository, AuthRepository
+from users.models import User, UserSecret
+from users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
+from users.roles import UserRole, ROLE_HIERARCHY
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7

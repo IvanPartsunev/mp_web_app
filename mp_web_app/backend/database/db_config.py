@@ -2,7 +2,7 @@ import boto3
 
 from functools import lru_cache
 
-from backend.app_config import DynamoDBSettings
+from app_config import DynamoDBSettings
 
 
 @lru_cache()

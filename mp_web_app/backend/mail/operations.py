@@ -11,8 +11,8 @@ from typing import Optional, Dict
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from backend.app_config import SesSettings
-from backend.auth.operations import generate_activation_token, generate_unsubscribe_token
+from app_config import SesSettings
+from auth.operations import generate_activation_token, generate_unsubscribe_token
 
 
 @lru_cache

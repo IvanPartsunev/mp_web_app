@@ -2,25 +2,25 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
-from backend.auth.models import Token
-from backend.auth.operations import authenticate_user
-from backend.auth.operations import (
+from auth.models import Token
+from auth.operations import authenticate_user
+from auth.operations import (
   generate_access_token,
   generate_refresh_token,
   role_required,
   get_auth_repository,
   decode_token, is_token_expired
 )
-from backend.database.operations import UserRepository, AuthRepository
-from backend.mail.operations import construct_verification_link, send_verification_email
-from backend.users.models import UserCreate, User, UserUpdate
-from backend.users.operations import (
+from database.operations import UserRepository, AuthRepository
+from mail.operations import construct_verification_link, send_verification_email
+from users.models import UserCreate, User, UserUpdate
+from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
   update_user
 )
-from backend.users.roles import UserRole
+from users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
 

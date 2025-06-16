@@ -28,7 +28,7 @@
       "name": "api:run",
       "steps": [
         {
-          "exec": "cd mp_web_app/backend/backend && poetry run uvicorn api:app --reload --port 8001"
+          "exec": "cd mp_web_app/backend && poetry run uvicorn api:app --reload --port 8001"
         }
       ]
     },
@@ -142,6 +142,14 @@
       "steps": [
         {
           "spawn": "default"
+        }
+      ]
+    },
+    "frontend:start": {
+      "name": "frontend:start",
+      "steps": [
+        {
+          "exec": "cd mp_web_app/frontend && pnpm start"
         }
       ]
     },

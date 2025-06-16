@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from backend.mail.routers import mail_router
-from backend.users.routers import user_router
-from backend.auth.routers import auth_router
+from mail.routers import mail_router
+from users.routers import user_router
+from auth.routers import auth_router
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 

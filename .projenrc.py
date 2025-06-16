@@ -1,5 +1,7 @@
+from projen import javascript
 from projen.javascript import NodeProject, NodePackageManager
 from projen.python import PythonProject
+from projen.web import ReactTypeScriptProject
 
 python_version = "3.12.8"
 
@@ -54,14 +56,16 @@ PythonProject(
   ],
 )
 
-NodeProject(
+frontend = ReactTypeScriptProject(
     parent=project,
     outdir="mp_web_app/frontend",
     name="frontend",
     default_release_branch="main",
-    package_manager=NodePackageManager.PNPM,
-    deps=[],
-    dev_deps=["typescript", "vite"],
+    package_manager=javascript.NodePackageManager.PNPM,
+    deps=["axios"],
+    dev_deps=["@types/react"],  # dev deps
+    eslint=True,
+    jest=True,
 )
 
 # Add .gitignore entries for API-specific files
@@ -84,12 +88,17 @@ project.add_task("api:install",
 # Task: Run the API locally
 # This starts the FastAPI server on port 8001 with auto-reload
 project.add_task("api:run",
-                 exec="cd mp_web_app/backend/backend && poetry run uvicorn api:app --reload --port 8001")
+                 exec="cd mp_web_app/backend && poetry run uvicorn api:app --reload --port 8001")
 
 # Task: Generate requirements.txt for Lambda deployment
 # This exports Poetry dependencies to a requirements.txt file for AWS Lambda
 project.add_task("api:requirements",
                  exec="cd mp_web_app/backend/backend && poetry export -f requirements.txt --output requirements.txt --without-hashes")
+
+# Task: Start React app
+# This starts the React app
+project.add_task("frontend:start",
+                 exec="cd mp_web_app/frontend && pnpm start")
 
 # CDK-specific tasks
 # Task: Synthesize CloudFormation template
