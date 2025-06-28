@@ -145,14 +145,6 @@
         }
       ]
     },
-    "frontend:shadcn-init": {
-      "name": "frontend:shadcn-init",
-      "steps": [
-        {
-          "exec": "cd mp_web_app/frontend && pnpm dlx shadcn-ui@latest init"
-        }
-      ]
-    },
     "frontend:start": {
       "name": "frontend:start",
       "steps": [

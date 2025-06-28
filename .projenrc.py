@@ -33,7 +33,7 @@ project = PythonProject(
   pytest=True,  # Enable pytest for testing
 )
 
-PythonProject(
+backend = PythonProject(
   parent=project,
   outdir="mp_web_app/backend",
   module_name="backend",
@@ -67,6 +67,11 @@ frontend = ReactTypeScriptProject(
     "tailwindcss@4.1.11",
     "postcss@8.5.6",
     "autoprefixer@10.4.21",
+    "class-variance-authority@^0.7.1",
+    "clsx@^2.1.1",
+    "tailwind-merge@^3.3.1",
+    "lucide-react@0.525.0",
+    "tw-animate-css@1.3.4",
   ],
   dev_deps=["@types/react"],
   eslint=True,
@@ -79,6 +84,11 @@ project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
 project.add_git_ignore(".idea/")
 project.add_git_ignore("dynamodb_data/")
+
+frontend.tsconfig.file.add_override("compilerOptions.baseUrl", ".")
+frontend.tsconfig.file.add_override("compilerOptions.paths", {
+  "@/*": ["./*"]
+})
 
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
@@ -127,8 +137,4 @@ project.add_task("install:all",
 project.add_task("deploy:all",
                  exec="npx projen api:requirements && npx projen cdk:deploy")
 
-project.add_task(
-  "frontend:shadcn-init",
-  exec="cd mp_web_app/frontend && pnpm dlx shadcn-ui@latest init"
-)
 project.synth()
