@@ -84,7 +84,9 @@ frontend = NodeProject(
     "@tailwindcss/vite@^4.1.11",
     "tailwind-merge@^3.3.1",
     "tw-animate-css@^1.3.4",
-    "shadcn@^2.7.0"
+    "shadcn@^2.7.0",
+    "class-variance-authority@^0.7.1",
+    "@radix-ui/react-slot@^1.2.3",
   ],
 )
 

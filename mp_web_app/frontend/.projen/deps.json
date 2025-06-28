@@ -1,6 +1,11 @@
 {
   "dependencies": [
     {
+      "name": "@radix-ui/react-slot",
+      "version": "^1.2.3",
+      "type": "build"
+    },
+    {
       "name": "@tailwindcss/vite",
       "version": "^4.1.11",
       "type": "build"
@@ -28,6 +33,11 @@
     {
       "name": "@vitejs/plugin-react",
       "version": "^4.0.0",
+      "type": "build"
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "^0.7.1",
       "type": "build"
     },
     {
