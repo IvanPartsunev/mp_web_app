@@ -1,11 +1,6 @@
 {
   "dependencies": [
     {
-      "name": "@radix-ui/react-slot",
-      "version": "^1.2.3",
-      "type": "build"
-    },
-    {
       "name": "@tailwindcss/vite",
       "version": "^4.1.11",
       "type": "build"
@@ -67,6 +62,16 @@
     {
       "name": "jest-junit",
       "version": "^16",
+      "type": "build"
+    },
+    {
+      "name": "lucide-react",
+      "version": "^0.525.0",
+      "type": "build"
+    },
+    {
+      "name": "radix-ui",
+      "version": "^1.4.2",
       "type": "build"
     },
     {

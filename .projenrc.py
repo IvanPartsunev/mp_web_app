@@ -86,7 +86,8 @@ frontend = NodeProject(
     "tw-animate-css@^1.3.4",
     "shadcn@^2.7.0",
     "class-variance-authority@^0.7.1",
-    "@radix-ui/react-slot@^1.2.3",
+    "radix-ui@^1.4.2",
+    "lucide-react@^0.525.0"
   ],
 )
 
