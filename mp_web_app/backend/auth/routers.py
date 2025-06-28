@@ -12,7 +12,7 @@ from database.operations import AuthRepository
 auth_router = APIRouter(tags=["auth"])
 
 
-@auth_router.post("/auth/refresh", response_model=Token)
+@auth_router.post("/refresh", response_model=Token)
 async def refresh(
   response: Response,
   refresh_token: str = Cookie(None),  # Prefer HTTP-only cookie
