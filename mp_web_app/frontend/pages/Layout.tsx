@@ -88,6 +88,21 @@ const NAV_LINKS = [
       },
     ],
   },
+  {
+    label: "Вход",
+    dropdown: [
+      {
+        label: "Влез",
+        to: "/login", // Placeholder link
+        description: "Влезе в своя акаунт",
+      },
+      {
+        label: "Създай",
+        to: "/register", // Placeholder link
+        description: "Създай акаунт ако си член на ГПК",
+      },
+    ],
+  },
 ];
 
 export function Layout({children}: { children: React.ReactNode }) {
@@ -114,12 +129,12 @@ export function Layout({children}: { children: React.ReactNode }) {
     }
   }, [mobileMenuOpen, showMobileMenu]);
 
-  // Mobile menu content with animation
+  // Mobile menu content with animation and scrollability
   const mobileMenu = (
     <div
       className={`
         fixed inset-0 z-50 bg-background flex flex-col p-6 sm:hidden
-        transition-all duration-300
+        transition-all duration-300 overflow-y-auto
         ${menuAnimating
         ? "opacity-100 translate-y-0 pointer-events-auto"
         : "opacity-0 -translate-y-4 pointer-events-none"
@@ -159,6 +174,7 @@ export function Layout({children}: { children: React.ReactNode }) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
+                  <div className="text-xs text-muted-foreground">{item.description}</div>
                 </Link>
               ))}
             </div>
@@ -191,7 +207,7 @@ export function Layout({children}: { children: React.ReactNode }) {
                           <NavigationMenuLink asChild key={item.label}>
                             <Link to={item.to}>
                               <div className="font-medium">{item.label}</div>
-                              <div className="text-muted-foreground">
+                              <div className="text-muted-foreground text-xs">
                                 {item.description}
                               </div>
                             </Link>
@@ -219,7 +235,7 @@ export function Layout({children}: { children: React.ReactNode }) {
         <span className="ml-2 text-lg font-bold"></span>
       </div>
 
-      {/* Mobile Menu Overlay with animation */}
+      {/* Mobile Menu Overlay with animation and scrollability */}
       {showMobileMenu && mobileMenu}
 
       <main>{children}</main>
@@ -228,5 +244,3 @@ export function Layout({children}: { children: React.ReactNode }) {
 }
 
 export default Layout;
-
-
