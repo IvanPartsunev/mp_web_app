@@ -72,13 +72,19 @@ frontend = NodeProject(
     "@types/react@^18.0.27",
     "@types/react-dom@^18.0.10",
     "@vitejs/plugin-react@^4.0.0",
-    "vite@^4.1.0",
-    "typescript@^4.9.0",  # Use TypeScript 4.x to avoid conflicts
+    "vite@^7.0.0",
+    "typescript@^4.9.0",
     "@typescript-eslint/eslint-plugin@^5.54.0",
     "@typescript-eslint/parser@^5.54.0",
     "eslint@^8.35.0",
     "eslint-plugin-react-hooks@^4.6.0",
     "eslint-plugin-react-refresh@^0.3.4",
+    "clsx@^2.1.1",
+    "tailwindcss@^4.1.11",
+    "@tailwindcss/vite@^4.1.11",
+    "tailwind-merge@^3.3.1",
+    "tw-animate-css@^1.3.4",
+    "shadcn@^2.7.0"
   ],
 )
 

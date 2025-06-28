@@ -110,7 +110,7 @@
           "exec": "npm install"
         },
         {
-          "exec": "npm update @types/react-dom @types/react @typescript-eslint/eslint-plugin @typescript-eslint/parser @vitejs/plugin-react eslint-plugin-react-hooks eslint-plugin-react-refresh eslint jest jest-junit typescript vite axios react-dom react-router-dom react"
+          "exec": "npm update @tailwindcss/vite @types/react-dom @types/react @typescript-eslint/eslint-plugin @typescript-eslint/parser @vitejs/plugin-react clsx eslint-plugin-react-hooks eslint-plugin-react-refresh eslint jest jest-junit shadcn tailwind-merge tailwindcss tw-animate-css typescript vite axios react-dom react-router-dom react"
         },
         {
           "exec": "npx projen"
