@@ -87,7 +87,7 @@ frontend = NodeProject(
     "shadcn@^2.7.0",
     "class-variance-authority@^0.7.1",
     "radix-ui@^1.4.2",
-    "lucide-react@^0.525.0"
+    "lucide-react@^0.525.0",
   ],
 )
 
