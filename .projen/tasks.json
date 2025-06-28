@@ -149,7 +149,7 @@
       "name": "frontend:start",
       "steps": [
         {
-          "exec": "cd mp_web_app/frontend && pnpm start"
+          "exec": "cd mp_web_app/frontend && npm run dev"
         }
       ]
     },

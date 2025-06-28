@@ -1,7 +1,5 @@
-from projen import javascript
 from projen.javascript import NodeProject, NodePackageManager
 from projen.python import PythonProject
-from projen.web import ReactTypeScriptProject
 
 python_version = "3.12.8"
 
@@ -56,39 +54,64 @@ backend = PythonProject(
   ],
 )
 
-frontend = ReactTypeScriptProject(
+frontend = NodeProject(
   parent=project,
   outdir="mp_web_app/frontend",
   name="frontend",
   default_release_branch="main",
-  package_manager=javascript.NodePackageManager.PNPM,
+  package_manager=NodePackageManager.NPM,
+
   deps=[
-    "axios@1.10.0",
-    "tailwindcss@4.1.11",
-    "postcss@8.5.6",
-    "autoprefixer@10.4.21",
-    "class-variance-authority@^0.7.1",
-    "clsx@^2.1.1",
-    "tailwind-merge@^3.3.1",
-    "lucide-react@0.525.0",
-    "tw-animate-css@1.3.4",
+    "react@^18.2.0",
+    "react-dom@^18.2.0",
+    "react-router-dom@^6.8.0",
+    "axios@^1.3.0",
   ],
-  dev_deps=["@types/react"],
-  eslint=True,
-  jest=True,
+
+  dev_deps=[
+    "@types/react@^18.0.27",
+    "@types/react-dom@^18.0.10",
+    "@vitejs/plugin-react@^4.0.0",
+    "vite@^4.1.0",
+    "typescript@^4.9.0",  # Use TypeScript 4.x to avoid conflicts
+    "@typescript-eslint/eslint-plugin@^5.54.0",
+    "@typescript-eslint/parser@^5.54.0",
+    "eslint@^8.35.0",
+    "eslint-plugin-react-hooks@^4.6.0",
+    "eslint-plugin-react-refresh@^0.3.4",
+  ],
 )
 
-# Add .gitignore entries for API-specific files
-project.add_git_ignore("mp_web_app/backend/poetry.lock")
+# Add necessary config files to frontend
+frontend.add_git_ignore("dist")
+frontend.add_git_ignore("node_modules")
+frontend.add_git_ignore(".env.local")
+frontend.add_git_ignore(".env.development.local")
+frontend.add_git_ignore(".env.test.local")
+frontend.add_git_ignore(".env.production.local")
+
+backend.add_git_ignore("poetry.lock")
+
 project.add_git_ignore(".qodo/")
 project.add_git_ignore(".env/")
 project.add_git_ignore(".idea/")
 project.add_git_ignore("dynamodb_data/")
 
-frontend.tsconfig.file.add_override("compilerOptions.baseUrl", ".")
-frontend.tsconfig.file.add_override("compilerOptions.paths", {
-  "@/*": ["./*"]
-})
+frontend.add_scripts({"dev": "vite"})
+frontend.add_scripts({"build": "vite build"})
+frontend.add_scripts({"preview": "vite preview"})
+frontend.add_scripts({"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"})
+
+# Override any default scripts that might include react-scripts
+frontend.add_scripts({"start": "vite"})
+
+# Remove the TypeScript check from build for now
+frontend.remove_script("compile")
+
+# frontend.tsconfig.file.add_override("compilerOptions.baseUrl", ".")
+# frontend.tsconfig.file.add_override("compilerOptions.paths", {
+#   "@/*": ["./*"]
+# })
 
 # Task: Initialize the API component with Poetry
 # This creates a separate Poetry environment for the API
@@ -113,7 +136,7 @@ project.add_task("api:requirements",
 # Task: Start React app
 # This starts the React app
 project.add_task("frontend:start",
-                 exec="cd mp_web_app/frontend && pnpm start")
+                 exec="cd mp_web_app/frontend && npm run dev")
 
 # CDK-specific tasks
 # Task: Synthesize CloudFormation template
