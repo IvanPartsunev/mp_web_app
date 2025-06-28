@@ -57,15 +57,20 @@ PythonProject(
 )
 
 frontend = ReactTypeScriptProject(
-    parent=project,
-    outdir="mp_web_app/frontend",
-    name="frontend",
-    default_release_branch="main",
-    package_manager=javascript.NodePackageManager.PNPM,
-    deps=["axios"],
-    dev_deps=["@types/react"],  # dev deps
-    eslint=True,
-    jest=True,
+  parent=project,
+  outdir="mp_web_app/frontend",
+  name="frontend",
+  default_release_branch="main",
+  package_manager=javascript.NodePackageManager.PNPM,
+  deps=[
+    "axios@1.10.0",
+    "tailwindcss@4.1.11",
+    "postcss@8.5.6",
+    "autoprefixer@10.4.21",
+  ],
+  dev_deps=["@types/react"],
+  eslint=True,
+  jest=True,
 )
 
 # Add .gitignore entries for API-specific files
@@ -122,4 +127,8 @@ project.add_task("install:all",
 project.add_task("deploy:all",
                  exec="npx projen api:requirements && npx projen cdk:deploy")
 
+project.add_task(
+  "frontend:shadcn-init",
+  exec="cd mp_web_app/frontend && pnpm dlx shadcn-ui@latest init"
+)
 project.synth()
