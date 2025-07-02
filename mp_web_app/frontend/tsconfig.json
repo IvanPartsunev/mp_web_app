@@ -18,7 +18,7 @@
   "include": [
     "src",
     "components",
-    "pages/*",
+    "pages",
     "context"
   ]
 }
