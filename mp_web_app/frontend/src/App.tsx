@@ -1,24 +1,47 @@
-import React from "react";
+import React, {Suspense, lazy} from "react";
 import {ThemeProvider} from "@/components/theme-provider";
 import {AuthProvider} from "@/context/AuthContext";
 import Layout from "@/pages/Layout";
 import {Route, Routes} from "react-router-dom";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import PageLoadingWrapper from "@/components/page-loading-wrapper";
+
+// Regular imports for pages that don't need API calls
 import Home from "@/pages/Home";
 import Products from "@/pages/Products";
 import Contacts from "@/pages/Contacts";
 import Gallery from "@/pages/Gallery";
-import Board from "@/pages/about-us/Board";
-import Control from "@/pages/about-us/Control";
-import Proxies from "@/pages/lists/Proxies";
-import Cooperative from "@/pages/lists/CooperativeMembers";
-import GoverningDocuments from "@/pages/documents/GoverningDocuments";
-import Forms from "@/pages/documents/Forms";
-import Minutes from "@/pages/documents/Minutes";
-import Transcripts from "@/pages/documents/Transcripts";
-import AccountingDocuments from "@/pages/documents/AccountingDocuments";
-import Others from "@/pages/documents/Others";
 import Login from "@/pages/authentication/Login";
 import Register from "@/pages/authentication/Register";
+
+// Lazy imports for pages that make API calls
+// @ts-ignore
+const Board = lazy(() => import("@/pages/about-us/Board"));
+// @ts-ignore
+const Control = lazy(() => import("@/pages/about-us/Control"));
+// @ts-ignore
+const Proxies = lazy(() => import("@/pages/lists/Proxies"));
+// @ts-ignore
+const Cooperative = lazy(() => import("@/pages/lists/CooperativeMembers"));
+// @ts-ignore
+const GoverningDocuments = lazy(() => import("@/pages/documents/GoverningDocuments"));
+// @ts-ignore
+const Forms = lazy(() => import("@/pages/documents/Forms"));
+// @ts-ignore
+const Minutes = lazy(() => import("@/pages/documents/Minutes"));
+// @ts-ignore
+const Transcripts = lazy(() => import("@/pages/documents/Transcripts"));
+// @ts-ignore
+const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocuments"));
+// @ts-ignore
+const Others = lazy(() => import("@/pages/documents/Others"));
+
+// Global loading fallback
+const GlobalLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <LoadingSpinner size="lg" text="Зареждане..."/>
+  </div>
+);
 
 function App() {
   return (
@@ -32,21 +55,91 @@ function App() {
             <Route path="contacts" element={<Contacts/>}/>
             <Route path="gallery" element={<Gallery/>}/>
 
-            {/* About us routes */}
-            <Route path="board" element={<Board/>}/>
-            <Route path="control" element={<Control/>}/>
+            {/* About us routes - with loading */}
+            <Route
+              path="board"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на управителния съвет...">
+                  <Board/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="control"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на контролния съвет...">
+                  <Control/>
+                </PageLoadingWrapper>
+              }
+            />
 
-            {/* Lists routes */}
-            <Route path="proxies" element={<Proxies/>}/>
-            <Route path="cooperative" element={<Cooperative/>}/>
+            {/* Lists routes - with loading */}
+            <Route
+              path="proxies"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на пълномощниците...">
+                  <Proxies/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="cooperative"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на член кооператорите...">
+                  <Cooperative/>
+                </PageLoadingWrapper>
+              }
+            />
 
-            {/* Documents routes */}
-            <Route path="governing-documents" element={<GoverningDocuments/>}/>
-            <Route path="forms" element={<Forms/>}/>
-            <Route path="minutes" element={<Minutes/>}/>
-            <Route path="transcripts" element={<Transcripts/>}/>
-            <Route path="accounting-documents" element={<AccountingDocuments/>}/>
-            <Route path="others" element={<Others/>}/>
+            {/* Documents routes - with loading */}
+            <Route
+              path="governing-documents"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на нормативните документи...">
+                  <GoverningDocuments/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="forms"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на бланките...">
+                  <Forms/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="minutes"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на протоколите...">
+                  <Minutes/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="transcripts"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на стенограмите...">
+                  <Transcripts/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="accounting-documents"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на счетоводните документи...">
+                  <AccountingDocuments/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="others"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на документите...">
+                  <Others/>
+                </PageLoadingWrapper>
+              }
+            />
 
             {/* Authentication routes */}
             <Route path="login" element={<Login/>}/>

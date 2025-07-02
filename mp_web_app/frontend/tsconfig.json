@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
@@ -17,7 +18,7 @@
   "include": [
     "src",
     "components",
-    "pages",
-    "context",
+    "pages/*",
+    "context"
   ]
 }
