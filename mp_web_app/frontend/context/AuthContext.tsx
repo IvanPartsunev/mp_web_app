@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {createContext, useContext, useState, ReactNode} from "react";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -8,14 +8,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({children}: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const login = () => setIsLoggedIn(true);
   const logout = () => setIsLoggedIn(false);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{isLoggedIn, login, logout}}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 import * as React from "react";
 import {useState, useEffect} from "react";
 import {Link} from "react-router-dom";
+import {Outlet} from "react-router-dom";
 import {useAuth} from "@/context/AuthContext";
 import {
   NavigationMenu,
@@ -16,20 +17,21 @@ import {Button} from "@/components/ui/button";
 
 // All navigation structure mapped here
 const NAV_LINKS = [
-  {label: "Начало", to: "/"},
-  {label: "Продукти", to: "/"},
-  {label: "Контакти", to: "/"},
+  {label: "Начало", to: "/home"},
+  {label: "Продукти", to: "/products"},
+  {label: "Контакти", to: "/contacts"},
+  {label: "Галерия", to: "/gallery"},
   {
     label: "За нас",
     dropdown: [
       {
         label: "Управителен съвет",
-        to: "/",
+        to: "/board",
         description: "Списък на членовете на УС към ГПК.",
       },
       {
         label: "Контролен съвет",
-        to: "/",
+        to: "/control",
         description: "Списък на членовете на КС към ГПК.",
       },
     ],
@@ -39,12 +41,12 @@ const NAV_LINKS = [
     dropdown: [
       {
         label: "Пълномощници",
-        to: "/",
+        to: "/proxies",
         description: "Списък на пълномощниците.",
       },
       {
         label: "Член кооператори",
-        to: "/",
+        to: "/cooperative",
         description: "Списък на член кооператорите.",
       },
     ],
@@ -54,35 +56,35 @@ const NAV_LINKS = [
     dropdown: [
       {
         label: "Нормативни документи",
-        to: "/",
+        to: "/governing-documents",
         description: "Нормативни документи свързани с дейността на ГПК.",
       },
       {
         label: "Бланки",
-        to: "/",
+        to: "/forms",
         description: "Бланки свързани с дейноста на кооперацията.",
       },
       {
         label: "Протоколи",
-        to: "/",
+        to: "/minutes",
         description: "Протоколи от преведени заседания на УС и КС.",
         requiresAuth: true,
       },
       {
         label: "Стенограми",
-        to: "/",
+        to: "/transcripts",
         description: "Стенограми от преведени заседания на УС.",
         requiresAuth: true,
       },
       {
         label: "Счетоводни документи",
-        to: "/",
+        to: "/accounting-documents",
         description: "Счетоводни документи свързани с дейноста на ГПК.",
         requiresAuth: true,
       },
       {
         label: "Други",
-        to: "/",
+        to: "/others",
         description: "Други документи свързани с дейноста на ГПК.",
         requiresAuth: true,
       },
@@ -93,19 +95,19 @@ const NAV_LINKS = [
     dropdown: [
       {
         label: "Влез",
-        to: "/login", // Placeholder link
+        to: "/login",
         description: "Влезе в своя акаунт",
       },
       {
         label: "Създай",
-        to: "/register", // Placeholder link
+        to: "/register",
         description: "Създай акаунт ако си член на ГПК",
       },
     ],
   },
 ];
 
-export function Layout({children}: { children: React.ReactNode }) {
+export function Layout() {
   const {isLoggedIn} = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -238,7 +240,9 @@ export function Layout({children}: { children: React.ReactNode }) {
       {/* Mobile Menu Overlay with animation and scrollability */}
       {showMobileMenu && mobileMenu}
 
-      <main>{children}</main>
+      <main>
+        <Outlet/>
+      </main>
     </div>
   );
 }
