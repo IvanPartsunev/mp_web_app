@@ -148,7 +148,7 @@ export function Layout() {
         <span className="text-xl font-bold">Меню</span>
         <Button
           onClick={() => setMobileMenuOpen(false)}
-          className="p-2 rounded hover:bg-accent text-gray-900 bg-gray-200"
+          className="p-2 rounded hover:bg-accent menu-button"
           aria-label="Затвори менюто"
         >
           <CloseIcon size={28}/>
@@ -229,7 +229,7 @@ export function Layout() {
       <div className="sm:hidden flex items-center p-4">
         <Button
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 rounded hover:bg-accent text-black bg-gray-200"
+          className="p-2 rounded hover:bg-accent menu-button"
           aria-label="Отвори менюто"
         >
           <MenuIcon size={28}/>
