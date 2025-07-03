@@ -27,8 +27,8 @@ user_router = APIRouter(tags=["users"])
 user_repository = UserRepository()
 
 
-@user_router.post("/sign-up", response_model=User, status_code=status.HTTP_201_CREATED)
-async def sign_up(
+@user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+async def register(
   request: Request,
   user_data: UserCreate,
   repo: UserRepository = Depends(get_user_repository)
@@ -51,8 +51,8 @@ async def sign_up(
   return user
 
 
-@user_router.post("/sign-in", response_model=Token)
-async def user_sign_in(
+@user_router.post("/login", response_model=Token)
+async def login(
   response: Response,
   form_data: OAuth2PasswordRequestForm = Depends(),
   user_repo: UserRepository = Depends(get_user_repository),

@@ -1,6 +1,9 @@
+from typing import List
+
 from pydantic_settings import BaseSettings
 
 REGION = "eu-central-1"
+
 
 class DynamoDBSettings(BaseSettings):
   """DynamoDB configuration settings."""
