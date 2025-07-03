@@ -138,8 +138,8 @@ export function Layout() {
         fixed inset-0 z-50 bg-background flex flex-col p-6 sm:hidden
         transition-all duration-300 overflow-y-auto
         ${menuAnimating
-        ? "opacity-100 translate-y-0 pointer-events-auto"
-        : "opacity-0 -translate-y-4 pointer-events-none"
+        ? "opacity-100 translate-x-0 pointer-events-auto"
+        : "opacity-0 -translate-x-full pointer-events-none"
       }
       `}
       style={{backgroundColor: "rgba(255,255,255,1)"}} // 100% opacity
@@ -148,7 +148,7 @@ export function Layout() {
         <span className="text-xl font-bold">Меню</span>
         <Button
           onClick={() => setMobileMenuOpen(false)}
-          className="p-2 rounded hover:bg-accent"
+          className="p-2 rounded hover:bg-accent text-gray-900 bg-gray-200"
           aria-label="Затвори менюто"
         >
           <CloseIcon size={28}/>
@@ -229,7 +229,7 @@ export function Layout() {
       <div className="sm:hidden flex items-center p-4">
         <Button
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 rounded hover:bg-accent"
+          className="p-2 rounded hover:bg-accent text-black bg-gray-200"
           aria-label="Отвори менюто"
         >
           <MenuIcon size={28}/>

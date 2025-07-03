@@ -1,7 +1,11 @@
+import {RegisterForm} from "@/components/register"
+
 export default function Register() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to register</h1>
-    </section>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm">
+        <RegisterForm/>
+      </div>
+    </div>
   )
 }
