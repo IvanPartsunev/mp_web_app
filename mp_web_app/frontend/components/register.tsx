@@ -20,12 +20,14 @@ export function RegisterForm({
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    phone: "",
     confirmPassword: "",
-    idNumber: ""
+    id_number: ""
   })
 
   const [errors, setErrors] = useState({
     passwordMatch: false,
+    phoneInvalid: false,
     submitted: false,
     api: ""
   })
@@ -46,7 +48,12 @@ export function RegisterForm({
         passwordMatch: false
       }))
     }
-
+    if (field === 'phone') {
+      setErrors(prev => ({
+        ...prev,
+        phoneInvalid: false
+      }))
+    }
     // Clear API error when user types
     if (errors.api) {
       setErrors(prev => ({
@@ -60,12 +67,13 @@ export function RegisterForm({
     return formData.password === formData.confirmPassword && formData.password.length > 0
   }
 
-  const registerUser = async (userData: {
-    email: string;
-    password: string;
-    idNumber: string;
-  }) => {
-    return apiPost("/register", userData);
+  // Bulgarian phone validation: +359XXXXXXXXX or 08XXXXXXXX
+  const validatePhone = (phone: string) => {
+    return /^(\+359|0)\d{9}$/.test(phone.replace(/\s+/g, ""));
+  }
+
+  const registerUser = async (userData: { email: string; password: string; phone: string; id_number: string }) => {
+    return apiPost("users/register", userData);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +90,15 @@ export function RegisterForm({
       return
     }
 
+    // Validate phone
+    if (!validatePhone(formData.phone)) {
+      setErrors(prev => ({
+        ...prev,
+        phoneInvalid: true
+      }))
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -89,7 +106,8 @@ export function RegisterForm({
       const userData = {
         email: formData.email,
         password: formData.password,
-        idNumber: formData.idNumber
+        phone: formData.phone,
+        id_number: formData.id_number
       }
 
       const result = await registerUser(userData)
@@ -101,12 +119,10 @@ export function RegisterForm({
       setFormData({
         email: "",
         password: "",
+        phone: "",
         confirmPassword: "",
-        idNumber: ""
+        id_number: ""
       })
-
-      // You might want to redirect user or show success message
-      // For example: navigate('/login') or show a success toast
 
     } catch (error) {
       console.error("Registration error:", error)
@@ -121,6 +137,7 @@ export function RegisterForm({
 
   const passwordsMatch = validatePasswords()
   const showPasswordError = errors.submitted && !passwordsMatch && formData.confirmPassword.length > 0
+  const showPhoneError = errors.submitted && errors.phoneInvalid
 
   // Show success message if registration was successful
   if (isSuccess) {
@@ -135,12 +152,6 @@ export function RegisterForm({
               <p className="text-green-600 mb-4">
                 Вашият акаунт беше създаден успешно.
               </p>
-              <Button
-                onClick={() => setIsSuccess(false)}
-                variant="outline"
-              >
-                Регистрирай друг акаунт
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -157,7 +168,6 @@ export function RegisterForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
-              {/* API Error Display */}
               {errors.api && (
                 <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
                   {errors.api}
@@ -165,7 +175,7 @@ export function RegisterForm({
               )}
 
               <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Имейл</Label>
                 <Input
                   id="email"
                   type="email"
@@ -176,7 +186,24 @@ export function RegisterForm({
                   required
                 />
               </div>
-
+              <div className="grid gap-3">
+                <Label htmlFor="phone">Телефон</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+359 8XXXXXXXX"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+                {showPhoneError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XIcon size={14}/>
+                    Невалиден телефонен номер
+                  </p>
+                )}
+              </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Парола</Label>
@@ -226,8 +253,8 @@ export function RegisterForm({
                 <Input
                   id="id-number"
                   type="text"
-                  value={formData.idNumber}
-                  onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                  value={formData.id_number}
+                  onChange={(e) => handleInputChange('id_number', e.target.value)}
                   disabled={isLoading}
                   required
                 />
