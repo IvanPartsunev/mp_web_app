@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
+import {X as XIcon} from "lucide-react"
 
 export function RegisterForm({
                                className,
@@ -218,13 +219,14 @@ export function RegisterForm({
                   required
                 />
                 {showPasswordError && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XIcon size={14}/>
                     Паролите не съвпадат
                   </p>
                 )}
                 {formData.confirmPassword.length > 0 && passwordsMatch && (
                   <p className="text-sm text-green-600">
-                    Паролите съвпадат ✓
+                    ✓ Паролите съвпадат
                   </p>
                 )}
               </div>
