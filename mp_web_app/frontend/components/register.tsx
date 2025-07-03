@@ -11,6 +11,7 @@ import {
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {X as XIcon} from "lucide-react"
+import {apiPost} from "@/lib/api";
 
 export function RegisterForm({
                                className,
@@ -64,20 +65,7 @@ export function RegisterForm({
     password: string;
     idNumber: string;
   }) => {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Registration failed')
-    }
-
-    return response.json()
+    return apiPost("/register", userData);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
