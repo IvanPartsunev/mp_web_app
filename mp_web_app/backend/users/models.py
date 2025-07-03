@@ -5,17 +5,17 @@ from datetime import datetime
 
 class UserBase(BaseModel):
   email: EmailStr
-  phone: int
+  phone: str
 
 
 class UserCreate(UserBase):
   password: str
-  identification: str
+  id_number: str
 
 
 class UserUpdate(BaseModel):
   email: Optional[EmailStr] = None
-  phone: Optional[int] = None
+  phone: Optional[str] = None
   role: Optional[str] = None
   active: Optional[bool] = None
   subscribed: Optional[bool] = None
