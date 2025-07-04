@@ -1,9 +1,8 @@
-// @ts-ignore
 import {API_BASE_URL} from "@/app-config";
 
 /**
  * Makes a POST request to the API and returns the parsed JSON response.
- * Throws an Error with a meaningful message if the response is not ok,
+ * Throws the full error response if the response is not ok,
  * including handling for non-JSON and empty error responses.
  */
 export async function apiPost<T>(endpoint: string, data: any): Promise<T> {
@@ -33,16 +32,12 @@ export async function apiPost<T>(endpoint: string, data: any): Promise<T> {
   }
 
   if (!response.ok) {
-    // Try to extract error message from JSON, text, or fallback to status
-    let errorMsg = "API error";
-    if (isJson && responseBody && typeof responseBody === "object" && responseBody.message) {
-      errorMsg = responseBody.message;
-    } else if (typeof responseBody === "string" && responseBody.trim().length > 0) {
-      errorMsg = responseBody;
+    // Attach status code to the error object
+    if (responseBody && typeof responseBody === "object") {
+      throw {...responseBody, status: response.status};
     } else {
-      errorMsg = `HTTP ${response.status} ${response.statusText}`;
+      throw {message: responseBody || `HTTP ${response.status} ${response.statusText}`, status: response.status};
     }
-    throw new Error(errorMsg);
   }
 
   // If no content (204), return null

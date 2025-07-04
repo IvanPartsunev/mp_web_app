@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
 import {
@@ -12,6 +12,7 @@ import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {X as XIcon} from "lucide-react"
 import {apiPost} from "@/lib/api";
+import {extractApiErrorDetails} from "@/lib/errorUtils";
 
 export function RegisterForm({
                                className,
@@ -128,7 +129,7 @@ export function RegisterForm({
       console.error("Registration error:", error)
       setErrors(prev => ({
         ...prev,
-        api: error instanceof Error ? error.message : "Registration failed. Please try again."
+        api: extractApiErrorDetails(error)
       }))
     } finally {
       setIsLoading(false)
@@ -139,19 +140,30 @@ export function RegisterForm({
   const showPasswordError = errors.submitted && !passwordsMatch && formData.confirmPassword.length > 0
   const showPhoneError = errors.submitted && errors.phoneInvalid
 
+  // Redirect to login after success message
+  useEffect(() => {
+    if (isSuccess) {
+      const timeout = setTimeout(() => {
+        window.location.assign("/login");
+      }, 2500); // 2.5 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [isSuccess]);
+
   // Show success message if registration was successful
   if (isSuccess) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
           <CardHeader>
-            <CardTitle>Регистрацията е успешна!</CardTitle>
+            <CardTitle className="text-center">Регистрацията е успешна!</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center">
               <p className="text-green-600 mb-4">
                 Вашият акаунт беше създаден успешно.
               </p>
+              <p className="text-sm text-gray-500">Ще бъдете пренасочени ...</p>
             </div>
           </CardContent>
         </Card>
