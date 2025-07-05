@@ -1,7 +1,7 @@
-import React, {Suspense, lazy} from "react";
-import {ThemeProvider} from "@/components/theme-provider";
+import React, {lazy} from "react";
 import {AuthProvider} from "@/context/AuthContext";
-import Layout from "@/pages/Layout";
+import Navigation from "@/pages/Navigation";
+import Base from "@/pages/Base";
 import {Route, Routes} from "react-router-dom";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import PageLoadingWrapper from "@/components/page-loading-wrapper";
@@ -46,9 +46,9 @@ const GlobalLoadingFallback = () => (
 function App() {
   return (
     <AuthProvider>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Routes>
-          <Route path="/" element={<Layout/>}>
+      <Routes>
+        <Route path="/" element={<Base/>}>
+          <Route element={<Navigation/>}>
             <Route index element={<Home/>}/>
             <Route path="home" element={<Home/>}/>
             <Route path="products" element={<Products/>}/>
@@ -145,8 +145,8 @@ function App() {
             <Route path="login" element={<Login/>}/>
             <Route path="register" element={<Register/>}/>
           </Route>
-        </Routes>
-      </ThemeProvider>
+        </Route>
+      </Routes>
     </AuthProvider>
   );
 }

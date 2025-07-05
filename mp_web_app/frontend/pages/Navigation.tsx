@@ -107,7 +107,7 @@ const NAV_LINKS = [
   },
 ];
 
-export function Layout() {
+export function Navigation() {
   const {isLoggedIn} = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -140,28 +140,12 @@ export function Layout() {
         : "opacity-0 -translate-x-full pointer-events-none"
       }
       `}
-      style={{backgroundColor: "rgba(255,255,255,1)"}}
     >
-      {/* Logo + Text on top in mobile menu */}
-      <div className="flex flex-col items-center mb-8">
-        <img
-          src="imgs/logo-cmyk.svg"
-          alt="Logo"
-          className="h-20 w-auto mb-2"
-          style={{maxWidth: "120px"}}
-        />
-        <span
-          className="text-center sm:text-left font-serif font-bold leading-tight text-[2em] text-gray-700"
-        >
-          ГОРОВЛАДЕЛЧЕСКА ПРОИЗВОДИТЕЛНА<br/>
-          КООПЕРАЦИЯ &quot;МУРДЖОВ ПОЖАР&quot;
-        </span>
-      </div>
       <div className="flex justify-between items-center mb-8">
         <span className="text-xl font-bold">Меню</span>
         <Button
           onClick={() => setMobileMenuOpen(false)}
-          className="p-2 rounded hover:bg-accent menu-button"
+          className="p-2 rounded hover:bg-accent menu-button bg-primary"
           aria-label="Затвори менюто"
         >
           <CloseIcon size={28}/>
@@ -201,21 +185,6 @@ export function Layout() {
 
   return (
     <div>
-      {/* Logo + Text Row (desktop: row, mobile: column) */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-end gap-2 sm:gap-6 px-4 py-4">
-        <img
-          src="imgs/logo-cmyk.svg"
-          alt="Logo"
-          className="h-20 w-auto sm:h-24 max-w-[120px]"
-        />
-        <span
-          className="text-center sm:text-left font-serif font-bold leading-tight text-[1.3em] text-gray-700"
-        >
-          ГОРОВЛАДЕЛЧЕСКА ПРОИЗВОДИТЕЛНА<br/>
-          КООПЕРАЦИЯ &quot;МУРДЖОВ ПОЖАР&quot;
-        </span>
-      </div>
-
       {/* Desktop Navigation */}
       <nav className="hidden sm:block">
         <NavigationMenu viewport={false}>
@@ -268,11 +237,11 @@ export function Layout() {
       {/* Mobile Menu Overlay with animation and scrollability */}
       {showMobileMenu && mobileMenu}
 
-      <main>
+      <div>
         <Outlet/>
-      </main>
+      </div>
     </div>
   );
 }
 
-export default Layout;
+export default Navigation;
