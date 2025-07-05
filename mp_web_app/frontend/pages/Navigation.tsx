@@ -185,8 +185,8 @@ export function Navigation() {
 
   return (
     <div>
-      {/* Desktop Navigation */}
-      <nav className="hidden sm:block">
+      <div className="p-2 border-t-3 border-b-3 border-primary w-full flex items-center justify-center">
+        {/* Desktop Navigation */}
         <NavigationMenu viewport={false}>
           <NavigationMenuList>
             {NAV_LINKS.map((link) =>
@@ -200,7 +200,7 @@ export function Navigation() {
                 <NavigationMenuItem key={link.label}>
                   <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[300px] gap-4">
+                    <ul className="grid w-[250px] gap-4">
                       <li>
                         {filterDropdown(link.dropdown).map((item) => (
                           <NavigationMenuLink asChild key={item.label}>
@@ -220,7 +220,7 @@ export function Navigation() {
             )}
           </NavigationMenuList>
         </NavigationMenu>
-      </nav>
+      </div>
 
       {/* Hamburger Icon for Mobile */}
       <div className="sm:hidden flex items-center p-4">
