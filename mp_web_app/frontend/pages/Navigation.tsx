@@ -185,7 +185,7 @@ export function Navigation() {
 
   return (
     <div>
-      <div className="p-2 border-t-3 border-b-3 border-primary w-full flex items-center justify-center">
+      <div className="hidden sm:flex p-2 border-t-3 border-b-3 border-primary w-full items-center justify-center">
         {/* Desktop Navigation */}
         <NavigationMenu viewport={false}>
           <NavigationMenuList>
