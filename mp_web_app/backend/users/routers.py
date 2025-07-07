@@ -71,6 +71,11 @@ async def user_activate_account(email: EmailStr | str, token: str, repo: UserRep
     return update_user(user_id, email, user_data, repo)
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
+
+@user_router.post("test_login")
+async def test_login(user=Depends(role_required([UserRole.REGULAR_USER]))):
+  raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
+
 # TODO: Assess the need of separate endpoints for getting use by email, id ect. or all to be combined in get_user.
 # @router.get("/{user_id}", response_model=User)
 # async def get_user(

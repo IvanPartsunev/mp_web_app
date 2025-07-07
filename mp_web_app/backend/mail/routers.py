@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
+from starlette import status
 from starlette.responses import HTMLResponse
 from auth.operations import decode_token, is_token_expired
 from database.operations import UserRepository
@@ -9,7 +10,7 @@ from users.operations import update_user, get_user_repository, get_user_by_email
 mail_router = APIRouter(tags=["email"])
 
 
-@mail_router.post("/send-news")
+@mail_router.post("/send-news", status_code=status.HTTP_200_OK)
 async def send_notification(request: Request, user_id: str, user_email: str, link: str):
   user_id = user_id
   user_email = user_email
@@ -17,7 +18,7 @@ async def send_notification(request: Request, user_id: str, user_email: str, lin
   send_news_notification(request, user_id, user_email, link)
 
 
-@mail_router.post("/forgot-password")
+@mail_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 async def send_reset_request(request: Request, user_data: UserUpdatePasswordEmail,
                              repo: UserRepository = Depends(get_user_repository)):
   email = user_data.email

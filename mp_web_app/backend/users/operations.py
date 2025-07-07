@@ -37,7 +37,7 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
   try:
     return ph.verify(password_hash, password_with_salt)
   except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-    return False
+    raise
 
 
 def validate_password(password):
@@ -203,7 +203,8 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
   if not existing_user:
     return None
 
-  hash_password(user_data.password, existing_user.salt)
+  password = user_data.password
+  hashed_password = hash_password(password, existing_user.salt)
 
   update_expression_parts = []
   expression_attribute_values = {}
@@ -214,19 +215,19 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
   expression_attribute_names["#updated_at"] = "updated_at"
 
   update_expression_parts.append("#password = :password")
-  expression_attribute_values[":password"] = hash_password
-  expression_attribute_names["#password"] = "password"
+  expression_attribute_values[":password"] = hashed_password
+  expression_attribute_names["#password"] = "password_hash"
 
-  update_expression = "SET" + ", ".join(update_expression_parts)
+  update_expression = "SET " + ", ".join(update_expression_parts)
 
-  repo.table.update_item(
+  response = repo.table.update_item(
     Key={"id": user_id},
     UpdateExpression=update_expression,
-    ExpressionAttributeValue=expression_attribute_values,
+    ExpressionAttributeValues=expression_attribute_values,
     ExpressionAttributeNames=expression_attribute_names,
-    ReturnValue="ALL_NEW"
+    ReturnValues="ALL_NEW"
   )
-  return existing_user
+  return repo.convert_item_to_user(response["Attributes"])
 
 
 def delete_user(user_id: str, repo: UserRepository) -> bool:

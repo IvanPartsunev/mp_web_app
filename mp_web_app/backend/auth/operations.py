@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Optional, List
+from typing import Optional, List, Literal
 from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
@@ -19,7 +19,7 @@ from users.roles import UserRole, ROLE_HIERARCHY
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/sign-in")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 @lru_cache()
@@ -70,36 +70,15 @@ def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Opti
 
 
 def generate_activation_token(user_id: str, email: EmailStr | str) -> str:
-  settings = get_jwt_settings()
-  payload = {
-    "sub": email,
-    "user_id": user_id,
-    "type": "activation",
-    "exp": datetime.now() + timedelta(hours=1),
-  }
-  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+  return generate_token(email, user_id, "activation", 1, "h")
 
 
 def generate_unsubscribe_token(user_id: str, email: str) -> str:
-  settings = get_jwt_settings()
-  payload = {
-    "sub": email,
-    "user_id": user_id,
-    "type": "unsubscribe",
-    "exp": datetime.now() + timedelta(minutes=15),
-  }
-  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+  return generate_token(email, user_id, "unsubscribe", 15, "m")
 
 
 def generate_reset_token(user_id: str, email: str) -> str:
-  settings = get_jwt_settings()
-  payload = {
-    "sub": email,
-    "user_id": user_id,
-    "type": "reset",
-    "exp": datetime.now() + timedelta(minutes=3),
-  }
-  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+  return generate_token(email, user_id, "reset", 3, "m")
 
 
 def decode_token(token: str):
@@ -207,3 +186,30 @@ def role_required(required_roles: List[UserRole]):
     return current_user
 
   return dependency
+
+
+def generate_token(
+  sub: EmailStr | str,
+  user_id: str, t_type: Literal["activation", "unsubscribe", "reset"],
+  exp: int,
+  time_units: Literal["s", "m", "h", "d"]
+):
+  settings = get_jwt_settings()
+
+  units_map = {
+    "s": lambda n: timedelta(seconds=n),
+    "m": lambda n: timedelta(minutes=n),
+    "h": lambda n: timedelta(hours=n),
+    "d": lambda n: timedelta(days=n),
+  }
+
+  expire_delta = datetime.now() + units_map[time_units](exp)
+
+  payload = {
+    "sub": sub,
+    "user_id": user_id,
+    "type": t_type,
+    "exp": expire_delta.timestamp(),
+  }
+
+  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
