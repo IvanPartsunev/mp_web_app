@@ -91,6 +91,17 @@ def generate_unsubscribe_token(user_id: str, email: str) -> str:
   return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 
+def generate_reset_token(user_id: str, email: str) -> str:
+  settings = get_jwt_settings()
+  payload = {
+    "sub": email,
+    "user_id": user_id,
+    "type": "reset",
+    "exp": datetime.now() + timedelta(minutes=3),
+  }
+  return jwt.encode(payload, settings.secret_key, algorithm="HS256")
+
+
 def decode_token(token: str):
   settings = get_jwt_settings()
   try:

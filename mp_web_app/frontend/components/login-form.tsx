@@ -37,7 +37,7 @@ export function LoginForm({
       body.append("username", formData.username);
       body.append("password", formData.password);
 
-      const response = await fetch(`${API_BASE_URL}users/login`, {
+      const response = await fetch(`${API_BASE_URL}auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",

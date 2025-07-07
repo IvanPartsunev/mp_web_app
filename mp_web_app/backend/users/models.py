@@ -21,6 +21,10 @@ class UserUpdate(BaseModel):
   subscribed: Optional[bool] = None
 
 
+class UserUpdatePasswordEmail(BaseModel):
+  email: EmailStr
+
+
 class UserUpdatePassword(BaseModel):
   password: str
 

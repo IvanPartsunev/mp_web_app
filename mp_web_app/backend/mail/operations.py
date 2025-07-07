@@ -12,7 +12,7 @@ from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
 from app_config import SesSettings
-from auth.operations import generate_activation_token, generate_unsubscribe_token
+from auth.operations import generate_activation_token, generate_unsubscribe_token, generate_reset_token
 
 
 @lru_cache
@@ -21,6 +21,7 @@ def get_mail_settings():
   Returns a cached instance of SesSettings containing SES configuration loaded from environment variables.
   """
   return SesSettings()
+
 
 def send_email_ses(
   to_address: str,
@@ -178,6 +179,57 @@ def send_news_notification(
   except Exception as e:
     raise HTTPException(status_code=500, detail="Failed to send email")
 
+
+def send_reset_email(
+  email: EmailStr | str,
+  verification_link: str,
+):
+  subject = "Reset account password"
+
+  html_body = f"""
+    <!DOCTYPE html>
+    <html lang="bg">
+      <head>
+        <meta charset="UTF-8">
+        <title>Промяна на парола</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:#f8f9fa;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
+          <tr>
+            <td align="center">
+              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
+                    <p style="margin:0 0 16px 0;">Здравейте,</p>
+                    <p style="margin:0 0 24px 0;">Моля, за да рестартирате вашата парола натиснете бутона по-долу:</p>
+                    <a href="{verification_link}"
+                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                      Кликнете тук
+                    </a>
+                    <p style="margin:24px 0 0 0;">Ако не сте заявили рестартиране, моля игнорирайте този имейл.</p>
+                    <p style="margin:24px 0 0 0;font-size:13px;">С уважение, от екипа на<br>ГПК "Мурджов пожар"<br>с. Славейно</p>
+                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
+                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+  try:
+    send_email_ses(
+      to_address=email,
+      subject=subject,
+      html_body=html_body,
+    )
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+
+
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
   base_url = str(request.base_url).rstrip("/")
@@ -188,3 +240,9 @@ def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Req
   token = generate_unsubscribe_token(user_id, email)
   base_url = str(request.base_url).rstrip("/")
   return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
+
+
+def construct_reset_link(user_id: str, email: EmailStr | str, request: Request):
+  token = generate_reset_token(user_id, email)
+  base_url = str(request.base_url).rstrip("/")
+  return f"{base_url}/api/users/reset-password?email={email}&token={token}"
