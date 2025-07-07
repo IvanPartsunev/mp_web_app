@@ -1,17 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
-from fastapi.security import OAuth2PasswordRequestForm
+
 from pydantic import EmailStr
 
-from auth.models import Token
-from auth.operations import authenticate_user
-from auth.operations import (
-  generate_access_token,
-  generate_refresh_token,
-  role_required,
-  get_auth_repository,
-  decode_token, is_token_expired
-)
-from database.operations import UserRepository, AuthRepository
+from auth.operations import role_required, decode_token, is_token_expired
+from database.operations import UserRepository
 from mail.operations import construct_verification_link, send_verification_email
 from users.models import UserCreate, User, UserUpdate
 from users.operations import (
@@ -49,31 +41,6 @@ async def register(
   send_verification_email(user.email, verification_link)
 
   return user
-
-
-@user_router.post("/login", response_model=Token)
-async def login(
-  response: Response,
-  form_data: OAuth2PasswordRequestForm = Depends(),
-  user_repo: UserRepository = Depends(get_user_repository),
-  auth_repo: AuthRepository = Depends(get_auth_repository),
-):
-  user = authenticate_user(form_data.username, form_data.password, user_repo)
-  if not user:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-  access_token = generate_access_token({"sub": user.id, "role": user.role})
-  refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
-
-  response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="strict",
-    max_age=7 * 24 * 60 * 60,
-  )
-  return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @user_router.post("/reset-password")

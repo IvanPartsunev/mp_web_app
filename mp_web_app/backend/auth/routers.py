@@ -1,4 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
+from fastapi.security import OAuth2PasswordRequestForm
+from starlette import status
+
 from auth.models import Token
 from auth.operations import (
   verify_refresh_token,
@@ -7,7 +10,10 @@ from auth.operations import (
   get_auth_repository,
   invalidate_token,
 )
-from database.operations import AuthRepository
+from database.operations import AuthRepository, UserRepository
+
+from mp_web_app.backend.auth.operations import authenticate_user
+from mp_web_app.backend.users.operations import get_user_repository
 
 auth_router = APIRouter(tags=["auth"])
 
@@ -42,3 +48,28 @@ async def refresh(
     access_token=new_access_token,
     refresh_token=new_refresh_token,
   )
+
+
+@auth_router.post("/login", response_model=Token)
+async def login(
+  response: Response,
+  form_data: OAuth2PasswordRequestForm = Depends(),
+  user_repo: UserRepository = Depends(get_user_repository),
+  auth_repo: AuthRepository = Depends(get_auth_repository),
+):
+  user = authenticate_user(form_data.username, form_data.password, user_repo)
+  if not user:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+  access_token = generate_access_token({"sub": user.id, "role": user.role})
+  refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
+
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    secure=True,
+    samesite="strict",
+    max_age=7 * 24 * 60 * 60,
+  )
+  return Token(access_token=access_token, refresh_token=refresh_token)
