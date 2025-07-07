@@ -18,6 +18,31 @@ from mp_web_app.backend.users.operations import get_user_repository
 auth_router = APIRouter(tags=["auth"])
 
 
+@auth_router.post("/login", response_model=Token)
+async def login(
+  response: Response,
+  form_data: OAuth2PasswordRequestForm = Depends(),
+  user_repo: UserRepository = Depends(get_user_repository),
+  auth_repo: AuthRepository = Depends(get_auth_repository),
+):
+  user = authenticate_user(form_data.username, form_data.password, user_repo)
+  if not user:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+  access_token = generate_access_token({"sub": user.id, "role": user.role})
+  refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
+
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    secure=True,
+    samesite="strict",
+    max_age=7 * 24 * 60 * 60,
+  )
+  return Token(access_token=access_token, refresh_token=refresh_token)
+
+
 @auth_router.post("/refresh", response_model=Token)
 async def refresh(
   response: Response,
@@ -49,27 +74,3 @@ async def refresh(
     refresh_token=new_refresh_token,
   )
 
-
-@auth_router.post("/login", response_model=Token)
-async def login(
-  response: Response,
-  form_data: OAuth2PasswordRequestForm = Depends(),
-  user_repo: UserRepository = Depends(get_user_repository),
-  auth_repo: AuthRepository = Depends(get_auth_repository),
-):
-  user = authenticate_user(form_data.username, form_data.password, user_repo)
-  if not user:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-  access_token = generate_access_token({"sub": user.id, "role": user.role})
-  refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
-
-  response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="strict",
-    max_age=7 * 24 * 60 * 60,
-  )
-  return Token(access_token=access_token, refresh_token=refresh_token)

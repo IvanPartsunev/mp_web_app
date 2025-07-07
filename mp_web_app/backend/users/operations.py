@@ -12,7 +12,7 @@ from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
 from database.operations import UserRepository
-from users.models import UserCreate, User, UserUpdate, UserSecret
+from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword
 from users.roles import UserRole
 
 
@@ -135,7 +135,8 @@ def list_users(self) -> List[User]:
   return [self._convert_to_user(item) for item in response["Items"]]
 
 
-def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[User]:
+def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[
+  User]:
   """Update a user in DynamoDB."""
 
   existing_user = get_user_by_email(user_email, repo)
@@ -191,6 +192,41 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
   )
 
   return repo.convert_item_to_user(response["Attributes"])
+
+
+def update_user_password(user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword,
+                         repo: UserRepository) -> Optional[
+  User]:
+  """Update the user's password in DynamoDB."""
+
+  existing_user = get_user_by_email(user_email, repo, secret=True)
+  if not existing_user:
+    return None
+
+  hash_password(user_data.password, existing_user.salt)
+
+  update_expression_parts = []
+  expression_attribute_values = {}
+  expression_attribute_names = {}
+
+  update_expression_parts.append("#updated_at = :updated_at")
+  expression_attribute_values[":updated_at"] = datetime.now().isoformat()
+  expression_attribute_names["#updated_at"] = "updated_at"
+
+  update_expression_parts.append("#password = :password")
+  expression_attribute_values[":password"] = hash_password
+  expression_attribute_names["#password"] = "password"
+
+  update_expression = "SET" + ", ".join(update_expression_parts)
+
+  repo.table.update_item(
+    Key={"id": user_id},
+    UpdateExpression=update_expression,
+    ExpressionAttributeValue=expression_attribute_values,
+    ExpressionAttributeNames=expression_attribute_names,
+    ReturnValue="ALL_NEW"
+  )
+  return existing_user
 
 
 def delete_user(user_id: str, repo: UserRepository) -> bool:

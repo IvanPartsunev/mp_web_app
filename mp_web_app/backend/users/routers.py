@@ -5,12 +5,12 @@ from pydantic import EmailStr
 from auth.operations import role_required, decode_token, is_token_expired
 from database.operations import UserRepository
 from mail.operations import construct_verification_link, send_verification_email
-from users.models import UserCreate, User, UserUpdate
+from users.models import UserCreate, User, UserUpdate, UserUpdatePassword
 from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user
+  update_user, update_user_password
 )
 from users.roles import UserRole
 
@@ -44,8 +44,14 @@ async def register(
 
 
 @user_router.post("/reset-password")
-async def user_reset_password(user=Depends(role_required([UserRole.REGULAR_USER]))):
-  raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
+async def user_reset_password(email: EmailStr | str, user_data: UserUpdatePassword, token: str,
+                              repo: UserRepository = Depends(get_user_repository)):
+  payload = decode_token(token)
+  user_id = payload.get("user_id")
+
+  if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "reset":
+    return update_user_password(user_id, email, user_data, repo)
+  raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 
 @user_router.get("/activate-account", response_model=User, status_code=status.HTTP_201_CREATED)

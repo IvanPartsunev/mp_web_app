@@ -21,6 +21,10 @@ class UserUpdate(BaseModel):
   subscribed: Optional[bool] = None
 
 
+class UserUpdatePassword(BaseModel):
+  password: str
+
+
 class User(UserBase):
   id: str
   user_code: Optional[str] = None
