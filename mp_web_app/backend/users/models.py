@@ -23,9 +23,11 @@ class UserUpdate(BaseModel):
 
 class UserUpdatePasswordEmail(BaseModel):
   email: EmailStr
+  frontend_url: str
 
 
 class UserUpdatePassword(BaseModel):
+  token: str
   password: str
 
 
