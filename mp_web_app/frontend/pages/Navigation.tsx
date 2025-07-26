@@ -107,11 +107,27 @@ const NAV_LINKS = [
   },
 ];
 
+// Custom hook to detect window width
+function useWindowWidth() {
+  const [width, setWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return width;
+}
+
 export function Navigation() {
   const {isLoggedIn} = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [menuAnimating, setMenuAnimating] = useState(false);
+
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 880;
 
   // Helper to filter dropdown items based on auth
   const filterDropdown = (dropdown: any[]) =>
@@ -133,7 +149,7 @@ export function Navigation() {
   const mobileMenu = (
     <div
       className={`
-        fixed inset-0 z-50 bg-background flex flex-col p-6 sm:hidden
+        fixed inset-0 z-50 bg-background flex flex-col p-6
         transition-all duration-300 overflow-y-auto
         ${menuAnimating
         ? "opacity-100 translate-x-0 pointer-events-auto"
@@ -185,54 +201,58 @@ export function Navigation() {
 
   return (
     <div>
-      <div className="hidden sm:flex p-2 border-t-3 border-b-3 border-primary w-full items-center justify-center">
-        {/* Desktop Navigation */}
-        <NavigationMenu viewport={false}>
-          <NavigationMenuList>
-            {NAV_LINKS.map((link) =>
-              !link.dropdown ? (
-                <NavigationMenuItem key={link.label}>
-                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                    <Link to={link.to}>{link.label}</Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ) : (
-                <NavigationMenuItem key={link.label}>
-                  <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[250px] gap-4">
-                      <li>
-                        {filterDropdown(link.dropdown).map((item) => (
-                          <NavigationMenuLink asChild key={item.label}>
-                            <Link to={item.to}>
-                              <div className="font-medium">{item.label}</div>
-                              <div className="text-muted-foreground text-xs">
-                                {item.description}
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
-                        ))}
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              )
-            )}
-          </NavigationMenuList>
-        </NavigationMenu>
-      </div>
+      {/* Desktop Navigation */}
+      {!isMobile && (
+        <div className="flex p-2 border-t-2 border-b-2 border-primary w-full items-center justify-center">
+          <NavigationMenu viewport={false}>
+            <NavigationMenuList>
+              {NAV_LINKS.map((link) =>
+                !link.dropdown ? (
+                  <NavigationMenuItem key={link.label}>
+                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                      <Link to={link.to}>{link.label}</Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                ) : (
+                  <NavigationMenuItem key={link.label}>
+                    <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[250px] gap-4">
+                        <li>
+                          {filterDropdown(link.dropdown).map((item) => (
+                            <NavigationMenuLink asChild key={item.label}>
+                              <Link to={item.to}>
+                                <div className="font-medium">{item.label}</div>
+                                <div className="text-muted-foreground text-xs">
+                                  {item.description}
+                                </div>
+                              </Link>
+                            </NavigationMenuLink>
+                          ))}
+                        </li>
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                )
+              )}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      )}
 
       {/* Hamburger Icon for Mobile */}
-      <div className="sm:hidden flex items-center p-4">
-        <Button
-          onClick={() => setMobileMenuOpen(true)}
-          className="p-2 rounded hover:bg-accent menu-button"
-          aria-label="Отвори менюто"
-        >
-          <MenuIcon size={28}/>
-        </Button>
-        <span className="ml-2 text-lg font-bold"></span>
-      </div>
+      {isMobile && (
+        <div className="flex items-center p-2 border-t-2 border-b-2 border-primary w-full">
+          <Button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex items-center gap-2 w-36 h-10 bg-primary text-white rounded-lg shadow"
+            aria-label="Отвори менюто"
+          >
+            <MenuIcon className="w-7 h-7"/>
+            <span className="text-lg font-semibold">Меню</span>
+          </Button>
+        </div>
+      )}
 
       {/* Mobile Menu Overlay with animation and scrollability */}
       {showMobileMenu && mobileMenu}
