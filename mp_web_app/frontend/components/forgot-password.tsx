@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {
@@ -28,13 +28,16 @@ export function ForgotPasswordForm({
     setError("");
 
     try {
-      const body = new URLSearchParams();
-      body.append("email", email);
+      // Send JSON body as required by FastAPI Pydantic model
+      const body = JSON.stringify({
+        email: email,
+        frontend_url: window.location.origin,
+      });
 
-      const response = await fetch(`${API_BASE_URL}auth/forgot-password`, {
+      const response = await fetch(`${API_BASE_URL}mail/forgot-password`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
         body,
       });
@@ -57,6 +60,16 @@ export function ForgotPasswordForm({
       setIsLoading(false);
     }
   };
+
+  // Redirect to home after success
+  useEffect(() => {
+    if (isSuccess) {
+      const timeout = setTimeout(() => {
+        window.location.assign("/");
+      }, 2500); // 2.5 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [isSuccess]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

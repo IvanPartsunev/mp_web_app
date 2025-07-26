@@ -14,6 +14,7 @@ import Gallery from "@/pages/Gallery";
 import Login from "@/pages/authentication/Login";
 import Register from "@/pages/authentication/Register";
 import ForgotPassword from "@/pages/authentication/ForgotPassword";
+import NewPassword from "@/pages/authentication/NewPassword";
 
 
 // Lazy imports for pages that make API calls
@@ -147,6 +148,7 @@ function App() {
             <Route path="login" element={<Login/>}/>
             <Route path="register" element={<Register/>}/>
             <Route path="forgot-password" element={<ForgotPassword/>}/>
+            <Route path="new-password" element={<NewPassword/>}/>
           </Route>
         </Route>
       </Routes>
