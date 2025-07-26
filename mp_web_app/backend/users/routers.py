@@ -20,7 +20,7 @@ user_repository = UserRepository()
 
 
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
-async def register(
+async def user_register(
   request: Request,
   user_data: UserCreate,
   repo: UserRepository = Depends(get_user_repository)
@@ -41,13 +41,6 @@ async def register(
   send_verification_email(user.email, verification_link)
 
   return user
-
-
-@user_router.get("/reset-password", status_code=status.HTTP_200_OK)
-async def user_reset_password(token: str, url: str):
-  if not is_token_expired(token):
-    return token
-  raise HTTPException(status_code=status.HTTP_410_GONE)
 
 
 @user_router.post("/reset-password")
