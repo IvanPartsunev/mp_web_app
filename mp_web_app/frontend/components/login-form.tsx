@@ -103,7 +103,7 @@ export function LoginForm({
                 <Input
                   id="username"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="email@example.com"
                   value={formData.username}
                   onChange={(e) => handleInputChange("username", e.target.value)}
                   required
@@ -115,7 +115,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Парола</Label>
                   <a
-                    href="#"
+                    href="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Забравена парола?

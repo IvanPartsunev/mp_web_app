@@ -13,6 +13,7 @@ import Contacts from "@/pages/Contacts";
 import Gallery from "@/pages/Gallery";
 import Login from "@/pages/authentication/Login";
 import Register from "@/pages/authentication/Register";
+import {ForgotPasswordForm} from "@/components/forgot-password";
 
 // Lazy imports for pages that make API calls
 // @ts-ignore
@@ -144,6 +145,7 @@ function App() {
             {/* Authentication routes */}
             <Route path="login" element={<Login/>}/>
             <Route path="register" element={<Register/>}/>
+            <Route path="forgot-password" element={<ForgotPasswordForm/>}/>
           </Route>
         </Route>
       </Routes>
