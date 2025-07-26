@@ -233,7 +233,7 @@ def send_reset_email(
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
   base_url = str(request.base_url).rstrip("/")
-  return f"{base_url}/api/users/activate-account?token={token}"
+  return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 
 def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
@@ -244,4 +244,4 @@ def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Req
 
 def construct_reset_link(user_id: str, email: EmailStr | str, frontend_url: str):
   token = generate_reset_token(user_id, email)
-  return f"{frontend_url}/new-password?email={email}&token={token}"
+  return f"{frontend_url}/new-password?token={token}"
