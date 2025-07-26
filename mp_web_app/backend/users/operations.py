@@ -37,7 +37,7 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
   try:
     return ph.verify(password_hash, password_with_salt)
   except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-    raise
+    return False
 
 
 def validate_password(password):
