@@ -18,6 +18,9 @@ export function extractApiErrorDetails(error: any): string {
     if (/Password must contain at least one lowercase letter/i.test(msg)) return "Паролата трябва да съдържа поне една малка буква.";
     if (/Password must contain at least one digit/i.test(msg)) return "Паролата трябва да съдържа поне една цифра.";
     if (/Password must contain at least one special symbol/i.test(msg)) return "Паролата трябва да съдържа поне един специален символ: !@#$%^&?";
+    // Phone-specific backend errors
+    if (/Phone number must be 10 or 13 digits/i.test(msg)) return "Телефонният номер трябва да е 10 или 13 цифри.";
+    if (/Phone number must start with '0' or '+359'/i.test(msg)) return "Телефонният номер трябва да запозва с 0 или +359";
     return msg;
   };
 
