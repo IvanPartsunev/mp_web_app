@@ -32,7 +32,6 @@ export function LoginForm({
     setIsLoading(true);
     setError("");
     try {
-      // Send as application/x-www-form-urlencoded
       const body = new URLSearchParams();
       body.append("username", formData.username);
       body.append("password", formData.password);

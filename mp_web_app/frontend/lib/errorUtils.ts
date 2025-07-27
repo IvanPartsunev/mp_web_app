@@ -1,9 +1,3 @@
-/**
- * Extracts a user-friendly error message from an API error.
- * - For validation errors (detail is array): shows translated messages.
- * - For HTTP errors (detail is string): shows HTTP code and original message (e.g. 404 Not Found).
- * - Falls back to error.message or generic error.
- */
 export function extractApiErrorDetails(error: any): string {
   if (!error) return "Възникна грешка.";
 
@@ -17,20 +11,24 @@ export function extractApiErrorDetails(error: any): string {
     if (/too long/i.test(msg)) return "Стойността е твърде дълга";
     if (/value is not a valid/i.test(msg)) return "Невалидна стойност";
     if (/unprocessable entity/i.test(msg)) return "Невалидни данни";
+    // Password-specific backend errors
+    if (/Password must be at least 8 characters long/i.test(msg)) return "Паролата трябва да е поне 8 символа.";
+    if (/Password must be at less than 30 characters long/i.test(msg)) return "Паролата трябва да е по-къса от 30 символа.";
+    if (/Password must contain at least one uppercase letter/i.test(msg)) return "Паролата трябва да съдържа поне една главна буква.";
+    if (/Password must contain at least one lowercase letter/i.test(msg)) return "Паролата трябва да съдържа поне една малка буква.";
+    if (/Password must contain at least one digit/i.test(msg)) return "Паролата трябва да съдържа поне една цифра.";
+    if (/Password must contain at least one special symbol/i.test(msg)) return "Паролата трябва да съдържа поне един специален символ: !@#$%^&?";
     return msg;
   };
 
-  // Extract status code if present
-  const status = error.status || error.status_code || error.statusCode;
-
-  // If error is a string, just return it (with status)
-  if (typeof error === "string") return `${error}${status ? ` (Код: ${status})` : ""}`;
+  // If error is a string, just return the translated message
+  if (typeof error === "string") return translate(error);
 
   // If error has a 'detail' field
   if (error.detail) {
     if (typeof error.detail === "string") {
-      // Translate known errors
-      return `${status ? status + " " : ""}${translate(error.detail)}`;
+      // HTTP error: show translated message
+      return translate(error.detail);
     }
     if (Array.isArray(error.detail)) {
       // FastAPI validation errors: show translated messages
@@ -43,6 +41,6 @@ export function extractApiErrorDetails(error: any): string {
     }
   }
   // Fallback to error.message
-  if (error.message) return `${error.message}${status ? ` (Код: ${status})` : ""}`;
-  return `Възникна грешка.${status ? ` (Код: ${status})` : ""}`;
+  if (error.message) return translate(error.message);
+  return "Възникна грешка.";
 }

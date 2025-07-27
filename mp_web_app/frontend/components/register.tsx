@@ -1,18 +1,27 @@
-import React, {useState, useEffect} from "react"
-import {cn} from "@/lib/utils"
-import {Button} from "@/components/ui/button"
+import React, {useState, useEffect} from "react";
+import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {Input} from "@/components/ui/input"
-import {Label} from "@/components/ui/label"
-import {X as XIcon} from "lucide-react"
+} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {X as XIcon, Check as CheckIcon} from "lucide-react";
 import {apiPost} from "@/lib/api";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
+
+// Bulgarian phone validation: +359XXXXXXXXX or 0XXXXXXXXX
+function getPhoneError(phone: string): string | null {
+  const normalized = phone.replace(/\s+/g, "");
+  if (!/^(\+359|0)\d{9}$/.test(normalized)) {
+    return "Телефонният номер трябва да е във формат +359XXXXXXXXX или 0XXXXXXXXX.";
+  }
+  return null;
+}
 
 export function RegisterForm({
                                className,
@@ -23,84 +32,78 @@ export function RegisterForm({
     password: "",
     phone: "",
     confirmPassword: "",
-    id_number: ""
-  })
+    id_number: "",
+  });
 
   const [errors, setErrors] = useState({
     passwordMatch: false,
-    phoneInvalid: false,
     submitted: false,
-    api: ""
-  })
+    api: "",
+  });
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Real-time validation states
+  const phoneError = formData.phone ? getPhoneError(formData.phone) : null;
+  const passwordsMatch =
+    formData.password === formData.confirmPassword && formData.password.length > 0;
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
+      [field]: value,
+    }));
 
-    // Clear errors when user types
-    if (field === 'password' || field === 'confirmPassword') {
-      setErrors(prev => ({
-        ...prev,
-        passwordMatch: false
-      }))
-    }
-    if (field === 'phone') {
-      setErrors(prev => ({
-        ...prev,
-        phoneInvalid: false
-      }))
-    }
     // Clear API error when user types
     if (errors.api) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        api: ""
-      }))
+        api: "",
+      }));
     }
-  }
+    // Reset password match error if editing password fields
+    if (field === "password" || field === "confirmPassword") {
+      setErrors((prev) => ({
+        ...prev,
+        passwordMatch: false,
+      }));
+    }
+  };
 
-  const validatePasswords = () => {
-    return formData.password === formData.confirmPassword && formData.password.length > 0
-  }
-
-  // Bulgarian phone validation: +359XXXXXXXXX or 08XXXXXXXX
-  const validatePhone = (phone: string) => {
-    return /^(\+359|0)\d{9}$/.test(phone.replace(/\s+/g, ""));
-  }
-
-  const registerUser = async (userData: { email: string; password: string; phone: string; id_number: string }) => {
+  const registerUser = async (userData: {
+    email: string;
+    password: string;
+    phone: string;
+    id_number: string;
+  }) => {
     return apiPost("users/register", userData);
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setErrors(prev => ({...prev, submitted: true, api: ""}))
+    setErrors((prev) => ({
+      ...prev,
+      submitted: true,
+      api: "",
+      passwordMatch: false,
+    }));
 
-    // Validate passwords
-    if (!validatePasswords()) {
-      setErrors(prev => ({
+    // Validate passwords match
+    if (!passwordsMatch) {
+      setErrors((prev) => ({
         ...prev,
-        passwordMatch: true
-      }))
-      return
+        passwordMatch: true,
+      }));
+      return;
     }
-
     // Validate phone
-    if (!validatePhone(formData.phone)) {
-      setErrors(prev => ({
-        ...prev,
-        phoneInvalid: true
-      }))
-      return
+    if (phoneError) {
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Prepare data for API (exclude confirmPassword)
@@ -108,13 +111,12 @@ export function RegisterForm({
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
-        id_number: formData.id_number
-      }
+        id_number: formData.id_number,
+      };
 
-      const result = await registerUser(userData)
+      const result = await registerUser(userData);
 
-      console.log("Registration successful:", result)
-      setIsSuccess(true)
+      setIsSuccess(true);
 
       // Reset form after successful registration
       setFormData({
@@ -122,23 +124,17 @@ export function RegisterForm({
         password: "",
         phone: "",
         confirmPassword: "",
-        id_number: ""
-      })
-
+        id_number: "",
+      });
     } catch (error) {
-      console.error("Registration error:", error)
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        api: extractApiErrorDetails(error)
-      }))
+        api: extractApiErrorDetails(error),
+      }));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const passwordsMatch = validatePasswords()
-  const showPasswordError = errors.submitted && !passwordsMatch && formData.confirmPassword.length > 0
-  const showPhoneError = errors.submitted && errors.phoneInvalid
+  };
 
   // Redirect to login after success message
   useEffect(() => {
@@ -168,7 +164,7 @@ export function RegisterForm({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -178,7 +174,7 @@ export function RegisterForm({
           <CardTitle>Създай своя акаунт</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} autoComplete="off">
             <div className="flex flex-col gap-6">
               {errors.api && (
                 <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
@@ -193,9 +189,10 @@ export function RegisterForm({
                   type="email"
                   placeholder="m@example.com"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="grid gap-3">
@@ -205,14 +202,21 @@ export function RegisterForm({
                   type="tel"
                   placeholder="+359 8XXXXXXXX"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="tel"
                 />
-                {showPhoneError && (
+                {formData.phone && phoneError && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
                     <XIcon size={14}/>
-                    Невалиден телефонен номер
+                    {phoneError}
+                  </p>
+                )}
+                {formData.phone && !phoneError && (
+                  <p className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckIcon size={14}/>
+                    Телефонният номер е валиден
                   </p>
                 )}
               </div>
@@ -224,9 +228,10 @@ export function RegisterForm({
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
                   disabled={isLoading}
                   required
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -238,22 +243,24 @@ export function RegisterForm({
                   id="confirm-password"
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                   className={cn(
-                    showPasswordError && "border-red-500 focus-visible:ring-red-500/20"
+                    errors.passwordMatch && "border-red-500 focus-visible:ring-red-500/20"
                   )}
                   disabled={isLoading}
                   required
+                  autoComplete="new-password"
                 />
-                {showPasswordError && (
+                {formData.confirmPassword.length > 0 && !passwordsMatch && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
                     <XIcon size={14}/>
                     Паролите не съвпадат
                   </p>
                 )}
                 {formData.confirmPassword.length > 0 && passwordsMatch && (
-                  <p className="text-sm text-green-600">
-                    ✓ Паролите съвпадат
+                  <p className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckIcon size={14}/>
+                    Паролите съвпадат
                   </p>
                 )}
               </div>
@@ -266,7 +273,7 @@ export function RegisterForm({
                   id="id-number"
                   type="text"
                   value={formData.id_number}
-                  onChange={(e) => handleInputChange('id_number', e.target.value)}
+                  onChange={(e) => handleInputChange("id_number", e.target.value)}
                   disabled={isLoading}
                   required
                 />
@@ -291,5 +298,5 @@ export function RegisterForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
