@@ -66,6 +66,8 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   salt = str(uuid4())[:8]
   created_at: datetime = datetime.now()
   updated_at: datetime = datetime.now()
+  password = user_data.password
+  validate_password(password=password)
   hashed_password = hash_password(user_data.password, salt)
 
   # TODO: Make validations for phone number, and password

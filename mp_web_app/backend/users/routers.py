@@ -36,7 +36,11 @@ async def user_register(
       detail="User with this email already exists"
     )
 
-  user = create_user(user_data, request, repo)
+  try:
+    user = create_user(user_data, request, repo)
+  except Exception as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
   verification_link = construct_verification_link(user.id, user.email, request)
   send_verification_email(user.email, verification_link)
 

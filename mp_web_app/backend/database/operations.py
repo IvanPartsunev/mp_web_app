@@ -16,7 +16,7 @@ class UserRepository:
     """Convert a DynamoDB item to a User model."""
     # Convert Decimal to int for phone
     if 'phone' in item and isinstance(item['phone'], Decimal):
-      item['phone'] = int(item['phone'])
+      item['phone'] = str(item['phone'])
 
     return User(**item)
 
