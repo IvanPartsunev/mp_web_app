@@ -231,6 +231,10 @@ export function NewPasswordForm({
                     ✓ Паролите съвпадат
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква,
+                  една цифра и един специален символ: !@#$%^&?
+                </p>
               </div>
 
               <CardDescription>

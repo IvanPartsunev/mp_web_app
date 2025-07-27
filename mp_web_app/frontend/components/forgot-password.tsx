@@ -30,7 +30,7 @@ export function ForgotPasswordForm({
     try {
       // Send JSON body as required by FastAPI Pydantic model
       const body = JSON.stringify({
-        email: email,
+        email: email
       });
 
       const response = await fetch(`${API_BASE_URL}mail/forgot-password`, {
