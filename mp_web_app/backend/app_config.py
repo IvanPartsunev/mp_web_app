@@ -3,6 +3,7 @@ from typing import List
 from pydantic_settings import BaseSettings
 
 REGION = "eu-central-1"
+FRONTEND_BASE_URL = "http://localhost:3000"
 
 
 class DynamoDBSettings(BaseSettings):

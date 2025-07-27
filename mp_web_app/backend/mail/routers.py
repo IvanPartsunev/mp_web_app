@@ -22,10 +22,9 @@ async def send_notification(request: Request, user_id: str, user_email: str, lin
 async def send_reset_request(user_data: UserUpdatePasswordEmail,
                              repo: UserRepository = Depends(get_user_repository)):
   email = user_data.email
-  frontend_url = user_data.frontend_url
   user = get_user_by_email(email, repo, secret=True)
   user_id = user.id
-  link = construct_reset_link(user_id, email, frontend_url)
+  link = construct_reset_link(user_id, email)
   send_reset_email(email, link)
 
 

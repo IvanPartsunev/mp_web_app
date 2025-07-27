@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 
 from pydantic import EmailStr
+from starlette.responses import RedirectResponse
 
+from app_config import FRONTEND_BASE_URL
 from auth.operations import role_required, decode_token, is_token_expired
 from database.operations import UserRepository
 from mail.operations import construct_verification_link, send_verification_email
@@ -67,7 +69,8 @@ async def user_activate_account(email: EmailStr | str, token: str, repo: UserRep
   user_id = payload.get("user_id")
 
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "activation":
-    return update_user(user_id, email, user_data, repo)
+    update_user(user_id, email, user_data, repo)
+    return RedirectResponse(url=F"{FRONTEND_BASE_URL}/login")
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 

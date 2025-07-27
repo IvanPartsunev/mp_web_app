@@ -11,7 +11,7 @@ from typing import Optional, Dict
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from app_config import SesSettings
+from app_config import SesSettings, FRONTEND_BASE_URL
 from auth.operations import generate_activation_token, generate_unsubscribe_token, generate_reset_token
 
 
@@ -242,6 +242,6 @@ def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Req
   return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
 
 
-def construct_reset_link(user_id: str, email: EmailStr | str, frontend_url: str):
+def construct_reset_link(user_id: str, email: EmailStr | str):
   token = generate_reset_token(user_id, email)
-  return f"{frontend_url}/new-password?token={token}"
+  return f"{FRONTEND_BASE_URL}/new-password?token={token}"
