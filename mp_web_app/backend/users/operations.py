@@ -41,7 +41,8 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
 
 
 def validate_phone(phone: str) -> str:
-  if len(phone) != 10 or len(phone) != 13:
+  l = len(phone)
+  if len(phone) != 10 and len(phone) != 13:
     raise ValueError("Phone number must be 10 or 13 digits")
   if not phone.startswith(("0", "+359")):
     raise ValueError("Phone number must start with '0' or '+359'")
@@ -86,7 +87,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     "email": user_data.email,
     "phone": phone,
     "role": user_role,
-    "user_code": "",
+    "user_code": user_data.user_code,
     "active": active,
     "created_at": created_at.isoformat(),
     "updated_at": updated_at.isoformat(),

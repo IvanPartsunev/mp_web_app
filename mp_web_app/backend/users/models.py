@@ -10,7 +10,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
   password: str
-  id_number: str
+  user_code: str
 
 
 class UserUpdate(BaseModel):

@@ -26,9 +26,9 @@ async def user_register(
   repo: UserRepository = Depends(get_user_repository)
 ):
   """Create a new user."""
-  # TODO: Consider make "migrations" class for db tables instead of creating table if dont exists.
-  # user_repository.create_table_if_not_exists()
-  # Check if user with this email already exists
+
+  user_repository.create_table_if_not_exists()
+
   existing_user = get_user_by_email(user_data.email, repo)
   if existing_user:
     raise HTTPException(
