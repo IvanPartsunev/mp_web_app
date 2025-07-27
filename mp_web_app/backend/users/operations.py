@@ -40,7 +40,17 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
     return False
 
 
-def validate_password(password):
+def validate_phone(phone: str) -> str:
+  if len(phone) != 10 or len(phone) != 13:
+    raise ValueError("Phone number must be 10 or 13 digits")
+  if not phone.startswith(("0", "+359")):
+    raise ValueError("Phone number must start with '0' or '+359'")
+  if phone.startswith("0"):
+    return phone.replace("0", "+359")
+  return phone
+
+
+def validate_password(password: str) -> str:
   if len(password) > 30:
     raise ValueError("Password must be at less than 30 characters long")
   if len(password) < 8:
@@ -67,14 +77,14 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   created_at: datetime = datetime.now()
   updated_at: datetime = datetime.now()
   password = user_data.password
+  phone = validate_phone(user_data.phone)
   validate_password(password=password)
   hashed_password = hash_password(user_data.password, salt)
 
-  # TODO: Make validations for phone number, and password
   user_item = {
     "id": user_id,
     "email": user_data.email,
-    "phone": user_data.phone,
+    "phone": phone,
     "role": user_role,
     "user_code": "",
     "active": active,
