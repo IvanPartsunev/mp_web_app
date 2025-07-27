@@ -32,7 +32,7 @@ export function RegisterForm({
     password: "",
     phone: "",
     confirmPassword: "",
-    id_number: "",
+    user_code: "",
   });
 
   const [errors, setErrors] = useState({
@@ -75,7 +75,7 @@ export function RegisterForm({
     email: string;
     password: string;
     phone: string;
-    id_number: string;
+    user_code: string;
   }) => {
     return apiPost("users/register", userData);
   };
@@ -111,7 +111,7 @@ export function RegisterForm({
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
-        id_number: formData.id_number,
+        user_code: formData.user_code,
       };
 
       const result = await registerUser(userData);
@@ -124,7 +124,7 @@ export function RegisterForm({
         password: "",
         phone: "",
         confirmPassword: "",
-        id_number: "",
+        user_code: "",
       });
     } catch (error) {
       setErrors((prev) => ({
@@ -263,6 +263,10 @@ export function RegisterForm({
                     Паролите съвпадат
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква,
+                  една цифра и един специален символ: !@#$%^&?
+                </p>
               </div>
 
               <div className="grid gap-3">
@@ -272,8 +276,8 @@ export function RegisterForm({
                 <Input
                   id="id-number"
                   type="text"
-                  value={formData.id_number}
-                  onChange={(e) => handleInputChange("id_number", e.target.value)}
+                  value={formData.user_code}
+                  onChange={(e) => handleInputChange("user_code", e.target.value)}
                   disabled={isLoading}
                   required
                 />
