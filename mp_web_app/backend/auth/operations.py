@@ -51,18 +51,14 @@ def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Opti
   # TODO: Make TTL for dynamo to automatically delete expired tokens
   expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
-  # TODO: Better exception handling
-  try:
-    repo.create_table_if_not_exists()
-    refresh = {
-      "id": jti,
-      "user_id": data["sub"],
-      "valid": True,
-      "expires_at": expires_at,
-    }
-    repo.table.put_item(Item=refresh)
-  except Exception:
-    raise
+  repo.create_table_if_not_exists()
+  refresh = {
+    "id": jti,
+    "user_id": data["sub"],
+    "valid": True,
+    "expires_at": expires_at,
+  }
+  repo.table.put_item(Item=refresh)
 
   to_encode.update({"exp": expire, "type": "refresh", "jti": jti})
   encoded_jwt = jwt.encode(to_encode, settings.secret_key, settings.algorithm)
