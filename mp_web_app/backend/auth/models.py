@@ -12,7 +12,7 @@ class TokenRefreshRequest(BaseModel):
 
 
 class TokenPayload(BaseModel):
-  sub: str # user id
+  sub: str  # user id
   role: str
   exp: int
   type: str

@@ -45,3 +45,8 @@ class UserSecret(BaseModel):
   role: str
   salt: str
   password_hash: str
+
+
+class UserCode(BaseModel):
+  user_code: str
+  is_used: bool
