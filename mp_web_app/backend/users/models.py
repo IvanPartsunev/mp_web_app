@@ -49,4 +49,4 @@ class UserSecret(BaseModel):
 
 class UserCode(BaseModel):
   user_code: str
-  is_used: bool
+  is_valid: bool

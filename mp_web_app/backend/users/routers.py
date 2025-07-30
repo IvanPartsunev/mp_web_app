@@ -5,33 +5,32 @@ from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
 from auth.operations import role_required, decode_token, is_token_expired
-from database.operations import UserRepository
+from database.operations import UserRepository, UserCodeRepository
 from mail.operations import construct_verification_link, send_verification_email
 from users.models import UserCreate, User, UserUpdate, UserUpdatePassword
 from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user, update_user_password
+  update_user, update_user_password, get_user_codes, user_code_valid
 )
 from users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
-
-user_repository = UserRepository()
 
 
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 async def user_register(
   request: Request,
   user_data: UserCreate,
-  repo: UserRepository = Depends(get_user_repository)
+  user_repo: UserRepository = Depends(get_user_repository),
+  user_code_repo: UserCodeRepository = Depends(get_user_codes)
 ):
   """Create a new user."""
 
-  user_repository.create_table_if_not_exists()
+  user_repo.create_table_if_not_exists()
 
-  existing_user = get_user_by_email(user_data.email, repo)
+  existing_user = get_user_by_email(user_data.email, user_repo)
   if existing_user:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -39,7 +38,11 @@ async def user_register(
     )
 
   try:
-    user = create_user(user_data, request, repo)
+    user_code = user_data.user_code
+    is_valid = user_code_valid(user_code, user_code_repo)
+    if not is_valid:
+      raise ValueError("User code don't exists or its already used")
+    user = create_user(user_data, request, user_repo)
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -51,25 +54,26 @@ async def user_register(
 
 @user_router.post("/reset-password")
 async def user_reset_password(user_data: UserUpdatePassword,
-                              repo: UserRepository = Depends(get_user_repository)):
+                              user_repo: UserRepository = Depends(get_user_repository)):
   token = user_data.token
   payload = decode_token(token)
   user_id = payload.get("user_id")
   email = payload.get("sub")
 
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "reset":
-    return update_user_password(user_id, email, user_data, repo)
+    return update_user_password(user_id, email, user_data, user_repo)
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 
 @user_router.get("/activate-account", response_model=User, status_code=status.HTTP_201_CREATED)
-async def user_activate_account(email: EmailStr | str, token: str, repo: UserRepository = Depends(get_user_repository)):
+async def user_activate_account(email: EmailStr | str, token: str,
+                                user_repo: UserRepository = Depends(get_user_repository)):
   user_data = UserUpdate(active=True)
   payload = decode_token(token)
   user_id = payload.get("user_id")
 
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "activation":
-    update_user(user_id, email, user_data, repo)
+    update_user(user_id, email, user_data, user_repo)
     return RedirectResponse(url=F"{FRONTEND_BASE_URL}/login")
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 

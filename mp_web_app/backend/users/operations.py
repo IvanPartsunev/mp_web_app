@@ -11,14 +11,38 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from database.operations import UserRepository
-from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword
+from database.operations import UserRepository, UserCodeRepository
+from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword, UserCode
 from users.roles import UserRole
 
 
 def get_user_repository() -> UserRepository:
   """Dependency to get the user repository."""
   return UserRepository('users')
+
+
+def get_user_codes() -> UserCodeRepository:
+  """Dependency to get the user repository."""
+  return UserCodeRepository('user_codes')
+
+
+def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None:
+  response = repo.table.get_item(Key={"user_code": user_code})
+
+  if 'Item' not in response or not response['Item'].is_valid:
+    return None
+  return repo.convert_item_to_code(response['Item'])
+
+
+def update_user_code(user_code: UserCode, repo: UserCodeRepository) -> None:
+  response = repo.table.update_item(
+    Key={'user_code': user_code.user_code},
+    UpdateExpression='SET #is_valid = :is_valid',
+    ExpressionAttributeNames={'#is_valid': user_code.user_code},
+    ExpressionAttributeValues={':is_valid': not user_code.is_valid},
+    ReturnValues="ALL_NEW"
+  )
+  return repo.convert_item_to_code(response["Attributes"])
 
 
 def hash_password(password: str, salt: str) -> str:
