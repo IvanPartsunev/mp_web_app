@@ -12,7 +12,7 @@ from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code
+  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code
 )
 from users.roles import UserRole
 
@@ -48,7 +48,7 @@ async def user_register(
 
   verification_link = construct_verification_link(user.id, user.email, request)
   send_verification_email(user.email, verification_link)
-
+  update_user_code(user_code, user_code_repo)
   return user
 
 

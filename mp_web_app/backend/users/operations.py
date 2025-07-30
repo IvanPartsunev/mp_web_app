@@ -29,7 +29,7 @@ def get_user_codes() -> UserCodeRepository:
 def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None:
   response = repo.table.get_item(Key={"user_code": user_code})
 
-  if 'Item' not in response or not response['Item'].is_valid:
+  if 'Item' not in response or not response['Item'].get('is_valid', None):
     return None
   return repo.convert_item_to_code(response['Item'])
 
@@ -53,12 +53,14 @@ def create_user_code(user_code: str, repo: UserCodeRepository):
     )
 
 
-def update_user_code(user_code: UserCode, repo: UserCodeRepository) -> None:
+def update_user_code(user_code: str, repo: UserCodeRepository) -> None:
+  response = repo.table.get_item(Key={"user_code": user_code})
+  user_code_obj = repo.convert_item_to_code(response["Item"])
   response = repo.table.update_item(
-    Key={'user_code': user_code.user_code},
+    Key={'user_code': user_code_obj.user_code},
     UpdateExpression='SET #is_valid = :is_valid',
-    ExpressionAttributeNames={'#is_valid': user_code.user_code},
-    ExpressionAttributeValues={':is_valid': not user_code.is_valid},
+    ExpressionAttributeNames={'#is_valid': 'is_valid'},
+    ExpressionAttributeValues={':is_valid': not user_code_obj.is_valid},
     ReturnValues="ALL_NEW"
   )
   return repo.convert_item_to_code(response["Attributes"])
