@@ -139,7 +139,7 @@ class UserCodeRepository(BaseRepository):
 
     except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
       self.table = self.dynamodb.create_table(
-        TableName=self.table,
+        TableName=self.table_name,
         KeySchema=[
           {
             'AttributeName': 'user_code',

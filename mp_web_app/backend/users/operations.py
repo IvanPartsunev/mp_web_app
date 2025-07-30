@@ -34,6 +34,25 @@ def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None
   return repo.convert_item_to_code(response['Item'])
 
 
+def create_user_code(user_code: str, repo: UserCodeRepository):
+  repo.create_table_if_not_exists()
+
+  try:
+    repo.table.put_item(
+      Item={
+        'user_code': user_code,
+        'is_valid': True
+      }
+    )
+
+  except ClientError as e:
+    logging.error(f"DynamoDB ClientError: {e.response['Error']['Message']}")
+    raise HTTPException(
+      status_code=500,
+      detail=f"Database error: {e.response['Error']['Message']}"
+    )
+
+
 def update_user_code(user_code: UserCode, repo: UserCodeRepository) -> None:
   response = repo.table.update_item(
     Key={'user_code': user_code.user_code},

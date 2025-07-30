@@ -12,7 +12,7 @@ from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user, update_user_password, get_user_codes, user_code_valid
+  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code
 )
 from users.roles import UserRole
 
@@ -82,21 +82,14 @@ async def user_activate_account(email: EmailStr | str, token: str,
 async def test_login(user=Depends(role_required([UserRole.REGULAR_USER]))):
   raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
-# TODO: Assess the need of separate endpoints for getting use by email, id ect. or all to be combined in get_user.
-# @router.get("/{user_id}", response_model=User)
-# async def get_user(
-#   user_id: str,
-#   repo: UserRepository = Depends(get_user_repository)
-# ):
-#   """Get a user by ID."""
-#   user = await repo.get_user_by_id(user_id)
-#   if not user:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND,
-#       detail="User not found"
-#     )
-#   return user
 
+@user_router.post("/create_user_codes", status_code=status.HTTP_201_CREATED)
+async def create_user_codes(
+  user_code_repo: UserCodeRepository = Depends(get_user_codes),
+  # user=Depends(role_required([UserRole.ADMIN]))
+):
+  for i in range(10):
+    create_user_code(str(i), user_code_repo)
 
 # TODO: Is getting user by email needed???
 # @router.get("/by-email/{email}", response_model=User)
