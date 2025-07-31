@@ -20,7 +20,7 @@
       "name": "api:requirements",
       "steps": [
         {
-          "exec": "cd mp_web_app/backend/backend && poetry export -f requirements.txt --output requirements.txt --without-hashes"
+          "exec": "cd mp_web_app/backend/backend && poetry export -f requirements.txt --without-hashes > requirements.txt"
         }
       ]
     },
@@ -60,7 +60,7 @@
       "name": "cdk:deploy",
       "steps": [
         {
-          "exec": "poetry run cdk deploy"
+          "exec": "poetry run cdk deploy --all"
         }
       ]
     },
