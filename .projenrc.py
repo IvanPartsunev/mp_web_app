@@ -16,7 +16,7 @@ project = PythonProject(
   # Main project dependencies (CDK infrastructure)
   deps=[
     f"python@{python_version}",
-    "aws-cdk-lib@2.38.0",
+    "aws-cdk-lib@2.208.0",
     "constructs@10.0.0",
     "boto3@1.35.88",
   ],
@@ -140,7 +140,7 @@ project.add_task("api:run",
 # Task: Generate requirements.txt for Lambda deployment
 # This exports Poetry dependencies to a requirements.txt file for AWS Lambda
 project.add_task("api:requirements",
-                 exec="cd mp_web_app/backend/backend && poetry export -f requirements.txt --output requirements.txt --without-hashes")
+                 exec="cd mp_web_app/backend/backend && poetry export -f requirements.txt --without-hashes > requirements.txt")
 
 # Task: Start React app
 # This starts the React app
@@ -154,7 +154,7 @@ project.add_task("cdk:synth",
 
 # Task: Deploy the CDK stack to AWS
 project.add_task("cdk:deploy",
-                 exec="poetry run cdk deploy")
+                 exec="poetry run cdk deploy --all")
 
 # Task: Show differences between local CDK stack and deployed stack
 project.add_task("cdk:diff",
