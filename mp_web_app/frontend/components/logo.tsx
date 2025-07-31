@@ -4,13 +4,13 @@ export function Logo() {
       className="relative flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-6 px-4 py-4 overflow-hidden">
       {/* background image */}
       <div
-        className="absolute inset-0 bg-[url('/imgs/background.jpg')] bg-center bg-cover opacity-50 "
+        className="absolute inset-0 bg-[url('public/imgs/background.jpg')] bg-center bg-cover opacity-50 "
         aria-hidden="true"
       />
 
       {/* your content */}
       <img
-        src="/imgs/logo-cmyk.svg"
+        src="public/imgs/logo-cmyk.svg"
         alt="Logo"
         className="relative h-24 w-auto sm:h-30 max-w-[200px] drop-shadow-sm drop-shadow-white"
       />
