@@ -8,12 +8,10 @@ from auth.operations import (
   generate_access_token,
   generate_refresh_token,
   get_auth_repository,
-  invalidate_token,
+  invalidate_token, authenticate_user,
 )
 from database.operations import AuthRepository, UserRepository
-
-from mp_web_app.backend.auth.operations import authenticate_user
-from mp_web_app.backend.users.operations import get_user_repository
+from users.operations import get_user_repository
 
 auth_router = APIRouter(tags=["auth"])
 
@@ -73,4 +71,3 @@ async def refresh(
     access_token=new_access_token,
     refresh_token=new_refresh_token,
   )
-
