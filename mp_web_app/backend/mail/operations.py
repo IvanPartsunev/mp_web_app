@@ -1,3 +1,5 @@
+import os
+
 import boto3
 
 from email.header import Header
@@ -13,6 +15,8 @@ from pydantic import EmailStr
 
 from app_config import SesSettings, FRONTEND_BASE_URL
 from auth.operations import generate_activation_token, generate_unsubscribe_token, generate_reset_token
+
+FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 
 
 @lru_cache
@@ -244,4 +248,4 @@ def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Req
 
 def construct_reset_link(user_id: str, email: EmailStr | str):
   token = generate_reset_token(user_id, email)
-  return f"{FRONTEND_BASE_URL}/new-password?token={token}"
+  return f"{FRONTEND_URL}/new-password?token={token}"
