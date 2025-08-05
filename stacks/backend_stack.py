@@ -78,6 +78,8 @@ class BackendStack(Stack):
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
+        "JWT_SECRET_KEY": "superlongrandomstring",
+        "JWT_ALGORITHM": "HS256",
       }
     )
 

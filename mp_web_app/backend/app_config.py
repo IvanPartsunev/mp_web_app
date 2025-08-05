@@ -1,39 +1,28 @@
+import os
 from typing import List
 
 from pydantic_settings import BaseSettings
 
 REGION = "eu-central-1"
-FRONTEND_BASE_URL = "https://d3u6t9h0xyyd0j.cloudfront.net"
+# FRONTEND_BASE_URL = "http://localhost:3000"
+FRONTEND_BASE_URL = "https://d3u6t9h0xyyd0j.cloudfront.net/"
+SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+ALGORITH = os.getenv('JWT_ALGORITHM')
+MAIL_SENDER = os.getenv('MAIL_SENDER')
 
 
 class DynamoDBSettings(BaseSettings):
-  """DynamoDB configuration settings."""
   aws_access_key_id: str
   aws_secret_access_key: str
   region_name: str = REGION
-  endpoint_url: str = None
-
-  class Config:
-    env_prefix = "DYNAMODB_"
-    env_file = ".env"
-    extra = "ignore"
+  endpoint_url: str | None = None
 
 
 class JWTSettings(BaseSettings):
-  secret_key: str
-  algorithm: str
-
-  class Config:
-    env_prefix = "JWT_"
-    env_file = ".env"
-    extra = "ignore"
+  secret_key: str = SECRET_KEY
+  algorithm: str = ALGORITH
 
 
 class SesSettings(BaseSettings):
-  sender: str
+  sender: str = MAIL_SENDER
   region: str = REGION
-
-  class Config:
-    env_prefix = "MAIL_"
-    env_file = ".env"
-    extra = "ignore"
