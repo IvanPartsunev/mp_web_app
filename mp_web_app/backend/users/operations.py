@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from datetime import datetime
 
@@ -15,15 +16,18 @@ from database.operations import UserRepository, UserCodeRepository
 from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword, UserCode
 from users.roles import UserRole
 
+USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
+USER_CODES_TABLE_NAME = os.environ.get('USER_CODES_TABLE_NAME')
+
 
 def get_user_repository() -> UserRepository:
   """Dependency to get the user repository."""
-  return UserRepository('users')
+  return UserRepository(USERS_TABLE_NAME)
 
 
 def get_user_codes() -> UserCodeRepository:
   """Dependency to get the user repository."""
-  return UserCodeRepository('user_codes')
+  return UserCodeRepository(USER_CODES_TABLE_NAME)
 
 
 def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None:
@@ -35,7 +39,7 @@ def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None
 
 
 def create_user_code(user_code: str, repo: UserCodeRepository):
-  repo.create_table_if_not_exists()
+  repo.get_table()
 
   try:
     repo.table.put_item(

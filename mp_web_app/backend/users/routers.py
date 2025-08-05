@@ -28,8 +28,6 @@ async def user_register(
 ):
   """Create a new user."""
 
-  user_repo.create_table_if_not_exists()
-
   existing_user = get_user_by_email(user_data.email, user_repo)
   if existing_user:
     raise HTTPException(

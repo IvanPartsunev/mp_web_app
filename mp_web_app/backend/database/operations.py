@@ -1,5 +1,5 @@
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Dict, Any
 from decimal import Decimal
 
@@ -7,20 +7,12 @@ from auth.models import TokenPayload
 from database.db_config import get_dynamodb_resource
 from users.models import User, UserSecret, UserCode
 
-USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
-USER_CODES_TABLE_NAME = os.environ.get('USER_CODES_TABLE_NAME')
-REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
-
 
 class BaseRepository(ABC):
   def __init__(self, table_name: str) -> None:
-    self.table_name = os.environ.get('USERS_TABLE_NAME', table_name)
+    self.table_name = table_name
     self.dynamodb = get_dynamodb_resource()
     self.table = self.dynamodb.Table(self.table_name)
-
-  @abstractmethod
-  def create_table_if_not_exists(self):
-    pass
 
 
 class UserRepository(BaseRepository):
@@ -39,56 +31,8 @@ class UserRepository(BaseRepository):
     """Convert a DynamoDB item to a UserSecret model containing password and salt."""
     return UserSecret(**item)
 
-  def create_table_if_not_exists(self):
-    """Create the users table if it doesn't exist."""
-    try:
-      self.dynamodb.meta.client.describe_table(TableName=self.table_name)
-
-    except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
-      self.table = self.dynamodb.create_table(
-        TableName=self.table_name,
-        KeySchema=[
-          {
-            'AttributeName': 'id',
-            'KeyType': 'HASH'
-          }
-        ],
-        AttributeDefinitions=[
-          {
-            'AttributeName': 'id',
-            'AttributeType': 'S'
-          },
-          {
-            'AttributeName': 'email',
-            'AttributeType': 'S'
-          }
-        ],
-        GlobalSecondaryIndexes=[
-          {
-            'IndexName': 'email-index',
-            'KeySchema': [
-              {
-                'AttributeName': 'email',
-                'KeyType': 'HASH'
-              }
-            ],
-            'Projection': {
-              'ProjectionType': 'ALL'
-            },
-            'ProvisionedThroughput': {
-              'ReadCapacityUnits': 1,
-              'WriteCapacityUnits': 1
-            }
-          }
-        ],
-        ProvisionedThroughput={
-          'ReadCapacityUnits': 1,
-          'WriteCapacityUnits': 1
-        }
-      )
-      # Wait until the table exists
-      self.table.meta.client.get_waiter('table_exists').wait(TableName=self.table_name)
-
+  @property
+  def get_table(self):
     return self.table
 
 
@@ -99,34 +43,8 @@ class AuthRepository(BaseRepository):
     """Convert a DynamoDB item to a Token model."""
     return TokenPayload(**item)
 
-  def create_table_if_not_exists(self):
-    """Create the jwt refresh token table if it doesn't exist."""
-    try:
-      self.dynamodb.meta.client.describe_table(TableName=self.table_name)
-
-    except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
-      self.table = self.dynamodb.create_table(
-        TableName=self.table_name,
-        KeySchema=[
-          {
-            'AttributeName': 'id',
-            'KeyType': 'HASH'
-          }
-        ],
-        AttributeDefinitions=[
-          {
-            'AttributeName': 'id',
-            'AttributeType': 'S'
-          },
-        ],
-        ProvisionedThroughput={
-          'ReadCapacityUnits': 1,
-          'WriteCapacityUnits': 1
-        }
-      )
-      # Wait until the table exists
-      self.table.meta.client.get_waiter('table_exists').wait(TableName=self.table_name)
-
+  @property
+  def get_table(self):
     return self.table
 
 
@@ -137,31 +55,6 @@ class UserCodeRepository(BaseRepository):
     """Convert a DynamoDB item to a UserCode model."""
     return UserCode(**item)
 
-  def create_table_if_not_exists(self):
-    """Create the user code table if it doesn't exist."""
-    try:
-      self.dynamodb.meta.client.describe_table(TableName=self.table_name)
-
-    except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
-      self.table = self.dynamodb.create_table(
-        TableName=self.table_name,
-        KeySchema=[
-          {
-            'AttributeName': 'user_code',
-            'KeyType': 'HASH'
-          },
-        ],
-        AttributeDefinitions=[
-          {
-            'AttributeName': 'user_code',
-            'AttributeType': 'S'
-          }
-        ],
-        ProvisionedThroughput={
-          'ReadCapacityUnits': 1,
-          'WriteCapacityUnits': 1
-        }
-      )
-      self.table.meta.client.get_waiter('table_exists').wait(TableName=self.table_name)
-
+  @property
+  def get_table(self):
     return self.table

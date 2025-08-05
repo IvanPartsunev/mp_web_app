@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
@@ -16,6 +17,7 @@ from users.models import User, UserSecret
 from users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
 from users.roles import UserRole, ROLE_HIERARCHY
 
+REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
@@ -30,8 +32,7 @@ def get_jwt_settings() -> JWTSettings:
 
 def get_auth_repository():
   """Dependency to get the auth repository."""
-  repo = AuthRepository()
-  return repo
+  return AuthRepository(REFRESH_TABLE_NAME)
 
 
 def generate_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -51,7 +52,7 @@ def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Opti
   # TODO: Make TTL for dynamo to automatically delete expired tokens
   expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
-  repo.create_table_if_not_exists()
+  repo.get_table()
   refresh = {
     "id": jti,
     "user_id": data["sub"],
