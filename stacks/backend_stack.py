@@ -1,6 +1,7 @@
 from aws_cdk import (
   Stack,
   aws_lambda as _lambda,
+  aws_iam as iam,
   aws_apigateway as apigateway,
   aws_dynamodb as dynamodb,
   RemovalPolicy,
@@ -49,19 +50,35 @@ class BackendStack(Stack):
     )
 
     # DynamoDB tables
-    self.table1 = dynamodb.Table(
+    self.table1 = dynamodb.TableV2(
       self, "users_table",
-      partition_key=dynamodb.Attribute(name="users", type=dynamodb.AttributeType.STRING),
-      removal_policy=RemovalPolicy.DESTROY,
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN,
     )
-    self.table2 = dynamodb.Table(
+    self.table1.add_global_secondary_index(
+      index_name="email-index",
+      partition_key=dynamodb.Attribute(name="email", type=dynamodb.AttributeType.STRING)
+    )
+    self.table2 = dynamodb.TableV2(
       self, "user_codes_table",
       partition_key=dynamodb.Attribute(name="user_codes", type=dynamodb.AttributeType.STRING),
-      removal_policy=RemovalPolicy.DESTROY,
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN,
     )
-    self.table3 = dynamodb.Table(
+    self.table3 = dynamodb.TableV2(
       self, "refresh_table",
-      partition_key=dynamodb.Attribute(name="refresh", type=dynamodb.AttributeType.STRING),
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
       removal_policy=RemovalPolicy.DESTROY,
     )
 
