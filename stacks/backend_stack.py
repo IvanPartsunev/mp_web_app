@@ -16,6 +16,43 @@ class BackendStack(Stack):
   def __init__(self, scope: Construct, id: str, frontend_base_url: str = "", **kwargs):
     super().__init__(scope, id, **kwargs)
 
+    # DynamoDB tables
+    self.table1 = dynamodb.TableV2(
+      self, "users_table",
+      table_name="users_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.DESTROY,
+    )
+    self.table1.add_global_secondary_index(
+      index_name="email-index",
+      partition_key=dynamodb.Attribute(name="email", type=dynamodb.AttributeType.STRING)
+    )
+
+    self.table2 = dynamodb.TableV2(
+      self, "user_codes_table",
+      table_name="user_codes_table",
+      partition_key=dynamodb.Attribute(name="user_codes", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.DESTROY,
+    )
+    self.table3 = dynamodb.TableV2(
+      self, "refresh_table",
+      table_name="refresh_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.DESTROY,
+    )
+
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",
@@ -38,6 +75,9 @@ class BackendStack(Stack):
       memory_size=1024,
       environment={
         "FRONTEND_BASE_URL": frontend_base_url or "https://your-cloudfront-url",
+        "USERS_TABLE_NAME": self.table1.table_name,
+        "USER_CODES_TABLE_NAME": self.table2.table_name,
+        "REFRESH_TABLE_NAME": self.table3.table_name,
       }
     )
 
@@ -47,43 +87,6 @@ class BackendStack(Stack):
       handler=self.backend_lambda,
       proxy=True,
       deploy_options=apigateway.StageOptions(stage_name="prod"),
-    )
-
-    # DynamoDB tables
-    self.table1 = dynamodb.TableV2(
-      self, "users_table",
-      table_name="users_table",
-      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.provisioned(
-        read_capacity=dynamodb.Capacity.fixed(2),
-        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
-      ),
-      removal_policy=RemovalPolicy.RETAIN,
-    )
-    self.table1.add_global_secondary_index(
-      index_name="email-index",
-      partition_key=dynamodb.Attribute(name="email", type=dynamodb.AttributeType.STRING)
-    )
-
-    self.table2 = dynamodb.TableV2(
-      self, "user_codes_table",
-      table_name="user_codes_table",
-      partition_key=dynamodb.Attribute(name="user_codes", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.provisioned(
-        read_capacity=dynamodb.Capacity.fixed(2),
-        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
-      ),
-      removal_policy=RemovalPolicy.RETAIN,
-    )
-    self.table3 = dynamodb.TableV2(
-      self, "refresh_table",
-      table_name="refresh_table",
-      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.provisioned(
-        read_capacity=dynamodb.Capacity.fixed(2),
-        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
-      ),
-      removal_policy=RemovalPolicy.DESTROY,
     )
 
     # Grant Lambda access to tables
