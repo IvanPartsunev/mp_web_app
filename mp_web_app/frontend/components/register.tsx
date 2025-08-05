@@ -195,31 +195,7 @@ export function RegisterForm({
                   autoComplete="email"
                 />
               </div>
-              <div className="grid gap-3">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+359 8XXXXXXXX"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  disabled={isLoading}
-                  required
-                  autoComplete="tel"
-                />
-                {formData.phone && phoneError && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <XIcon size={14}/>
-                    {phoneError}
-                  </p>
-                )}
-                {formData.phone && !phoneError && (
-                  <p className="text-sm text-green-600 flex items-center gap-1">
-                    <CheckIcon size={14}/>
-                    Телефонният номер е валиден
-                  </p>
-                )}
-              </div>
+
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Парола</Label>
@@ -267,6 +243,32 @@ export function RegisterForm({
                   Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква,
                   една цифра и един специален символ: !@#$%^&?
                 </p>
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="phone">Телефон</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+359 8XXXXXXXX"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  disabled={isLoading}
+                  required
+                  autoComplete="tel"
+                />
+                {formData.phone && phoneError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <XIcon size={14}/>
+                    {phoneError}
+                  </p>
+                )}
+                {formData.phone && !phoneError && (
+                  <p className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckIcon size={14}/>
+                    Телефонният номер е валиден
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-3">
