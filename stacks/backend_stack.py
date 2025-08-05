@@ -52,6 +52,7 @@ class BackendStack(Stack):
     # DynamoDB tables
     self.table1 = dynamodb.TableV2(
       self, "users_table",
+      table_name="users_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
@@ -63,8 +64,10 @@ class BackendStack(Stack):
       index_name="email-index",
       partition_key=dynamodb.Attribute(name="email", type=dynamodb.AttributeType.STRING)
     )
+
     self.table2 = dynamodb.TableV2(
       self, "user_codes_table",
+      table_name="user_codes_table",
       partition_key=dynamodb.Attribute(name="user_codes", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
@@ -74,6 +77,7 @@ class BackendStack(Stack):
     )
     self.table3 = dynamodb.TableV2(
       self, "refresh_table",
+      table_name="refresh_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
