@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 from decimal import Decimal
@@ -6,10 +7,14 @@ from auth.models import TokenPayload
 from database.db_config import get_dynamodb_resource
 from users.models import User, UserSecret, UserCode
 
+USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
+USER_CODES_TABLE_NAME = os.environ.get('USER_CODES_TABLE_NAME')
+REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
+
 
 class BaseRepository(ABC):
   def __init__(self, table_name: str) -> None:
-    self.table_name = table_name
+    self.table_name = os.environ.get('USERS_TABLE_NAME', table_name)
     self.dynamodb = get_dynamodb_resource()
     self.table = self.dynamodb.Table(self.table_name)
 
