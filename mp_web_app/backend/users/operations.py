@@ -178,7 +178,7 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
 def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
   response = repo.table.query(
-    IndexName="email-index",
+    IndexName="email_index",
     KeyConditionExpression=Key("email").eq(email)
   )
 
