@@ -28,14 +28,14 @@ class BackendStack(Stack):
       removal_policy=RemovalPolicy.DESTROY,
     )
     self.table1.add_global_secondary_index(
-      index_name="email-index",
+      index_name="email_index",
       partition_key=dynamodb.Attribute(name="email", type=dynamodb.AttributeType.STRING)
     )
 
     self.table2 = dynamodb.TableV2(
       self, "user_codes_table",
       table_name="user_codes_table",
-      partition_key=dynamodb.Attribute(name="user_codes", type=dynamodb.AttributeType.STRING),
+      partition_key=dynamodb.Attribute(name="user_code", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
