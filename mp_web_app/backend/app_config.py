@@ -10,7 +10,7 @@ class DynamoDBSettings(BaseSettings):
   """DynamoDB configuration settings."""
   aws_access_key_id: str
   aws_secret_access_key: str
-  region_name: str = None
+  region_name: str = REGION
   endpoint_url: str = None
 
   class Config:
