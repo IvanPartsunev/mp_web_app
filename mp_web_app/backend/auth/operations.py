@@ -199,7 +199,7 @@ def generate_token(
     "d": lambda n: timedelta(days=n),
   }
 
-  expire_delta = datetime.now() + units_map[time_units](exp)
+  expire_delta = datetime.now(timezone.utc) + units_map[time_units](exp)
 
   payload = {
     "sub": sub,
