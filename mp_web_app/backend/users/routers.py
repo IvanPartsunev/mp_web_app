@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 
 from pydantic import EmailStr
@@ -19,7 +17,6 @@ from users.operations import (
 from users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
-logger = logging.getLogger(__name__)
 
 
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -71,9 +68,7 @@ async def user_activate_account(email: EmailStr | str, token: str,
                                 user_repo: UserRepository = Depends(get_user_repository)):
   payload = decode_token(token)
   user_id = payload.get("user_id")
-  logger.info(f"is expired: {is_token_expired(token)}")
-  logger.info(f"is email: {email == payload.get("sub")}")
-  logger.info(f"is type: {payload.get("type") == "activation"}")
+
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "activation":
     user_data = UserUpdate(active=True)
     update_user(user_id, email, user_data, user_repo)

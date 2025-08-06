@@ -230,15 +230,17 @@ def send_reset_email(
     raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
 
 
+# TODO Potential issue `+ "/prod"` may cause problems
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
-  base_url = str(request.base_url).rstrip("/")
+  base_url = str(request.base_url).rstrip("/") + '/prod'
   return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 
+# TODO Potential issue `+ "/prod"` may cause problems
 def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_unsubscribe_token(user_id, email)
-  base_url = str(request.base_url).rstrip("/")
+  base_url = str(request.base_url).rstrip("/") + '/prod'
   return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
 
 
