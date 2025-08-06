@@ -4,8 +4,8 @@ from typing import List
 from pydantic_settings import BaseSettings
 
 REGION = "eu-central-1"
-# FRONTEND_BASE_URL = "http://localhost:3000"
-FRONTEND_BASE_URL = "https://d3u6t9h0xyyd0j.cloudfront.net/"
+FRONTEND_BASE_URL = "http://localhost:3000"
+# FRONTEND_BASE_URL = "https://d3u6t9h0xyyd0j.cloudfront.net/"
 SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 ALGORITH = os.getenv('JWT_ALGORITHM')
 MAIL_SENDER = os.getenv('MAIL_SENDER')

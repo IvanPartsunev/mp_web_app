@@ -96,6 +96,14 @@ class BackendStack(Stack):
     self.table2.grant_read_write_data(self.backend_lambda)
     self.table3.grant_read_write_data(self.backend_lambda)
 
+    # Grant Lambda access to SES
+    self.backend_lambda.add_to_role_policy(
+      iam.PolicyStatement(
+        actions=["ses:SendEmail", "ses:SendRawEmail"],
+        resources=["*"]  # Or restrict to your SES identity ARN
+      )
+    )
+
     # Outputs
     CfnOutput(self, "ApiUrl", value=self.api.url)
     CfnOutput(self, "Table1Name", value=self.table1.table_name)

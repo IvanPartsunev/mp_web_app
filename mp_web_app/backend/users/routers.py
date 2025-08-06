@@ -63,17 +63,21 @@ async def user_reset_password(user_data: UserUpdatePassword,
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 
-@user_router.get("/activate-account", response_model=User, status_code=status.HTTP_201_CREATED)
+@user_router.get("/activate-account")
 async def user_activate_account(email: EmailStr | str, token: str,
                                 user_repo: UserRepository = Depends(get_user_repository)):
-  user_data = UserUpdate(active=True)
   payload = decode_token(token)
   user_id = payload.get("user_id")
 
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "activation":
+    user_data = UserUpdate(active=True)
     update_user(user_id, email, user_data, user_repo)
-    return RedirectResponse(url=F"{FRONTEND_BASE_URL}/login")
-  raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+    return RedirectResponse(
+      url=f"{FRONTEND_BASE_URL}/login",
+      status_code=status.HTTP_302_FOUND
+    )
+
+  raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or expired token")
 
 
 @user_router.post("test_login")

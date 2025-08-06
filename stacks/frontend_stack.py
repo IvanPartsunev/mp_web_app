@@ -4,7 +4,7 @@ from aws_cdk import (
   aws_cloudfront as cloudfront,
   aws_cloudfront_origins as origins,
   RemovalPolicy,
-  CfnOutput,
+  CfnOutput, Duration,
 )
 from constructs import Construct
 
@@ -35,6 +35,14 @@ class FrontendStack(Stack):
         viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       ),
       default_root_object="index.html",
+      error_responses=[
+        cloudfront.ErrorResponse(
+          http_status=404,
+          response_http_status=200,
+          response_page_path="/index.html",
+          ttl=Duration.minutes(0),  # optional, for instant updates
+        )
+      ],
     )
 
     # 5. Output the CloudFront URL and bucket name
