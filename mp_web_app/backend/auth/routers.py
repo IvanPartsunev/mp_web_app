@@ -2,13 +2,15 @@ from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
-from auth.models import Token
+from app_config import JWTSettings
+from auth.models import Token, TokenPayload
 from auth.operations import (
   verify_refresh_token,
   generate_access_token,
   generate_refresh_token,
   get_auth_repository,
-  invalidate_token, authenticate_user,
+  invalidate_token,
+  authenticate_user, decode_token,
 )
 from database.operations import AuthRepository, UserRepository
 from users.operations import get_user_repository
@@ -71,3 +73,23 @@ async def refresh(
     access_token=new_access_token,
     refresh_token=new_refresh_token,
   )
+
+
+@auth_router.post("/logout")
+def logout(
+  response: Response,
+  refresh_token: str = Cookie(None),
+  auth_repo: AuthRepository = Depends(get_auth_repository),
+):
+  payload = decode_token(refresh_token)
+  if payload:
+    token_payload = TokenPayload(**payload)
+    invalidate_token(token_payload, auth_repo)
+
+  response.delete_cookie(
+    "refresh_token",
+    path="/",
+    httponly=True,
+    samesite="strict",
+  )
+  return {"msg": "Logged out"}

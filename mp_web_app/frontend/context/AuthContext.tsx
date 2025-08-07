@@ -1,15 +1,15 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
+import {API_BASE_URL} from "@/app-config";
 
 interface AuthContextType {
   isLoggedIn: boolean;
   login: (accessToken: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function getInitialAuthState(): boolean {
-  // Check if access token exists in localStorage
   return !!localStorage.getItem("access_token");
 }
 
@@ -17,7 +17,6 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
 
   useEffect(() => {
-    // Listen for storage changes (multi-tab logout/login)
     const handleStorage = () => {
       setIsLoggedIn(getInitialAuthState());
     };
@@ -30,11 +29,16 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
     setIsLoggedIn(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem("access_token");
-    // Optionally, clear all storage or cookies if needed
-    // Remove refresh token cookie by setting it expired
-    document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    try {
+      await fetch(`${API_BASE_URL}auth/logout`, {
+        method: "POST",
+        credentials: "include", // Important: send cookies for refresh token
+      });
+    } catch (e) {
+      // Optionally handle error
+    }
     setIsLoggedIn(false);
   };
 
