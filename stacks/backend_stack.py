@@ -4,6 +4,7 @@ from aws_cdk import (
   aws_iam as iam,
   aws_apigateway as apigateway,
   aws_dynamodb as dynamodb,
+  aws_secretsmanager as secretsmanager,
   RemovalPolicy,
   Duration,
   CfnOutput,
@@ -16,6 +17,18 @@ class BackendStack(Stack):
   def __init__(self, scope: Construct, id: str, frontend_base_url: str = "", **kwargs):
     super().__init__(scope, id, **kwargs)
 
+    # Create a randomly generated JWT secret
+    self.jwt_secret = secretsmanager.Secret(
+      self, "JwtSecret",
+      secret_name="fastapi/jwt_secret",
+      description="JWT signing secret for the backend",
+      generate_secret_string=secretsmanager.SecretStringGenerator(
+        secret_string_template="{'JWT_SECRET': ''}",
+        generate_string_key="JWT_SECRET",
+        exclude_characters="'\"\\",
+        password_length=64
+      )
+    )
     # DynamoDB tables
     self.table1 = dynamodb.TableV2(
       self, "users_table",
@@ -78,10 +91,13 @@ class BackendStack(Stack):
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
-        "JWT_SECRET_KEY": "superlongrandomstring",
+        "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
       }
     )
+
+    # Give lambda permissions to read the secret
+    self.jwt_secret.grant_read(self.backend_lambda)
 
     # API Gateway to expose Lambda
     self.api = apigateway.LambdaRestApi(
