@@ -3,7 +3,6 @@ import {AuthProvider} from "@/context/AuthContext";
 import Navigation from "@/pages/Navigation";
 import Base from "@/pages/Base";
 import {Route, Routes} from "react-router-dom";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 import PageLoadingWrapper from "@/components/page-loading-wrapper";
 
 // Regular imports for pages that don't need API calls
@@ -38,13 +37,9 @@ const Transcripts = lazy(() => import("@/pages/documents/Transcripts"));
 const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocuments"));
 // @ts-ignore
 const Others = lazy(() => import("@/pages/documents/Others"));
+// @ts-ignore
+const MyDocuments = lazy(() => import("@/pages/MyDocuments"))
 
-// Global loading fallback
-const GlobalLoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <LoadingSpinner size="lg" text="Зареждане..."/>
-  </div>
-);
 
 function App() {
   return (
@@ -57,8 +52,6 @@ function App() {
             <Route path="products" element={<Products/>}/>
             <Route path="contacts" element={<Contacts/>}/>
             <Route path="gallery" element={<Gallery/>}/>
-
-            {/* About us routes - with loading */}
             <Route
               path="board"
               element={
@@ -76,7 +69,6 @@ function App() {
               }
             />
 
-            {/* Lists routes - with loading */}
             <Route
               path="proxies"
               element={
@@ -94,7 +86,6 @@ function App() {
               }
             />
 
-            {/* Documents routes - with loading */}
             <Route
               path="governing-documents"
               element={
@@ -132,6 +123,14 @@ function App() {
               element={
                 <PageLoadingWrapper loadingText="Зареждане на счетоводните документи...">
                   <AccountingDocuments/>
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="mydocuments"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на моите документи...">
+                  <MyDocuments/>
                 </PageLoadingWrapper>
               }
             />

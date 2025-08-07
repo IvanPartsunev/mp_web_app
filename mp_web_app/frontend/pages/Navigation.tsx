@@ -83,6 +83,12 @@ const NAV_LINKS = [
         requiresAuth: true,
       },
       {
+        label: "Моите документи",
+        to: "/mydocuments",
+        description: "Документи споделени с мен.",
+        requiresAuth: true,
+      },
+      {
         label: "Други",
         to: "/others",
         description: "Други документи свързани с дейноста на ГПК.",
