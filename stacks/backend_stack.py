@@ -38,7 +38,7 @@ class BackendStack(Stack):
         read_capacity=dynamodb.Capacity.fixed(2),
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
       ),
-      removal_policy=RemovalPolicy.DESTROY,
+      removal_policy=RemovalPolicy.RETAIN,
     )
     self.table1.add_global_secondary_index(
       index_name="email_index",
@@ -53,7 +53,7 @@ class BackendStack(Stack):
         read_capacity=dynamodb.Capacity.fixed(2),
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
       ),
-      removal_policy=RemovalPolicy.DESTROY,
+      removal_policy=RemovalPolicy.RETAIN,
     )
     self.table3 = dynamodb.TableV2(
       self, "refresh_table",
@@ -64,6 +64,7 @@ class BackendStack(Stack):
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
       ),
       removal_policy=RemovalPolicy.DESTROY,
+      time_to_live_attribute="expires_at",
     )
 
     # Lambda function with dependencies bundled directly
