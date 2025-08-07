@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -50,3 +50,7 @@ class UserSecret(BaseModel):
 class UserCode(BaseModel):
   user_code: str
   is_valid: bool
+
+
+class UserCodes(BaseModel):
+  codes: List[str]

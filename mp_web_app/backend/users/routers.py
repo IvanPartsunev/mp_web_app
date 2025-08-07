@@ -7,7 +7,7 @@ from app_config import FRONTEND_BASE_URL
 from auth.operations import role_required, decode_token, is_token_expired
 from database.operations import UserRepository, UserCodeRepository
 from mail.operations import construct_verification_link, send_verification_email
-from users.models import UserCreate, User, UserUpdate, UserUpdatePassword
+from users.models import UserCreate, User, UserUpdate, UserUpdatePassword, UserCodes
 from users.operations import (
   get_user_repository,
   get_user_by_email,
@@ -91,27 +91,12 @@ async def test_login(user=Depends(role_required([UserRole.REGULAR_USER]))):
 
 @user_router.post("/create_user_codes", status_code=status.HTTP_201_CREATED)
 async def create_user_codes(
+  codes: UserCodes,
   user_code_repo: UserCodeRepository = Depends(get_user_codes),
-  # user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN]))
 ):
-  for i in range(10):
-    create_user_code(str(i), user_code_repo)
-
-# TODO: Is getting user by email needed???
-# @router.get("/by-email/{email}", response_model=User)
-# async def get_user_by_email(
-#   email: str,
-#   repo: UserRepository = Depends(get_user_repository)
-# ):
-#   """Get a user by email."""
-#   user = await repo.get_user_by_email(email)
-#   if not user:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND,
-#       detail="User not found"
-#     )
-#   return user
-
+  for code in codes.codes:
+    create_user_code(code, user_code_repo)
 
 # @router.get("/", response_model=List[User])
 # async def list_users(
