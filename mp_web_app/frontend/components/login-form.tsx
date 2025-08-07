@@ -12,15 +12,14 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import {API_BASE_URL} from "@/app-config";
+import {useAuth} from "@/context/AuthContext";
 
-export function LoginForm({
-                            className,
-                            ...props
-                          }: React.ComponentProps<"div">) {
+export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({username: "", password: ""});
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const {login} = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({...prev, [field]: value}));
@@ -35,28 +34,27 @@ export function LoginForm({
       const body = new URLSearchParams();
       body.append("username", formData.username);
       body.append("password", formData.password);
-
       const response = await fetch(`${API_BASE_URL}auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body,
+        credentials: "include", // important for refresh token cookie
       });
-
       let result;
       try {
         result = await response.json();
       } catch {
         result = {};
       }
-
       if (!response.ok) {
         throw {...result, status: response.status};
       }
-
-      // Save token, redirect, etc.
-      // Example: localStorage.setItem("token", result.access_token);
+      // Save access token and update auth context
+      if (result.access_token) {
+        login(result.access_token);
+      }
       setIsSuccess(true);
     } catch (err: any) {
       setError(extractApiErrorDetails(err));

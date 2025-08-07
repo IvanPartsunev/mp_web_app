@@ -1,18 +1,42 @@
-import React, {createContext, useContext, useState, ReactNode} from "react";
+import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
 
 interface AuthContextType {
   isLoggedIn: boolean;
-  login: () => void;
+  login: (accessToken: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({children}: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+function getInitialAuthState(): boolean {
+  // Check if access token exists in localStorage
+  return !!localStorage.getItem("access_token");
+}
 
-  const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+export const AuthProvider = ({children}: { children: ReactNode }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
+
+  useEffect(() => {
+    // Listen for storage changes (multi-tab logout/login)
+    const handleStorage = () => {
+      setIsLoggedIn(getInitialAuthState());
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  const login = (accessToken: string) => {
+    localStorage.setItem("access_token", accessToken);
+    setIsLoggedIn(true);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("access_token");
+    // Optionally, clear all storage or cookies if needed
+    // Remove refresh token cookie by setting it expired
+    document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    setIsLoggedIn(false);
+  };
 
   return (
     <AuthContext.Provider value={{isLoggedIn, login, logout}}>

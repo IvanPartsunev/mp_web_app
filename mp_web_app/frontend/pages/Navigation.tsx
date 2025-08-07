@@ -96,24 +96,8 @@ const NAV_LINKS = [
       },
     ],
   },
-  {
-    label: "Вход",
-    dropdown: [
-      {
-        label: "Влез",
-        to: "/login",
-        description: "Влезе в своя акаунт",
-      },
-      {
-        label: "Създай",
-        to: "/register",
-        description: "Създай акаунт ако си член на ГПК",
-      },
-    ],
-  },
 ];
 
-// Custom hook to detect window width
 function useWindowWidth() {
   const [width, setWidth] = useState<number>(window.innerWidth);
 
@@ -127,7 +111,7 @@ function useWindowWidth() {
 }
 
 export function Navigation() {
-  const {isLoggedIn} = useAuth();
+  const {isLoggedIn, logout} = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [menuAnimating, setMenuAnimating] = useState(false);
@@ -201,6 +185,38 @@ export function Navigation() {
             </div>
           )
         )}
+        {/* Auth section for mobile */}
+        {!isLoggedIn ? (
+          <div className="mt-4">
+            <div className="font-semibold mb-2">Вход</div>
+            <Link
+              to="/login"
+              className="block mb-1"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Влез
+              <div className="text-xs text-muted-foreground">Влезе в своя акаунт</div>
+            </Link>
+            <Link
+              to="/register"
+              className="block mb-1"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Създай
+              <div className="text-xs text-muted-foreground">Създай акаунт ако си член на ГПК</div>
+            </Link>
+          </div>
+        ) : (
+          <Button
+            className="mt-4"
+            onClick={() => {
+              logout();
+              setMobileMenuOpen(false);
+            }}
+          >
+            Изход
+          </Button>
+        )}
       </nav>
     </div>
   );
@@ -240,6 +256,43 @@ export function Navigation() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
                 )
+              )}
+              {/* Auth section for desktop */}
+              {!isLoggedIn ? (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Вход</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[250px] gap-4">
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <Link to="/login">
+                            <div className="font-medium">Влез</div>
+                            <div className="text-muted-foreground text-xs">
+                              Влезе в своя акаунт
+                            </div>
+                          </Link>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <Link to="/register">
+                            <div className="font-medium">Създай</div>
+                            <div className="text-muted-foreground text-xs">
+                              Създай акаунт ако си член на ГПК
+                            </div>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ) : (
+                <NavigationMenuItem>
+                  <Button
+                    className="ml-2"
+                    onClick={logout}
+                  >
+                    Изход
+                  </Button>
+                </NavigationMenuItem>
               )}
             </NavigationMenuList>
           </NavigationMenu>
