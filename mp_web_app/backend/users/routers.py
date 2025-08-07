@@ -12,7 +12,7 @@ from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code
+  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code, delete_user
 )
 from users.roles import UserRole
 
@@ -35,18 +35,22 @@ async def user_register(
       detail="User with this email already exists"
     )
 
-  try:
-    user_code = user_data.user_code
-    is_valid = user_code_valid(user_code, user_code_repo)
-    if not is_valid:
-      raise ValueError("User code don't exists or its already used")
-    user = create_user(user_data, request, user_repo)
-  except Exception as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  user_code = user_data.user_code
+  is_valid = user_code_valid(user_code, user_code_repo)
+  if not is_valid:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="User code don't exists or its already used"
+    )
 
-  verification_link = construct_verification_link(user.id, user.email, request)
-  send_verification_email(user.email, verification_link)
-  update_user_code(user_code, user_code_repo)
+  try:
+    user = create_user(user_data, request, user_repo)
+    verification_link = construct_verification_link(user.id, user.email, request)
+    send_verification_email(user.email, verification_link)
+    update_user_code(user_code, user_code_repo)
+  except Exception as e:
+    delete_user(user_data.email, user_repo)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
   return user
 
 

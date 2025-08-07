@@ -23,7 +23,7 @@ class BackendStack(Stack):
       secret_name="fastapi/jwt_secret",
       description="JWT signing secret for the backend",
       generate_secret_string=secretsmanager.SecretStringGenerator(
-        secret_string_template="{'JWT_SECRET': ''}",
+        secret_string_template='{"JWT_SECRET": ""}',
         generate_string_key="JWT_SECRET",
         exclude_characters="'\"\\",
         password_length=64
@@ -91,6 +91,7 @@ class BackendStack(Stack):
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
+        "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
       }

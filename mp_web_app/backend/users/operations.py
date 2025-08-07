@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 from datetime import datetime
@@ -50,7 +49,6 @@ def create_user_code(user_code: str, repo: UserCodeRepository):
     )
 
   except ClientError as e:
-    logging.error(f"DynamoDB ClientError: {e.response['Error']['Message']}")
     raise HTTPException(
       status_code=500,
       detail=f"Database error: {e.response['Error']['Message']}"
@@ -148,13 +146,11 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   try:
     repo.table.put_item(Item=user_item)
   except ClientError as e:
-    logging.error(f"DynamoDB ClientError: {e.response['Error']['Message']}")
     raise HTTPException(
       status_code=500,
       detail=f"Database error: {e.response['Error']['Message']}"
     )
   except Exception as e:
-    logging.error(f"Unexpected error: {str(e)}")
     raise HTTPException(
       status_code=500,
       detail="An unexpected error occurred while creating the user."
@@ -292,12 +288,12 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
   return repo.convert_item_to_user(response["Attributes"])
 
 
-def delete_user(user_id: str, repo: UserRepository) -> bool:
+def delete_user(email: EmailStr, repo: UserRepository) -> bool:
   """Delete a user from DynamoDB."""
   # First, check if the user exists
-  existing_user = get_user_by_id(user_id, repo)
+  existing_user = get_user_by_email(email, repo)
   if not existing_user:
     return False
 
-  repo.table.delete_item(Key={"id": user_id})
+  repo.table.delete_item(Key={"email": existing_user.id})
   return True
