@@ -87,7 +87,7 @@ class BackendStack(Stack):
       timeout=Duration.seconds(30),
       memory_size=1024,
       environment={
-        "FRONTEND_BASE_URL": frontend_base_url or "https://your-cloudfront-url",
+        "FRONTEND_BASE_URL": frontend_base_url or "https://d3u6t9h0xyyd0j.cloudfront.net",
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
