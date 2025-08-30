@@ -29,10 +29,7 @@ def get_dynamodb_resource():
 
   resource = boto3.resource(
     'dynamodb',
-    # aws_access_key_id=settings.aws_access_key_id,
-    # aws_secret_access_key=settings.aws_secret_access_key,
     region_name=settings.region_name,
-    # endpoint_url=settings.endpoint_url
   )
 
   return resource

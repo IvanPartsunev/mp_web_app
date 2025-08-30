@@ -51,7 +51,7 @@ class AuthRepository(BaseRepository):
 class UserCodeRepository(BaseRepository):
 
   @staticmethod
-  def convert_item_to_code(item: Dict[str, Any]):
+  def convert_item_to_user_code(item: Dict[str, Any]):
     """Convert a DynamoDB item to a UserCode model."""
     return UserCode(**item)
 

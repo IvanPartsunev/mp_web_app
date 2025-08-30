@@ -95,6 +95,7 @@ class BackendStack(Stack):
         "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
+        "UPLOAD_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
       }
     )
 

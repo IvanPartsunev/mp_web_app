@@ -13,8 +13,8 @@ class UploadsStack(Stack):
     self.uploads_bucket = s3.Bucket(
       self, "UploadsBucket",
       block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
-      removal_policy=RemovalPolicy.DESTROY,  # Change to RETAIN for prod
-      auto_delete_objects=True,  # Change for prod
+      removal_policy=RemovalPolicy.DESTROY,  #TODO Change to RETAIN for prod
+      auto_delete_objects=True,  #TODO Change for prod
     )
 
     from aws_cdk import CfnOutput
