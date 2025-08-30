@@ -1,10 +1,15 @@
 import os
 import boto3
-from fastapi import File, UploadFile, HTTPException
+from fastapi import HTTPException
 
+from database.operations import UploadsRepository
 from utils.decorators import retry
 
-BUCKET = os.getenv("UPLOADS_BUCKET", None)
+BUCKET = os.environ.get("UPLOADS_BUCKET")
+UPLOADS_TABLE_NAME = os.environ.get("UPLOAD_TABLE_NAME")
+
+def get_uploads_repository():
+  return UploadsRepository(UPLOADS_TABLE_NAME)
 
 @retry
 def upload_to_s3(directory: str, file):
