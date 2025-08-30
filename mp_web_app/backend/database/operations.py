@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from auth.models import TokenPayload
 from database.db_config import get_dynamodb_resource
-from files.models import FileObject
+from files.models import FileMetadata
 from users.models import User, UserSecret, UserCode
 
 
@@ -63,7 +63,7 @@ class UserCodeRepository(BaseRepository):
 class UploadsRepository(BaseRepository):
 
   def convert_item_to_object(self, item: Dict[str, Any]):
-    return FileObject(**item)
+    return FileMetadata(**item)
 
   @property
   def get_table(self):
