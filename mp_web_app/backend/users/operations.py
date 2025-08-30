@@ -34,7 +34,7 @@ def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None
 
   if 'Item' not in response or not response['Item'].get('is_valid', None):
     return None
-  return repo.convert_item_to_user_code(response['Item'])
+  return repo.convert_item_to_object(response['Item'])
 
 
 def create_user_code(user_code: str, repo: UserCodeRepository):
@@ -57,7 +57,7 @@ def create_user_code(user_code: str, repo: UserCodeRepository):
 
 def update_user_code(user_code: str, repo: UserCodeRepository) -> None:
   response = repo.table.get_item(Key={"user_code": user_code})
-  user_code_obj = repo.convert_item_to_user_code(response["Item"])
+  user_code_obj = repo.convert_item_to_object(response["Item"])
   response = repo.table.update_item(
     Key={'user_code': user_code_obj.user_code},
     UpdateExpression='SET #is_valid = :is_valid',
@@ -65,7 +65,7 @@ def update_user_code(user_code: str, repo: UserCodeRepository) -> None:
     ExpressionAttributeValues={':is_valid': not user_code_obj.is_valid},
     ReturnValues="ALL_NEW"
   )
-  return repo.convert_item_to_user_code(response["Attributes"])
+  return repo.convert_item_to_object(response["Attributes"])
 
 
 def hash_password(password: str, salt: str) -> str:
@@ -156,7 +156,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
       detail="An unexpected error occurred while creating the user."
     )
 
-  return repo.convert_item_to_user(user_item)
+  return repo.convert_item_to_object(user_item)
 
 
 def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
@@ -167,8 +167,8 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
     return None
 
   if secret:
-    return repo.convert_item_to_user_secret(response["Item"])
-  return repo.convert_item_to_user(response["Item"])
+    return repo.convert_item_to_object_secret(response["Item"])
+  return repo.convert_item_to_object(response["Item"])
 
 
 def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
@@ -182,8 +182,8 @@ def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool 
     return None
 
   if secret:
-    return repo.convert_item_to_user_secret(response["Items"][0])
-  return repo.convert_item_to_user(response["Items"][0])
+    return repo.convert_item_to_object_secret(response["Items"][0])
+  return repo.convert_item_to_object(response["Items"][0])
 
 
 def list_users(self) -> List[User]:
@@ -249,7 +249,7 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
     ReturnValues="ALL_NEW",
   )
 
-  return repo.convert_item_to_user(response["Attributes"])
+  return repo.convert_item_to_object(response["Attributes"])
 
 
 def update_user_password(user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword,
@@ -285,7 +285,7 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
     ExpressionAttributeNames=expression_attribute_names,
     ReturnValues="ALL_NEW"
   )
-  return repo.convert_item_to_user(response["Attributes"])
+  return repo.convert_item_to_object(response["Attributes"])
 
 
 def delete_user(email: EmailStr, repo: UserRepository) -> bool:

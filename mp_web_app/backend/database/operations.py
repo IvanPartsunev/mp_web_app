@@ -1,5 +1,5 @@
 import os
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Dict, Any
 from decimal import Decimal
 
@@ -14,11 +14,14 @@ class BaseRepository(ABC):
     self.dynamodb = get_dynamodb_resource()
     self.table = self.dynamodb.Table(self.table_name)
 
+  @abstractmethod
+  def convert_item_to_object(self, item: Dict[str, Any]):
+    pass
+
 
 class UserRepository(BaseRepository):
 
-  @staticmethod
-  def convert_item_to_user(item: Dict[str, Any]) -> User:
+  def convert_item_to_object(self, item: Dict[str, Any]) -> User:
     """Convert a DynamoDB item to a User model."""
     # Convert Decimal to int for phone
     if 'phone' in item and isinstance(item['phone'], Decimal):
@@ -26,8 +29,7 @@ class UserRepository(BaseRepository):
 
     return User(**item)
 
-  @staticmethod
-  def convert_item_to_user_secret(item: Dict[str, Any]) -> UserSecret:
+  def convert_item_to_object_secret(self, item: Dict[str, Any]) -> UserSecret:
     """Convert a DynamoDB item to a UserSecret model containing password and salt."""
     return UserSecret(**item)
 
@@ -38,8 +40,7 @@ class UserRepository(BaseRepository):
 
 class AuthRepository(BaseRepository):
 
-  @staticmethod
-  def convert_item_to_token(item: Dict[str, Any]) -> TokenPayload:
+  def convert_item_to_object(self, item: Dict[str, Any]) -> TokenPayload:
     """Convert a DynamoDB item to a Token model."""
     return TokenPayload(**item)
 
@@ -50,10 +51,19 @@ class AuthRepository(BaseRepository):
 
 class UserCodeRepository(BaseRepository):
 
-  @staticmethod
-  def convert_item_to_user_code(item: Dict[str, Any]):
+  def convert_item_to_object(self, item: Dict[str, Any]):
     """Convert a DynamoDB item to a UserCode model."""
     return UserCode(**item)
+
+  @property
+  def get_table(self):
+    return self.table
+
+
+class UploadsRepository(BaseRepository):
+
+  def convert_item_to_object(self, item: Dict[str, Any]):
+    return FileObject
 
   @property
   def get_table(self):
