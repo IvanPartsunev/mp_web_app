@@ -67,6 +67,17 @@ class BackendStack(Stack):
       time_to_live_attribute="expires_at",
     )
 
+    self.table4 = dynamodb.TableV2(
+      self, "uploads_table",
+      table_name="uploads_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN,
+    )
+
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",
@@ -92,6 +103,7 @@ class BackendStack(Stack):
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
+        "UPLOADS_TABLE_NAME": self.table4.table_name,
         "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
