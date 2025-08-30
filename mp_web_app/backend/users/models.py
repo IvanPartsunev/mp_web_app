@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import List
 from datetime import datetime
 
 
@@ -14,11 +14,11 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-  email: Optional[EmailStr] = None
-  phone: Optional[str] = None
-  role: Optional[str] = None
-  active: Optional[bool] = None
-  subscribed: Optional[bool] = None
+  email: EmailStr | None = None
+  phone: str | None = None
+  role: str | None = None
+  active: bool | None = None
+  subscribed: bool | None = None
 
 
 class UserUpdatePasswordEmail(BaseModel):
@@ -32,7 +32,7 @@ class UserUpdatePassword(BaseModel):
 
 class User(UserBase):
   id: str
-  user_code: Optional[str] = None
+  user_code: str
   role: str
   created_at: datetime
   updated_at: datetime
