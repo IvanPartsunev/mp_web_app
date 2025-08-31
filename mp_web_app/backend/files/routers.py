@@ -6,7 +6,7 @@ from starlette import status
 from auth.operations import role_required
 from database.operations import UploadsRepository
 from files.models import FileMetadata, FileType
-from files.operations import upload_to_s3, get_uploads_repository
+from files.operations import upload_file, get_uploads_repository
 from users.operations import get_user_repository
 from users.roles import UserRole
 
@@ -22,7 +22,7 @@ async def upload_files(
     # user=Depends(role_required([UserRole.REGULAR_USER])) #TODO Change this to Admin
 ):
   file_metadata = FileMetadata(file_name=file_name, file_type=file_type, allowed_to=allowed_to)
-  upload_to_s3(file_metadata, file, repo)
+  upload_file(file_metadata, file, repo)
   return HTTPException(status_code=201, detail=f"File: {file_name} uploaded")
 
 
