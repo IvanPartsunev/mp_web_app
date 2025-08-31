@@ -33,9 +33,9 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, repo: UploadsRepo
     s3 = boto3.client('s3')
     file_name = _create_file_name(file_metadata.file_name, file.filename)
     key = f'{file_metadata.file_type.value}/{file_name}'
-    create_file_metadata(file_metadata, key, repo)
     try:
-        s3.upload_fileobj(file.file, file_name, BUCKET, key)
+        s3.upload_fileobj(file.file, BUCKET, key)
+        create_file_metadata(file_metadata, file_name, key, repo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when uploading the file: {e}")
 
@@ -87,8 +87,8 @@ def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
     keys = [metadata.key for metadata in file_metadata]
     s3 = boto3.client('s3')
     try:
-        if isinstance(keys, str):
-            s3.delete_object(Bucket=BUCKET, Key=keys)
+        if len(file_metadata) == 1:
+            s3.delete_object(Bucket=BUCKET, Key=keys[0])
         else:
             objects = [{'Key': key} for key in keys]
             s3.delete_objects(Bucket=BUCKET, Delete={'Objects': objects})
@@ -100,11 +100,11 @@ def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
 def delete_file_metadata(item_ids: List[str], repo: UploadsRepository):
     try:
         if len(item_ids) == 1:
-            repo.table.delete_item(Key=item_ids[0])
+            repo.table.delete_item(Key={"id": item_ids[0]})
         else:
             with repo.table.batch_write() as batch:
-                for key in item_ids:
-                    batch.delete_item(Key=key)
+                for item_id in item_ids:
+                    batch.delete_item(Key={"id": item_id})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete metadata: {e}")
 
