@@ -1,25 +1,22 @@
 from typing import List
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form
-from starlette import status
 
-from auth.operations import role_required
 from database.operations import UploadsRepository
 from files.models import FileMetadata, FileType
-from files.operations import upload_file, get_uploads_repository
-from users.operations import get_user_repository
-from users.roles import UserRole
+from files.operations import upload_file, get_uploads_repository, delete_file, get_files_metadata
 
 file_router = APIRouter(tags=["files"])
 
-@file_router.post("/upload", status_code=status.HTTP_201_CREATED)
+
+@file_router.post("/upload")
 async def upload_files(
     file_name: str = Form(...),
     file_type: FileType = Form(...),
     allowed_to: List[str] = Form([]),
     file: UploadFile = File(...),
     repo: UploadsRepository = Depends(get_uploads_repository),
-    # user=Depends(role_required([UserRole.REGULAR_USER])) #TODO Change this to Admin
+    # user=Depends(role_required([UserRole.ADMIN])) # TODO Uncomment this
 ):
   file_metadata = FileMetadata(file_name=file_name, file_type=file_type, allowed_to=allowed_to)
   upload_file(file_metadata, file, repo)
@@ -27,10 +24,20 @@ async def upload_files(
 
 
 @file_router.get("/get_files")
-async def get_files():
-  return HTTPException(status_code=204, detail="Not implemented")
+async def get_files(
+    prefix: str,
+    repo: UploadsRepository = Depends(get_uploads_repository),
+    # user=Depends(role_required([UserRole.ADMIN])) # TODO Uncomment this and make proper permissions
+):
+  return get_files_metadata(prefix, repo)
 
 
 @file_router.post("/delete_files")
-async def delete_files():
-  return HTTPException(status_code=204, detail="Not implemented")
+async def delete_files(
+    files_metadata: List[FileMetadata],
+    repo: UploadsRepository = Depends(get_uploads_repository),
+    # user=Depends(role_required([UserRole.ADMIN])) # TODO Uncomment this
+):
+  delete_file(files_metadata, repo)
+  file_names = [file.file_name for file in files_metadata]
+  return HTTPException(status_code=204, detail=f"File/s: {', '.join(file_names)} deleted")
