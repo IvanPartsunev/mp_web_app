@@ -18,6 +18,14 @@ class BaseRepository(ABC):
   def convert_item_to_object(self, item: Dict[str, Any]):
     pass
 
+  @property
+  def get_table(self):
+    return self.table
+
+  @property
+  def get_table_name(self):
+    return self.table_name
+
 
 class UserRepository(BaseRepository):
 
@@ -33,20 +41,12 @@ class UserRepository(BaseRepository):
     """Convert a DynamoDB item to a UserSecret model containing password and salt."""
     return UserSecret(**item)
 
-  @property
-  def get_table(self):
-    return self.table
-
 
 class AuthRepository(BaseRepository):
 
   def convert_item_to_object(self, item: Dict[str, Any]) -> TokenPayload:
     """Convert a DynamoDB item to a Token model."""
     return TokenPayload(**item)
-
-  @property
-  def get_table(self):
-    return self.table
 
 
 class UserCodeRepository(BaseRepository):
@@ -55,16 +55,8 @@ class UserCodeRepository(BaseRepository):
     """Convert a DynamoDB item to a UserCode model."""
     return UserCode(**item)
 
-  @property
-  def get_table(self):
-    return self.table
-
 
 class UploadsRepository(BaseRepository):
 
   def convert_item_to_object(self, item: Dict[str, Any]):
     return FileMetadata(**item)
-
-  @property
-  def get_table(self):
-    return self.table
