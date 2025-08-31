@@ -77,6 +77,12 @@ class BackendStack(Stack):
       ),
       removal_policy=RemovalPolicy.RETAIN,
     )
+    self.table4.add_global_secondary_index(
+      index_name="file_type_created_at_index",
+      partition_key=dynamodb.Attribute(name="file_type", type=dynamodb.AttributeType.STRING),
+      sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
+      projection_type=dynamodb.ProjectionType.ALL,
+    )
 
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
@@ -126,6 +132,7 @@ class BackendStack(Stack):
     self.table1.grant_read_write_data(self.backend_lambda)
     self.table2.grant_read_write_data(self.backend_lambda)
     self.table3.grant_read_write_data(self.backend_lambda)
+    self.table4.grant_read_write_data(self.backend_lambda)
 
     # Grant Lambda access to SES
     self.backend_lambda.add_to_role_policy(
