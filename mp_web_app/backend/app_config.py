@@ -1,5 +1,7 @@
 import json
 import os
+from typing import List
+
 import boto3
 from pydantic_settings import BaseSettings
 
@@ -36,3 +38,18 @@ class JWTSettings(BaseSettings):
 class SesSettings(BaseSettings):
   sender: str = MAIL_SENDER
   region: str = REGION
+
+
+class AllowedFileExtensions(BaseSettings):
+  allowed_file_extensions: List[str] = [
+    # Images
+    "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "heic", "svg",
+
+    # Text & Documents
+    "txt", "md", "rtf", "doc", "docx", "odt", "pages",
+    "pdf",
+
+    # Spreadsheets & Presentations (often grouped with documents)
+    "xls", "xlsx", "csv", "ods",
+    "ppt", "pptx", "odp"
+  ]
