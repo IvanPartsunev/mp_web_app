@@ -11,7 +11,7 @@ class FileType(str, Enum):
 
 
 class FileMetadata(BaseModel):
-  id: str
+  id: str | None = None
   file_name: str
   bucket: str | None = None
   key: str | None = None
