@@ -40,7 +40,7 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, repo: UploadsRepo
         raise HTTPException(status_code=500, detail=f"Error when uploading the file: {e}")
 
 
-def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: str, repo: UploadsRepository) -> FileMetadata:
+def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: str, user_id: str, repo: UploadsRepository) -> FileMetadata:
   if file_metadata.file_type == 'private' and not file_metadata.allowed_to:
     raise HTTPException(status_code=400, detail='When [private] is selected allowed users must be specified')
   allowed_to = file_metadata.allowed_to if file_metadata.file_type == 'private' else None
@@ -50,6 +50,7 @@ def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: s
     "file_type": file_metadata.file_type,
     "bucket": BUCKET,
     "key": key,
+    "uploaded_by": user_id,
     "allowed_to": allowed_to,
     "created_at": datetime.now().isoformat()
   }

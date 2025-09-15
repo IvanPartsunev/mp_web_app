@@ -127,6 +127,7 @@ class BackendStack(Stack):
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
+        "NEWS_TABLE_NAME": self.table5.table_name,
         "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",

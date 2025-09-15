@@ -16,4 +16,5 @@ class FileMetadata(BaseModel):
   bucket: str | None = None
   key: str | None = None
   file_type: FileType
+  uploaded_by: str | None = None
   allowed_to: List[str] | None = None

@@ -38,8 +38,6 @@ def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None
 
 
 def create_user_code(user_code: str, repo: UserCodeRepository):
-  repo.get_table()
-
   try:
     repo.table.put_item(
       Item={
@@ -88,7 +86,6 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
 
 
 def validate_phone(phone: str) -> str:
-  l = len(phone)
   if len(phone) != 10 and len(phone) != 13:
     raise ValueError("Phone number must be 10 or 13 digits")
   if not phone.startswith(("0", "+359")):
