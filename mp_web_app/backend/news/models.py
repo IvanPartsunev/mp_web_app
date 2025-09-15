@@ -9,10 +9,8 @@ class NewsType(str, Enum):
   regular = "regular"
 
 class News(BaseModel):
-  id: str
   title: str
   content: str
-  author_id: str
   news_type: NewsType
 
 

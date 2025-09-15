@@ -3,17 +3,27 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from auth.operations import role_required
 from database.operations import NewsRepository
 from news.models import News, NewsUpdate
-from news.operations import create_news, get_news_repository, update_news
+from news.operations import create_news, get_news_repository, update_news, delete_news, get_news
 from users.roles import UserRole
 
 news_router = APIRouter(tags=["news"])
+
+
+@news_router.get("/get", status_code=status.HTTP_200_OK)
+async def news_get(
+    token: str | None = None,
+    news_repo: NewsRepository = Depends(get_news_repository),
+):
+  if not token:
+    return get_news(repo=news_repo)
+  return get_news(repo=news_repo, token=token)
 
 
 @news_router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def news_upload(
     news_data: News,
     news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER])) # TODO change to ADMIN
+    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
 
 ):
   try:
@@ -27,9 +37,18 @@ async def news_update(
     update: NewsUpdate,
     news_id: str,
     news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER])) # TODO change to ADMIN
+    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
+
+
+@news_router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def news_delete(
+    news_id: str,
+    news_repo: NewsRepository = Depends(get_news_repository),
+    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
+):
+  return delete_news(news_id=news_id, repo=news_repo)

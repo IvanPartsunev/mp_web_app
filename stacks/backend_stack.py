@@ -96,7 +96,7 @@ class BackendStack(Stack):
     )
     self.table5.add_global_secondary_index(
       index_name="news_created_at_index",
-      partition_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
+      partition_key=dynamodb.Attribute(name="news", type=dynamodb.AttributeType.STRING),
       sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
       projection_type=dynamodb.ProjectionType.ALL,
     )

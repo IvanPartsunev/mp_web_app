@@ -2,12 +2,13 @@ import os
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
 from fastapi import HTTPException
 
-from database.operations import NewsRepository, UserRepository
-from news.models import News, NewsUpdate
+from auth.operations import is_token_expired
+from database.operations import NewsRepository
+from news.models import News, NewsUpdate, NewsType
 
 NEWS_TABLE_NAME = os.environ.get('NEWS_TABLE_NAME')
 
@@ -28,6 +29,7 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str):
 
   news_item = {
     "id": news_id,
+    "news": "news",
     "title": title,
     "content": content,
     "author_id": author_id,
@@ -38,7 +40,7 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str):
   }
 
   try:
-    repo.table.put_items(Item=news_item)
+    repo.table.put_item(Item=news_item)
   except ClientError as e:
     raise HTTPException(
       status_code=500,
@@ -107,7 +109,7 @@ def update_news(news_update: NewsUpdate, news_id: str, user_id: str, repo: NewsR
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def get_news(repo: NewsRepository, news_id: str | None = None):
+def get_news(repo: NewsRepository, news_id: str | None = None, token: str | None = None):
   if news_id:
     response = repo.table.get_item(Key={"id": news_id})
     if "Item" not in response:
@@ -117,19 +119,20 @@ def get_news(repo: NewsRepository, news_id: str | None = None):
   one_year_ago = datetime.now() - timedelta(days=365)
   one_year_ago_iso = one_year_ago.isoformat()
 
-  response = repo.table.query(
-    IndexName='news_created_at_index',
-    KeyConditionExpression=Key('created_at').gte(one_year_ago_iso),
-    ScanIndexForward=False,
-  )
+  query_kwargs = {
+    "IndexName": 'news_created_at_index',
+    "KeyConditionExpression": Key("news").eq('news') & Key('created_at').gte(one_year_ago_iso),
+    "ScanIndexForward": False,
+  }
+
+  if not token or is_token_expired(token):
+    query_kwargs['FilterExpression'] = Attr('news_type').eq(NewsType.regular)
+
+  response = repo.table.query(**query_kwargs)
   items = response['Items']
 
   while 'LastEvaluatedKey' in response:
-    response = repo.table.query(
-      IndexName='news_created_at_index',
-      KeyConditionExpression=Key("created_at").gte(one_year_ago_iso),
-      ScanIndexForward=False
-    )
+    response = repo.table.query(**query_kwargs)
     items.extend(response['Items'])
   return items
 
