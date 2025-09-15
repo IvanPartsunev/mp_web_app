@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 
 from pydantic import EmailStr
 from starlette.responses import RedirectResponse
