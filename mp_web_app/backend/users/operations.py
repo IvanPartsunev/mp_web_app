@@ -123,7 +123,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   updated_at: datetime = datetime.now()
   password = user_data.password
   phone = validate_phone(user_data.phone)
-  validate_password(password=password)
+  validate_password(password)
   hashed_password = hash_password(user_data.password, salt)
 
   user_item = {
@@ -150,7 +150,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   except Exception as e:
     raise HTTPException(
       status_code=500,
-      detail="An unexpected error occurred while creating the user."
+      detail=f"An unexpected error occurred while creating the user. {e}"
     )
 
   return repo.convert_item_to_object(user_item)
