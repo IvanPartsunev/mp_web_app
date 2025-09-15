@@ -119,8 +119,8 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   user_role = UserRole.REGULAR_USER.value
   active = False
   salt = str(uuid4())[:8]
-  created_at: datetime = datetime.now()
-  updated_at: datetime = datetime.now()
+  created_at = datetime.now().isoformat()
+  updated_at = datetime.now().isoformat()
   password = user_data.password
   phone = validate_phone(user_data.phone)
   validate_password(password)
@@ -133,8 +133,8 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     "role": user_role,
     "user_code": user_data.user_code,
     "active": active,
-    "created_at": created_at.isoformat(),
-    "updated_at": updated_at.isoformat(),
+    "created_at": created_at,
+    "updated_at": updated_at,
     "salt": salt,
     "password_hash": hashed_password,
     "subscribed": True

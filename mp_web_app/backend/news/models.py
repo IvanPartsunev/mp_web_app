@@ -14,5 +14,9 @@ class News(BaseModel):
   content: str
   author_id: str
   news_type: NewsType
-  created_at: datetime | None = None
-  updated_at: datetime | None = None
+
+
+class NewsUpdate(BaseModel):
+  title: str
+  content: str
+  news_type: NewsType

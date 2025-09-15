@@ -27,7 +27,7 @@ async def upload_files(
 
 @file_router.get("/get_files")
 async def get_files(
-    prefix: str,
+    prefix: str, #file_type
     repo: UploadsRepository = Depends(get_uploads_repository),
     user=Depends(role_required([UserRole.REGULAR_USER])) # TODO Change to ADMIN
 ):
