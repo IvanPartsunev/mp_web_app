@@ -11,7 +11,7 @@ from fastapi import HTTPException, UploadFile
 
 from app_config import AllowedFileExtensions
 from database.operations import UploadsRepository
-from files.models import FileMetadata
+from files.models import FileMetadata, FileType, FileMetadataFull
 from utils.decorators import retry
 
 BUCKET = os.environ.get("UPLOADS_BUCKET")
@@ -29,13 +29,13 @@ def get_uploads_repository():
 
 
 @retry()
-def upload_file(file_metadata: FileMetadata, file: UploadFile, repo: UploadsRepository):
+def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, repo: UploadsRepository):
     s3 = boto3.client('s3')
     file_name = _create_file_name(file_metadata.file_name, file.filename)
     key = f'{file_metadata.file_type.value}/{file_name}'
     try:
         s3.upload_fileobj(file.file, BUCKET, key)
-        create_file_metadata(file_metadata, file_name, key, repo)
+        create_file_metadata(file_metadata, file_name, key, user_id, repo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when uploading the file: {e}")
 
@@ -61,11 +61,11 @@ def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: s
   return repo.convert_item_to_object(file_metadata_item)
 
 
-def get_files_metadata(prefix: str, repo: UploadsRepository):
+def get_files_metadata(file_type: str, repo: UploadsRepository):
   try:
     response = repo.table.query(
       IndexName='file_type_created_at_index',
-      KeyConditionExpression=Key('file_type').eq(prefix),
+      KeyConditionExpression=Key('file_type').eq(file_type),
       ScanIndexForward=False
     )
     items = response['Items']
@@ -73,7 +73,7 @@ def get_files_metadata(prefix: str, repo: UploadsRepository):
     while 'LastEvaluatedKey' in response:
       response = repo.table.query(
         IndexName='file_type_created_at_index',
-        KeyConditionExpression=Key('file_type').eq(prefix),
+        KeyConditionExpression=Key('file_type').eq(file_type),
         ScanIndexForward=False
       )
       items.extend(response['Items'])
@@ -93,12 +93,12 @@ def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
         else:
             objects = [{'Key': key} for key in keys]
             s3.delete_objects(Bucket=BUCKET, Delete={'Objects': objects})
-        delete_file_metadata(item_ids=item_ids, repo=repo)
+        _delete_file_metadata(item_ids=item_ids, repo=repo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when deleting the file/s: {e}")
 
 
-def delete_file_metadata(item_ids: List[str], repo: UploadsRepository):
+def _delete_file_metadata(item_ids: List[str], repo: UploadsRepository):
     try:
         if len(item_ids) == 1:
             repo.table.delete_item(Key={"id": item_ids[0]})
@@ -111,6 +111,8 @@ def delete_file_metadata(item_ids: List[str], repo: UploadsRepository):
 
 
 def _create_file_name(file_name: str, original_name: str):
+    if not file_name:
+      file_name = original_name
     now = datetime.now()
     allowed = get_allowed_file_extensions()
     extension = original_name.split('.')[-1]
@@ -121,3 +123,43 @@ def _create_file_name(file_name: str, original_name: str):
     date_tag = f"{str(now.year)}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
     file_name = f"{date_tag}_{'_'.join([p.lower() for p in file_name_parts if p != ''])}_{str(uuid4())[:8]}.{extension}"
     return file_name
+
+
+def download_file(file_metadata: FileMetadata | List[FileMetadata], repo: UploadsRepository, user_id: str):
+  is_allowed = _check_file_allowed_to_user(file_metadata, user_id)
+  if is_allowed:
+    ...
+
+
+def _get_db_metadata(file_metadata: FileMetadata, repo: UploadsRepository) -> FileMetadataFull:
+  response = repo.table.get_item(Key={'id': file_metadata.id})
+  if "Item" not in response:
+    raise HTTPException(status_code=400, detail=f"Metadata not found for file: {file_metadata.file_name}")
+
+  db_metadata_object = repo.convert_item_to_object_full(response["Item"])
+  is_metadata_valid = _validate_metadata(file_metadata, db_metadata_object)
+  if not is_metadata_valid:
+    raise HTTPException(status_code=400, detail=f"Metadata not valid for file: {file_metadata.file_name}")
+  return db_metadata_object
+
+
+def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadataFull):
+  fields = file_metadata.model_fields.keys
+  return file_metadata.model_dump() == db_meta_object.model_dump(include=fields)
+
+def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str) -> bool:
+  allowed_types = [
+    FileType.minutes.value,
+    FileType.transcripts.value,
+    FileType.accounting.value,
+    FileType.private_documents.value,
+    FileType.others.value,
+  ]
+  is_correct_type = file_metadata.file_type.value in allowed_types
+  is_allowed_to_user = user_id in file_metadata.allowed_to
+
+  return is_correct_type and is_allowed_to_user
+
+
+def _reconstruct_s3_path(file_metadata: FileMetadata) -> str:
+  return f"s3://{file_metadata.bucket}/{file_metadata.key}/{file_metadata.file_name}"
