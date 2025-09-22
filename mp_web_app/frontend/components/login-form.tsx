@@ -13,6 +13,7 @@ import {Label} from "@/components/ui/label";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import {API_BASE_URL} from "@/app-config";
 import {useAuth} from "@/context/AuthContext";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({username: "", password: ""});
@@ -130,7 +131,11 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading || isSuccess}>
-                  {isLoading ? "Влизане..." : "Вход"}
+                  {isLoading && (
+                    <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+                      <LoadingSpinner size="lg" text="Влизане..."/>
+                    </div>
+                  )} Вход
                 </Button>
               </div>
             </div>

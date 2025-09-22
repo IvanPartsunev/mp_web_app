@@ -13,6 +13,7 @@ import {Label} from "@/components/ui/label";
 import {X as XIcon, Check as CheckIcon} from "lucide-react";
 import {apiPost} from "@/lib/api";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 // Bulgarian phone validation: +359XXXXXXXXX or 0XXXXXXXXX
 function getPhoneError(phone: string): string | null {
@@ -296,7 +297,11 @@ export function RegisterForm({
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Регистриране..." : "Регистрация"}
+                  {isLoading && (
+                    <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+                      <LoadingSpinner size="lg" text="Регистриране..."/>
+                    </div>
+                  )} Регистрация
                 </Button>
               </div>
             </div>
