@@ -4,6 +4,8 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
+  first_name: str
+  last_name: str
   email: EmailStr
   phone: str
 
@@ -32,7 +34,6 @@ class UserUpdatePassword(BaseModel):
 
 class User(UserBase):
   id: str
-  user_code: str
   role: str
   created_at: datetime
   updated_at: datetime
@@ -42,6 +43,7 @@ class User(UserBase):
 class UserSecret(BaseModel):
   id: str
   email: EmailStr
+  user_code: str
   role: str
   salt: str
   password_hash: str

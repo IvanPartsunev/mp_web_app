@@ -135,6 +135,8 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   user_item = {
     "id": user_id,
     "email": user_data.email,
+    "first_name": user_data.first_name,
+    "last_name": user_data.last_name,
     "phone": phone,
     "role": user_role,
     "user_code": user_data.user_code,
@@ -189,11 +191,11 @@ def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool 
   return repo.convert_item_to_object(response["Items"][0])
 
 
-def list_users(self) -> List[User]:
+def list_users(repo: UserRepository) -> List[User]:
   """List all users from DynamoDB."""
-  response = self.table.scan()
+  response = repo.table.scan()
 
-  return [self._convert_to_user(item) for item in response["Items"]]
+  return [repo.convert_item_to_object(item) for item in response["Items"]]
 
 
 def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[

@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 
 from pydantic import EmailStr
@@ -12,11 +14,19 @@ from users.operations import (
   get_user_repository,
   get_user_by_email,
   create_user,
-  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code, delete_user
+  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code, delete_user,
+  list_users
 )
 from users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
+
+@user_router.get("/list-users", response_model=List[User], status_code=status.HTTP_200_OK)
+async def users_list(
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.REGULAR_USER]))
+):
+  return list_users(user_repo)
 
 
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -82,11 +92,6 @@ async def user_activate_account(email: EmailStr | str, token: str,
     )
 
   raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or expired token")
-
-
-@user_router.post("test_login")
-async def test_login(user=Depends(role_required([UserRole.REGULAR_USER]))):
-  raise HTTPException(status_code=status.HTTP_202_ACCEPTED)
 
 
 @user_router.post("/create_user_codes", status_code=status.HTTP_201_CREATED)

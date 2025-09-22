@@ -36,7 +36,7 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, rep
     key = f'{file_metadata.file_type.value}/{file_name}'
     try:
         s3.upload_fileobj(file.file, BUCKET, key)
-        create_file_metadata(file_metadata, file_name, key, user_id, repo)
+        return create_file_metadata(file_metadata, file_name, key, user_id, repo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when uploading the file: {e}")
 
