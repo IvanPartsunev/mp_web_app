@@ -22,6 +22,6 @@ class FileMetadata(BaseModel):
 
 
 class FileMetadataFull(FileMetadata):
-  bucket: str
-  key: str
-  allowed_to: List[str]
+  bucket: str | None = None
+  key: str | None = None
+  allowed_to: List[str] | None = None

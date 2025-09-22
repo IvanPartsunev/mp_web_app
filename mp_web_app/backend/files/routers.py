@@ -4,14 +4,14 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, s
 
 from auth.operations import role_required
 from database.operations import UploadsRepository
-from files.models import FileMetadata, FileType
+from files.models import FileMetadata, FileType, FileMetadataFull
 from files.operations import upload_file, get_uploads_repository, delete_file, get_files_metadata, download_file
 from users.roles import UserRole
 
 file_router = APIRouter(tags=["files"])
 
 
-@file_router.post("/upload")
+@file_router.post("/upload", response_model=FileMetadata)
 async def upload_files(
     file_name: str = Form(...),
     file_type: FileType = Form(...),
@@ -20,9 +20,9 @@ async def upload_files(
     repo: UploadsRepository = Depends(get_uploads_repository),
     user=Depends(role_required([UserRole.REGULAR_USER])) # TODO Change to ADMIN
 ):
-  file_metadata = FileMetadata(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
+  file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
   upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
-  return HTTPException(status_code=201, detail=f"File: {file_name} uploaded")
+  raise HTTPException(status_code=201, detail=f"File: {file_name} uploaded")
 
 
 @file_router.get("/get_files", status_code=status.HTTP_200_OK)
