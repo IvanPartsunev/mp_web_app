@@ -312,5 +312,5 @@ def delete_user(email: EmailStr, repo: UserRepository) -> bool:
   if not existing_user:
     return False
 
-  repo.table.delete_item(Key={"email": existing_user.id})
+  repo.table.delete_item(Key={"id": existing_user.id})
   return True
