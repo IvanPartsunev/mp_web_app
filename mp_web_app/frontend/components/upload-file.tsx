@@ -6,15 +6,24 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useNavigate} from "react-router-dom";
 
+type User = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  // other fields not used here
+};
+
 export default function UploadFile() {
   const navigate = useNavigate();
 
   // FileType options must match backend enum values
-  // Adjust labels if you have localized names in the UI
   const fileTypeOptions = useMemo(
     () => [
+      {value: "governing_documents", label: "Нормативни документи"},
+      {value: "forms", label: "Бланки"},
       {value: "minutes", label: "Протоколи"},
-      {value: "transcripts", label: "Стенограми"},
+      {value: "transcript", label: "Стенограми"},
       {value: "accounting", label: "Счетоводни документи"},
       {value: "private_documents", label: "Лични/частни документи"},
       {value: "others", label: "Други"},
@@ -24,13 +33,18 @@ export default function UploadFile() {
 
   const [fileName, setFileName] = useState("");
   const [fileType, setFileType] = useState(fileTypeOptions[0]?.value ?? "");
-  const [allowedTo, setAllowedTo] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  // Frontend guard: only allow admins to access this page
+  // Users state
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState<string>("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+
+  // Frontend guard: only allow admins to access this page (keep your current logic if you prefer)
   useEffect(() => {
     try {
       const token = localStorage.getItem("access_token");
@@ -38,22 +52,58 @@ export default function UploadFile() {
         navigate("/login");
         return;
       }
-      const payload = JSON.parse(atob(token.split(".")[1] || ""));
-      if (payload?.role !== "admin") {
-        navigate("/"); // or a 403 page if you have one
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+      const payload = JSON.parse(atob(base64));
+      if (String(payload?.role ?? "").toUpperCase() !== "ADMIN") {
+        navigate("/");
       }
     } catch {
       navigate("/login");
     }
   }, [navigate]);
 
+  // Fetch all users to populate dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      setUsersError("");
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_BASE_URL}users/list-users`, {
+          method: "GET",
+          headers: {
+            ...(token ? {Authorization: `Bearer ${token}`} : {}),
+          },
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(msg || `Грешка при зареждане на потребителите: ${res.status}`);
+        }
+        const data: User[] = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (e: any) {
+        setUsersError(e?.message || "Неуспех при зареждане на потребителите.");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
+    const isPrivate = fileType === "private_documents";
     if (!file || !fileName || !fileType) {
       setError("Моля, попълнете всички задължителни полета и изберете файл.");
+      return;
+    }
+    if (isPrivate && selectedUserIds.length === 0) {
+      setError("При частни документи трябва да изберете поне един потребител.");
       return;
     }
 
@@ -62,12 +112,8 @@ export default function UploadFile() {
       const fd = new FormData();
       fd.append("file_name", fileName);
       fd.append("file_type", fileType);
-      // allowed_to is sent as multiple form fields
-      allowedTo
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .forEach((email) => fd.append("allowed_to", email));
+      // Send user IDs for allowed_to
+      selectedUserIds.forEach((id) => fd.append("allowed_to", id));
       fd.append("file", file);
 
       const token = localStorage.getItem("access_token");
@@ -90,7 +136,13 @@ export default function UploadFile() {
       setFile(null);
       setFileName("");
       setFileType(fileTypeOptions[0]?.value ?? "");
-      setAllowedTo("");
+      setSelectedUserIds([]);
+      setTimeout(() => {
+        setSuccess(""); // ensure the banner disappears
+        navigate("/upload", {replace: true});
+      }, 1200);
+
+
     } catch (err: any) {
       setError(err?.message || "Неуспех при качване.");
     } finally {
@@ -158,31 +210,94 @@ export default function UploadFile() {
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="allowed_to">
+                <Label htmlFor="allowed_to_select">
                   Позволен достъп {isPrivate ? "(задължително за частни документи)" : "(по избор)"}
                 </Label>
-                <Input
-                  id="allowed_to"
-                  placeholder="email1@example.com, email2@example.com"
-                  value={allowedTo}
-                  onChange={(e) => setAllowedTo(e.target.value)}
-                  disabled={submitting}
-                  required={isPrivate}
-                />
+
+                {/* Scrollable checkbox list (supports horizontal + vertical scroll) */}
+                <div
+                  id="allowed_to_select"
+                  className="h-40 rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 overflow-auto"
+                >
+                  <div className="min-w-full">
+                    {users.map((u) => {
+                      const full = `${u.first_name} ${u.last_name} (${u.email})`;
+                      const checked = selectedUserIds.includes(u.id);
+                      return (
+                        <label
+                          key={u.id}
+                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer"
+                          title={full}
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4"
+                            checked={checked}
+                            onChange={(e) => {
+                              setSelectedUserIds((prev) =>
+                                e.target.checked
+                                  ? [...prev, u.id]
+                                  : prev.filter((id) => id !== u.id)
+                              );
+                            }}
+                          />
+                          <span className="text-sm">{full}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {loadingUsers && (
+                  <p className="text-xs text-muted-foreground">Зареждане на потребители...</p>
+                )}
+                {usersError && (
+                  <p className="text-xs text-red-600">{usersError}</p>
+                )}
                 <p className="text-xs text-muted-foreground">
-                  Списък с имейли, разделени със запетая. При частни документи достъпът е задължително ограничен.
+                  Използвай скрол за да видиш дълги имена. При частни документи е нужно да избереш поне един.
                 </p>
+
+                {/*  /!* Horizontally scrollable preview of selected users *!/*/}
+                {/*  {selectedUserIds.length > 0 && (*/}
+                {/*    <div className="overflow-x-auto whitespace-nowrap max-w-full pr-2">*/}
+                {/*      <div className="inline-flex gap-2">*/}
+                {/*        {selectedUserIds*/}
+                {/*          .map((id) => users.find((u) => u.id === id))*/}
+                {/*          .filter(Boolean)*/}
+                {/*          .map((u) => (*/}
+                {/*            <span key={u!.id} className="shrink-0 text-xs bg-accent px-2 py-1 rounded">*/}
+                {/*              {u!.first_name} {u!.last_name} ({u!.email})*/}
+                {/*            </span>*/}
+                {/*          ))}*/}
+                {/*      </div>*/}
+                {/*    </div>*/}
+                {/*  )}*/}
               </div>
+
 
               <div className="grid gap-3">
                 <Label htmlFor="file">Файл</Label>
-                <Input
+                <input
                   id="file"
                   type="file"
+                  className="sr-only"
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  required
                   disabled={submitting}
+                  required
                 />
+                <div className="flex items-center gap-3">
+                  <Button asChild variant="secondary" disabled={submitting}>
+                    <label htmlFor="file">Избери файл</label>
+                  </Button>
+                </div>
+                <span
+                  className="text-sm text-muted-foreground truncate"
+                  title={file?.name || "Няма избран файл"}
+                  style={{maxWidth: "calc(100% - 140px)"}}
+                >
+                      {file?.name || "Няма избран файл"}
+                    </span>
               </div>
 
               <div className="flex flex-col gap-3">
