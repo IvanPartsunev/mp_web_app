@@ -42,7 +42,7 @@ async def delete_files(
 ):
   delete_file(files_metadata, repo)
   file_names = [file.file_name for file in files_metadata]
-  return HTTPException(status_code=204, detail=f"File/s: {', '.join(file_names)} deleted")
+  return HTTPException(status_code=204, detail=f"Deleted file names: {', '.join(file_names)}")
 
 
 @file_router.post("/download", status_code=status.HTTP_200_OK)

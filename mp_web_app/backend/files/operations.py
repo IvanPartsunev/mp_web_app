@@ -44,7 +44,7 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, rep
 def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: str, user_id: str, repo: UploadsRepository) -> FileMetadata:
   if file_metadata.file_type == 'private' and not file_metadata.allowed_to:
     raise HTTPException(status_code=400, detail='When [private] is selected allowed users must be specified')
-  allowed_to = file_metadata.allowed_to if file_metadata.file_type else []
+  allowed_to = file_metadata.allowed_to if file_metadata.allowed_to else None
   file_metadata_item = {
     "id": str(uuid4()),
     "file_name": new_file_name,
@@ -88,8 +88,10 @@ def get_files_metadata(file_type: str, repo: UploadsRepository):
 
 @retry()
 def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
-    item_ids = [metadata.id for metadata in file_metadata]
-    keys = [metadata.key for metadata in file_metadata]
+    db_metadata_objects = [get_db_metadata(file_meta, repo) for file_meta in file_metadata]
+    item_ids = [metadata.id for metadata in db_metadata_objects]
+    keys = [metadata.key for metadata in db_metadata_objects]
+
     s3 = boto3.client('s3')
     try:
         if len(file_metadata) == 1:
@@ -130,27 +132,27 @@ def _create_file_name(file_name: str, original_name: str):
 
 
 def download_file(file_metadata: FileMetadata | List[FileMetadata], repo: UploadsRepository, user_id: str):
-  file_meta_object = _get_db_metadata(file_metadata, repo)
+  file_meta_object = get_db_metadata(file_metadata, repo)
 
-  is_allowed = _check_file_allowed_to_user(file_metadata, user_id)
+  is_allowed = _check_file_allowed_to_user(file_meta_object, user_id)
   if not is_allowed:
     raise HTTPException(status_code=403, detail=f"File {file_meta_object.file_name} not allowed to user.")
 
   s3 = boto3.client('s3')
   try:
-    file_key = _full_file_key(file_meta_object)
-    s3_object = s3.get_object(Bucket=file_meta_object.bucket, Key=file_key)
+    s3_object = s3.get_object(Bucket=file_meta_object.bucket, Key=file_meta_object.key)
     file_stream = s3_object["Body"]
     return StreamingResponse(
             file_stream,
             media_type="application/octet-stream",
-            headers={"Content-Disposition": f'attachment; filename="{file_key}"'}
+            headers={"Content-Disposition": f'attachment; filename="{file_meta_object.key}"'}
         )
   except s3.exceptions.NoSuchKey:
     raise HTTPException(status_code=404, detail="File not found")
 
 
-def _get_db_metadata(file_metadata: FileMetadata, repo: UploadsRepository) -> FileMetadataFull:
+@retry()
+def get_db_metadata(file_metadata: FileMetadata, repo: UploadsRepository) -> FileMetadataFull:
   response = repo.table.get_item(Key={'id': file_metadata.id})
   if "Item" not in response:
     raise HTTPException(status_code=400, detail=f"Metadata not found for file: {file_metadata.file_name}")
@@ -166,6 +168,7 @@ def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadata
   fields = file_metadata.model_fields.keys()
   return file_metadata.model_dump() == db_meta_object.model_dump(include=fields)
 
+
 def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str) -> bool:
   allowed_types = [
     FileType.minutes.value,
@@ -175,11 +178,8 @@ def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str) -> bo
     FileType.others.value,
   ]
   is_correct_type = file_metadata.file_type.value in allowed_types
+  is_allowed_to_user = True
   if file_metadata.allowed_to:
     is_allowed_to_user = user_id in file_metadata.allowed_to
 
   return is_correct_type and is_allowed_to_user
-
-
-def _full_file_key(file_metadata: FileMetadata) -> str:
-  return f"{file_metadata.key}/{file_metadata.file_name}"
