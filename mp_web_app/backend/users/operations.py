@@ -121,10 +121,16 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   salt = str(uuid4())[:8]
   created_at = datetime.now().isoformat()
   updated_at = datetime.now().isoformat()
-  password = user_data.password
-  phone = validate_phone(user_data.phone)
-  validate_password(password)
-  hashed_password = hash_password(user_data.password, salt)
+
+  try:
+    password = validate_password(user_data.password)
+    hashed_password = hash_password(password, salt)
+    phone = validate_phone(user_data.phone)
+  except ValueError as e:
+    raise HTTPException(
+      status_code=400,
+      detail=f"Error when creating {user_data.email}: {e}"
+    )
 
   user_item = {
     "id": user_id,
@@ -215,8 +221,15 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
     expression_attribute_names["#email"] = "email"
 
   if user_data.phone is not None:
+    try:
+      phone = validate_phone(user_data.phone)
+    except ValueError as e:
+      raise HTTPException(
+        status_code=400,
+        detail=f"Error when creating {user_data.email}: {e}"
+      )
     update_expression_parts.append("#phone = :phone")
-    expression_attribute_values[":phone"] = user_data.phone
+    expression_attribute_values[":phone"] = phone
     expression_attribute_names["#phone"] = "phone"
 
   if user_data.role is not None:
@@ -250,16 +263,21 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
 
 
 def update_user_password(user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword,
-                         repo: UserRepository) -> Optional[
-  User]:
+                         repo: UserRepository) -> Optional[User]:
   """Update the user's password in DynamoDB."""
 
   existing_user = get_user_by_email(user_email, repo, secret=True)
   if not existing_user:
     return None
 
-  password = user_data.password
-  hashed_password = hash_password(password, existing_user.salt)
+  try:
+    password = validate_password(user_data.password)
+    hashed_password = hash_password(password, existing_user.salt)
+  except ValueError as e:
+    raise HTTPException(
+      status_code=400,
+      detail=f"Error when updating password for {user_data.email}: {e}"
+    )
 
   update_expression_parts = []
   expression_attribute_values = {}
