@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 import Products from "@/pages/Products";
 import Contacts from "@/pages/Contacts";
 import Gallery from "@/pages/Gallery";
+import Upload from "@/pages/UploadFile";
 import Login from "@/pages/authentication/Login";
 import Register from "@/pages/authentication/Register";
 import ForgotPassword from "@/pages/authentication/ForgotPassword";
@@ -52,6 +53,7 @@ function App() {
             <Route path="products" element={<Products/>}/>
             <Route path="contacts" element={<Contacts/>}/>
             <Route path="gallery" element={<Gallery/>}/>
+            <Route path="upload" element={<Upload/>}/>
             <Route
               path="board"
               element={
@@ -142,8 +144,9 @@ function App() {
                 </PageLoadingWrapper>
               }
             />
-
             {/* Authentication routes */}
+
+            <Route path="login" element={<Login/>}/>
             <Route path="login" element={<Login/>}/>
             <Route path="register" element={<Register/>}/>
             <Route path="forgot-password" element={<ForgotPassword/>}/>

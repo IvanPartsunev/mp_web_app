@@ -123,6 +123,18 @@ export function Navigation() {
   const filterDropdown = (dropdown: any[]) =>
     dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
+  // Decode role from access token to check for admin
+  const isAdmin = (() => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return false;
+      const payload = JSON.parse(atob(token.split(".")[1] || ""));
+      return payload?.role === "admin";
+    } catch {
+      return false;
+    }
+  })();
+
   // Handle animation for mobile menu
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -184,6 +196,18 @@ export function Navigation() {
               ))}
             </div>
           )
+        )}
+        {/* Admin upload action for mobile */}
+        {isLoggedIn && isAdmin && (
+          <Button
+            className="mt-2"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              window.location.assign("/upload");
+            }}
+          >
+            Качи документ
+          </Button>
         )}
         {/* Auth section for mobile */}
         {!isLoggedIn ? (
@@ -256,6 +280,14 @@ export function Navigation() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
                 )
+              )}
+              {/* Admin upload action for desktop */}
+              {isLoggedIn && isAdmin && (
+                <NavigationMenuItem>
+                  <Button asChild className="ml-2">
+                    <Link to="/upload">Качи документ</Link>
+                  </Button>
+                </NavigationMenuItem>
               )}
               {/* Auth section for desktop */}
               {!isLoggedIn ? (
