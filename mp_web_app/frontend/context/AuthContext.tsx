@@ -1,4 +1,5 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
+import {useNavigate} from "react-router-dom";
 import {API_BASE_URL} from "@/app-config";
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ function getInitialAuthState(): boolean {
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleStorage = () => {
@@ -40,6 +42,7 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
       // Optionally handle error
     }
     setIsLoggedIn(false);
+    navigate("/");
   };
 
   return (

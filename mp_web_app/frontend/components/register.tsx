@@ -30,6 +30,8 @@ export function RegisterForm({
                              }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({
     email: "",
+    first_name: "",
+    last_name: "",
     password: "",
     phone: "",
     confirmPassword: "",
@@ -110,6 +112,8 @@ export function RegisterForm({
       // Prepare data for API (exclude confirmPassword)
       const userData = {
         email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         password: formData.password,
         phone: formData.phone,
         user_code: formData.user_code,
@@ -122,6 +126,8 @@ export function RegisterForm({
       // Reset form after successful registration
       setFormData({
         email: "",
+        first_name: "",
+        last_name: "",
         password: "",
         phone: "",
         confirmPassword: "",
@@ -184,7 +190,7 @@ export function RegisterForm({
               )}
 
               <div className="grid gap-3">
-                <Label htmlFor="email">Имейл</Label>
+                <Label htmlFor="email">Имейл:</Label>
                 <Input
                   id="email"
                   type="email"
@@ -198,8 +204,36 @@ export function RegisterForm({
               </div>
 
               <div className="grid gap-3">
+                <Label htmlFor="first-name">Име:</Label>
+                <Input
+                  id="first-name"
+                  type="Wrap with {}"
+                  placeholder="Иван"
+                  value={formData.first_name}
+                  onChange={(e) => handleInputChange("first_name", e.target.value)}
+                  disabled={isLoading}
+                  required
+                  autoComplete="first-name"
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="last-name">Фамилия:</Label>
+                <Input
+                  id="last-name"
+                  type="Wrap with {}"
+                  placeholder="Иванов"
+                  value={formData.last_name}
+                  onChange={(e) => handleInputChange("last_name", e.target.value)}
+                  disabled={isLoading}
+                  required
+                  autoComplete="last-name"
+                />
+              </div>
+
+              <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Парола</Label>
+                  <Label htmlFor="password">Парола:</Label>
                 </div>
                 <Input
                   id="password"
@@ -214,7 +248,7 @@ export function RegisterForm({
 
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="confirm-password">Потвърди парола</Label>
+                  <Label htmlFor="confirm-password">Потвърди парола:</Label>
                 </div>
                 <Input
                   id="confirm-password"
@@ -247,7 +281,7 @@ export function RegisterForm({
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="phone">Телефон</Label>
+                <Label htmlFor="phone">Телефон:</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -274,7 +308,7 @@ export function RegisterForm({
 
               <div className="grid gap-3">
                 <div className="flex items-center">
-                  <Label htmlFor="id-number">Индивидуален регистрационен код</Label>
+                  <Label htmlFor="id-number">Индивидуален регистрационен код:</Label>
                 </div>
                 <Input
                   id="id-number"
