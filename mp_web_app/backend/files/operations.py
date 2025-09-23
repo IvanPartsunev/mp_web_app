@@ -54,7 +54,7 @@ def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: s
     "key": key,
     "uploaded_by": user_id,
     "allowed_to": allowed_to,
-    "created_at": datetime.now().isoformat()
+    "created_at": file_metadata.created_at
   }
   try:
     repo.table.put_item(Item=file_metadata_item)

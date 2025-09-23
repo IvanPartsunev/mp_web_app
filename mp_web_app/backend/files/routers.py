@@ -21,7 +21,7 @@ async def upload_files(
     user=Depends(role_required([UserRole.REGULAR_USER])) # TODO Change to ADMIN
 ):
   file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
-  upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+  return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
 
 
 @file_router.get("/get_files", status_code=status.HTTP_200_OK)

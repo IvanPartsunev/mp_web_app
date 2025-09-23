@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -8,7 +9,7 @@ class FileType(str, Enum):
   governing_documents = "governing_documents"
   forms = "forms"
   minutes = "minutes"
-  transcripts = "transcript"
+  transcripts = "transcripts"
   accounting = "accounting"
   private_documents = "private_documents"
   others = "others"
@@ -19,6 +20,8 @@ class FileMetadata(BaseModel):
   file_name: str | None = None
   file_type: FileType
   uploaded_by: str | None = None
+  created_at: str = datetime.now().isoformat()
+
 
 
 class FileMetadataFull(FileMetadata):
