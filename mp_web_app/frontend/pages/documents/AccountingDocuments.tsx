@@ -1,7 +1,12 @@
+// pages/AccountingDocuments.tsx
+import React from "react"
+import { FilesTable } from "@/components/files-table"
+
 export default function AccountingDocuments() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to accoutnting documents</h1>
-    </section>
+    <FilesTable
+      fileType="accounting"
+      title="Счетоводни документи"
+    />
   )
 }

@@ -1,7 +1,12 @@
+// pages/Minutes.tsx
+import React from "react"
+import { FilesTable } from "@/components/files-table"
+
 export default function Minutes() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to minutes</h1>
-    </section>
+    <FilesTable
+      fileType="minutes"
+      title="Протоколи"
+    />
   )
 }

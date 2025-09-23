@@ -1,7 +1,12 @@
+// pages/GoverningDocuments.tsx
+import React from "react"
+import { FilesTable } from "@/components/files-table"
+
 export default function GoverningDocuments() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to governing documents</h1>
-    </section>
+    <FilesTable
+      fileType="governing_documents"
+      title="Нормативни документи"
+    />
   )
 }

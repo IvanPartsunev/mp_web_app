@@ -1,7 +1,12 @@
+// pages/Forms.tsx
+import React from "react"
+import { FilesTable } from "@/components/files-table"
+
 export default function Forms() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to forms</h1>
-    </section>
+    <FilesTable
+      fileType="forms"
+      title="Бланки"
+    />
   )
 }

@@ -1,7 +1,12 @@
+// pages/Others.tsx
+import React from "react"
+import { FilesTable } from "@/components/files-table"
+
 export default function Others() {
   return (
-    <section>
-      <h1 className="text-2xl font-bold mb-2">Welcome to others</h1>
-    </section>
+    <FilesTable
+      fileType="others"
+      title="Други документи"
+    />
   )
 }
