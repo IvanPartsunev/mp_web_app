@@ -173,6 +173,7 @@ def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadata
 def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str) -> bool:
   allowed_types = [
     FileType.minutes.value,
+    FileType.forms.value,
     FileType.transcripts.value,
     FileType.accounting.value,
     FileType.private_documents.value,
