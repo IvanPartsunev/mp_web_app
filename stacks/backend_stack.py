@@ -131,7 +131,7 @@ class BackendStack(Stack):
         "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
-        "UPLOAD_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
+        "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
       }
     )
 
@@ -157,6 +157,20 @@ class BackendStack(Stack):
       iam.PolicyStatement(
         actions=["ses:SendEmail", "ses:SendRawEmail"],
         resources=["*"]  # Or restrict to your SES identity ARN
+      )
+    )
+
+    self.backend_lambda.add_to_role_policy(
+      iam.PolicyStatement(
+        actions=[
+          "s3:PutObject",
+          "s3:AbortMultipartUpload",
+          "s3:ListBucket"
+        ],
+        resources=[
+          "arn:aws:s3:::uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
+          "arn:aws:s3:::uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up/*"
+        ]
       )
     )
 
