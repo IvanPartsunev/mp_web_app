@@ -117,7 +117,7 @@ export function Navigation() {
   const [menuAnimating, setMenuAnimating] = useState(false);
 
   const windowWidth = useWindowWidth();
-  const isMobile = windowWidth < 880;
+  const isMobile = windowWidth < 980;
 
   // Helper to filter dropdown items based on auth
   const filterDropdown = (dropdown: any[]) =>
@@ -262,7 +262,7 @@ export function Navigation() {
                 ) : (
                   <NavigationMenuItem key={link.label}>
                     <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
-                    <NavigationMenuContent>
+                    <NavigationMenuContent className="relative z-50">
                       <ul className="grid w-[250px] gap-4">
                         <li>
                           {filterDropdown(link.dropdown).map((item) => (
@@ -293,7 +293,7 @@ export function Navigation() {
               {!isLoggedIn ? (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Вход</NavigationMenuTrigger>
-                  <NavigationMenuContent>
+                  <NavigationMenuContent className="relative z-50">
                     <ul className="grid w-[250px] gap-4">
                       <li>
                         <NavigationMenuLink asChild>

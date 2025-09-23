@@ -39,7 +39,7 @@ const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocum
 // @ts-ignore
 const Others = lazy(() => import("@/pages/documents/Others"));
 // @ts-ignore
-const MyDocuments = lazy(() => import("@/pages/MyDocuments"))
+const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"))
 
 
 function App() {

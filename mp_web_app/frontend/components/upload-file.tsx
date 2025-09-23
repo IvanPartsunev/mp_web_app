@@ -1,4 +1,6 @@
+// pages/UploadFile.tsx
 import React, {useEffect, useMemo, useState} from "react";
+import axios from "axios";
 import {API_BASE_URL} from "@/app-config";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
@@ -70,21 +72,19 @@ export default function UploadFile() {
       setUsersError("");
       try {
         const token = localStorage.getItem("access_token");
-        const res = await fetch(`${API_BASE_URL}users/list-users`, {
-          method: "GET",
-          headers: {
-            ...(token ? {Authorization: `Bearer ${token}`} : {}),
-          },
-          credentials: "include",
-        });
-        if (!res.ok) {
-          const msg = await res.text();
-          throw new Error(msg || `Грешка при зареждане на потребителите: ${res.status}`);
-        }
-        const data: User[] = await res.json();
-        setUsers(Array.isArray(data) ? data : []);
+        const res = await axios.get<User[]>(
+          `${API_BASE_URL}users/list-users`,
+          {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            withCredentials: true,
+          }
+        );
+        setUsers(Array.isArray(res.data) ? res.data : []);
       } catch (e: any) {
-        setUsersError(e?.message || "Неуспех при зареждане на потребителите.");
+        const msg = e?.response?.data?.detail || e?.message || "Неуспех при зареждане на потребителите.";
+        setUsersError(msg);
       } finally {
         setLoadingUsers(false);
       }
@@ -112,25 +112,22 @@ export default function UploadFile() {
       const fd = new FormData();
       fd.append("file_name", fileName);
       fd.append("file_type", fileType);
-      // Send user IDs for allowed_to
       selectedUserIds.forEach((id) => fd.append("allowed_to", id));
       fd.append("file", file);
 
       const token = localStorage.getItem("access_token");
 
-      const res = await fetch(`${API_BASE_URL}files/upload`, {
-        method: "POST",
-        headers: {
-          ...(token ? {Authorization: `Bearer ${token}`} : {}),
-        },
-        body: fd,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || `Грешка при качване: ${res.status}`);
-      }
+      await axios.post(
+        `${API_BASE_URL}files/upload`,
+        fd,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            // Let axios set multipart/form-data with boundary automatically
+          },
+          withCredentials: true,
+        }
+      );
 
       setSuccess("Файлът беше качен успешно.");
       setFile(null);
@@ -138,13 +135,17 @@ export default function UploadFile() {
       setFileType(fileTypeOptions[0]?.value ?? "");
       setSelectedUserIds([]);
       setTimeout(() => {
-        setSuccess(""); // ensure the banner disappears
-        navigate("/upload", {replace: true});
+        setSuccess("");
+        navigate("/upload", { replace: true });
       }, 1200);
 
-
     } catch (err: any) {
-      setError(err?.message || "Неуспех при качване.");
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Неуспех при качване.";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -214,7 +215,6 @@ export default function UploadFile() {
                   Позволен достъп {isPrivate ? "(задължително за частни документи)" : "(по избор)"}
                 </Label>
 
-                {/* Scrollable checkbox list (supports horizontal + vertical scroll) */}
                 <div
                   id="allowed_to_select"
                   className="h-40 rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 overflow-auto"
@@ -257,24 +257,7 @@ export default function UploadFile() {
                 <p className="text-xs text-muted-foreground">
                   Използвай скрол за да видиш дълги имена. При частни документи е нужно да избереш поне един.
                 </p>
-
-                {/*  /!* Horizontally scrollable preview of selected users *!/*/}
-                {/*  {selectedUserIds.length > 0 && (*/}
-                {/*    <div className="overflow-x-auto whitespace-nowrap max-w-full pr-2">*/}
-                {/*      <div className="inline-flex gap-2">*/}
-                {/*        {selectedUserIds*/}
-                {/*          .map((id) => users.find((u) => u.id === id))*/}
-                {/*          .filter(Boolean)*/}
-                {/*          .map((u) => (*/}
-                {/*            <span key={u!.id} className="shrink-0 text-xs bg-accent px-2 py-1 rounded">*/}
-                {/*              {u!.first_name} {u!.last_name} ({u!.email})*/}
-                {/*            </span>*/}
-                {/*          ))}*/}
-                {/*      </div>*/}
-                {/*    </div>*/}
-                {/*  )}*/}
               </div>
-
 
               <div className="grid gap-3">
                 <Label htmlFor="file">Файл</Label>
@@ -296,8 +279,8 @@ export default function UploadFile() {
                   title={file?.name || "Няма избран файл"}
                   style={{maxWidth: "calc(100% - 140px)"}}
                 >
-                      {file?.name || "Няма избран файл"}
-                    </span>
+                  {file?.name || "Няма избран файл"}
+                </span>
               </div>
 
               <div className="flex flex-col gap-3">
