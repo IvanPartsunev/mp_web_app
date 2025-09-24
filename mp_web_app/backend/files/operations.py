@@ -170,18 +170,26 @@ def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadata
   return file_metadata.model_dump() == db_meta_object.model_dump(include=fields)
 
 
-def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str) -> bool:
-  allowed_types = [
+def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str | None = None) -> bool:
+  public_allowed_types = [
+    FileType.governing_documents.value,
+    FileType.forms.value,
+  ]
+
+  private_allowed_types = [
     FileType.minutes.value,
+    FileType.governing_documents.value,
     FileType.forms.value,
     FileType.transcripts.value,
     FileType.accounting.value,
     FileType.private_documents.value,
     FileType.others.value,
   ]
-  is_correct_type = file_metadata.file_type.value in allowed_types
   is_allowed_to_user = True
-  if file_metadata.allowed_to:
-    is_allowed_to_user = user_id in file_metadata.allowed_to
-
-  return is_correct_type and is_allowed_to_user
+  if user_id:
+    is_allowed_type = file_metadata.file_type.value in private_allowed_types
+    if file_metadata.allowed_to:
+      is_allowed_to_user = user_id in file_metadata.allowed_to
+  else:
+    is_allowed_type = file_metadata.file_type.value in public_allowed_types
+  return is_allowed_type and is_allowed_to_user

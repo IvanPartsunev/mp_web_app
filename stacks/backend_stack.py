@@ -164,6 +164,7 @@ class BackendStack(Stack):
       iam.PolicyStatement(
         actions=[
           "s3:PutObject",
+          "s3:GetObject",
           "s3:AbortMultipartUpload",
           "s3:ListBucket"
         ],
