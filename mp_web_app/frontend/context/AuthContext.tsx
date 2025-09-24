@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
 import {useNavigate} from "react-router-dom";
 import {API_BASE_URL} from "@/app-config";
+import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -11,7 +12,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function getInitialAuthState(): boolean {
-  return !!localStorage.getItem("access_token");
+  return !!getAccessToken();
 }
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
@@ -19,6 +20,7 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Keep isLoggedIn in sync across tabs/windows
     const handleStorage = () => {
       setIsLoggedIn(getInitialAuthState());
     };
@@ -27,20 +29,23 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
   }, []);
 
   const login = (accessToken: string) => {
-    localStorage.setItem("access_token", accessToken);
+    setAccessToken(accessToken);
     setIsLoggedIn(true);
   };
 
   const logout = async () => {
-    localStorage.removeItem("access_token");
+    // Clear access token first
+    setAccessToken(null);
+
     try {
       await fetch(`${API_BASE_URL}auth/logout`, {
         method: "POST",
-        credentials: "include", // Important: send cookies for refresh token
+        credentials: "include", // include cookies to remove refresh token server-side
       });
-    } catch (e) {
-      // Optionally handle error
+    } catch {
+      // ignore network errors during logout
     }
+
     setIsLoggedIn(false);
     navigate("/");
   };

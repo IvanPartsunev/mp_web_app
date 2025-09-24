@@ -1,297 +1,284 @@
-// pages/UploadFile.tsx
-import React, {useEffect, useMemo, useState} from "react";
-import axios from "axios";
-import {API_BASE_URL} from "@/app-config";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {useNavigate} from "react-router-dom";
+// components/files/FilesTable.tsx
+import React from "react"
+import {Button} from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import apiClient from "@/context/apiClient"
 
-type User = {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  // other fields not used here
-};
+type FileType =
+  | "governing_documents"
+  | "forms"
+  | "minutes"
+  | "transcripts"
+  | "accounting"
+  | "private_documents"
+  | "others"
 
-export default function UploadFile() {
-  const navigate = useNavigate();
+type FileMetadata = {
+  id?: string | null
+  file_name?: string | null
+  file_type: FileType
+  uploaded_by?: string | null
+  created_at?: string | null
+}
 
-  // FileType options must match backend enum values
-  const fileTypeOptions = useMemo(
-    () => [
-      {value: "governing_documents", label: "Нормативни документи"},
-      {value: "forms", label: "Бланки"},
-      {value: "minutes", label: "Протоколи"},
-      {value: "transcript", label: "Стенограми"},
-      {value: "accounting", label: "Счетоводни документи"},
-      {value: "private_documents", label: "Лични/частни документи"},
-      {value: "others", label: "Други"},
-    ],
-    []
-  );
+type FilesTableProps = {
+  fileType: FileType
+  title?: string
+}
 
-  const [fileName, setFileName] = useState("");
-  const [fileType, setFileType] = useState(fileTypeOptions[0]?.value ?? "");
-  const [file, setFile] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+const PAGE_SIZE = 25
 
-  // Users state
-  const [users, setUsers] = useState<User[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [usersError, setUsersError] = useState<string>("");
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+function FilesTable({fileType, title}: FilesTableProps) {
+  const [data, setData] = React.useState<FileMetadata[]>([])
+  const [loading, setLoading] = React.useState<boolean>(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [page, setPage] = React.useState<number>(1)
 
-  // Frontend guard: only allow admins to access this page (keep your current logic if you prefer)
-  useEffect(() => {
+  const load = React.useCallback(async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
-      const payload = JSON.parse(atob(base64));
-      if (String(payload?.role ?? "").toUpperCase() !== "ADMIN") {
-        navigate("/");
-      }
-    } catch {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  // Fetch all users to populate dropdown
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoadingUsers(true);
-      setUsersError("");
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await axios.get<User[]>(
-          `${API_BASE_URL}users/list-users`,
-          {
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            withCredentials: true,
-          }
-        );
-        setUsers(Array.isArray(res.data) ? res.data : []);
-      } catch (e: any) {
-        const msg = e?.response?.data?.detail || e?.message || "Неуспех при зареждане на потребителите.";
-        setUsersError(msg);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-    fetchUsers();
-  }, []);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    const isPrivate = fileType === "private_documents";
-    if (!file || !fileName || !fileType) {
-      setError("Моля, попълнете всички задължителни полета и изберете файл.");
-      return;
-    }
-    if (isPrivate && selectedUserIds.length === 0) {
-      setError("При частни документи трябва да изберете поне един потребител.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const fd = new FormData();
-      fd.append("file_name", fileName);
-      fd.append("file_type", fileType);
-      selectedUserIds.forEach((id) => fd.append("allowed_to", id));
-      fd.append("file", file);
-
-      const token = localStorage.getItem("access_token");
-
-      await axios.post(
-        `${API_BASE_URL}files/upload`,
-        fd,
+      const res = await apiClient.get<FileMetadata[]>(
+        `files/get_files`,
         {
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            // Let axios set multipart/form-data with boundary automatically
-          },
+          params: {file_type: fileType},
           withCredentials: true,
         }
-      );
-
-      setSuccess("Файлът беше качен успешно.");
-      setFile(null);
-      setFileName("");
-      setFileType(fileTypeOptions[0]?.value ?? "");
-      setSelectedUserIds([]);
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/upload", { replace: true });
-      }, 1200);
-
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.message ||
-        err?.message ||
-        "Неуспех при качване.";
-      setError(msg);
+      )
+      setData(res.data ?? [])
+      setPage(1) // reset page on type change/fresh load
+    } catch (e: any) {
+      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.")
     } finally {
-      setSubmitting(false);
+      setLoading(false)
     }
-  };
+  }, [fileType])
 
-  const isPrivate = fileType === "private_documents";
+  React.useEffect(() => {
+    load()
+  }, [load])
+
+  // Pagination helpers
+  const total = data.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const startIdx = (page - 1) * PAGE_SIZE
+  const endIdx = Math.min(startIdx + PAGE_SIZE, total)
+  const pageItems = data.slice(startIdx, endIdx)
+
+  const goToPage = (p: number) => {
+    if (p < 1 || p > totalPages) return
+    setPage(p)
+  }
+
+  const handleDownload = async (file: FileMetadata) => {
+    if (!file.id || !file.file_name) return
+    try {
+      const isPublic =
+        file.file_type === "governing_documents" ||
+        file.file_type === "forms"
+      const endpoint = isPublic ? `files/download-public` : `files/download`
+
+      const res = await apiClient.post(
+        endpoint,
+        {
+          id: file.id,
+          file_name: file.file_name,
+          file_type: file.file_type,
+          uploaded_by: file.uploaded_by ?? null,
+          created_at: file.created_at ?? null,
+        } as FileMetadata,
+        {
+          responseType: "blob",
+          withCredentials: true,
+        }
+      )
+
+      const blob = new Blob([res.data], {type: res.headers["content-type"] || "application/octet-stream"})
+      const contentDisposition = res.headers["content-disposition"] as string | undefined
+      const suggestedName = (() => {
+        if (contentDisposition) {
+          const match = /filename\*?=(?:UTF-8'')?"?([^"]+)"?/i.exec(contentDisposition)
+          if (match && match[1]) return decodeURIComponent(match[1])
+        }
+        return file.file_name || "download"
+      })()
+
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = suggestedName
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (e: any) {
+      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.")
+    }
+  }
 
   return (
-    <div className="flex min-h-svh w-full items-start justify-center">
-      <div className="w-full max-w-lg">
-        <Card>
-          <CardHeader>
-            <CardTitle>Качи документ</CardTitle>
-            <CardDescription>
-              Попълнете информацията за документа и изберете файл за качване.
-              Полетата за тип и достъп трябва да съответстват на правилата във вашата система.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="flex flex-col gap-6">
-              {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+    <section className="space-y-3 p-3">
+      {title ? <h1 className="text-2xl font-bold py-3">{title}</h1> : null}
+
+      <div className="rounded-lg border bg-card shadow-sm p-2">
+        <div className="rounded-md overflow-hidden">
+          <Table>
+            <TableCaption className="py-1">Списък с налични файлове.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[80px] py-2">№</TableHead>
+                <TableHead className="py-2">Име на файл</TableHead>
+                <TableHead className="py-2">Дата на създаване</TableHead>
+                <TableHead className="text-right py-2">Действия</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading && (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-2">Зареждане...</TableCell>
+                </TableRow>
               )}
-              {success && (
-                <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">
-                  {success}
-                </div>
+              {error && !loading && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-red-600 py-2">{error}</TableCell>
+                </TableRow>
               )}
+              {!loading && !error && pageItems.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-2">Няма налични записи.</TableCell>
+                </TableRow>
+              )}
+              {!loading && !error && pageItems.map((file, idx) => (
+                <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
+                  <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
+                  <TableCell className="py-2">{file.file_name}</TableCell>
+                  <TableCell
+                    className="py-2">{file.created_at ? new Date(file.created_at).toLocaleString() : "-"}</TableCell>
+                  <TableCell className="text-right py-2">
+                    <Button size="sm" onClick={() => handleDownload(file)}>
+                      Изтегли
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-              <div className="grid gap-3">
-                <Label htmlFor="file_name">Име на файл</Label>
-                <Input
-                  id="file_name"
-                  placeholder="Пример: Годишен отчет 2025"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  required
-                  disabled={submitting}
-                />
-              </div>
+        {totalPages > 1 && (
+          <div className="mt-2">
+            <Pagination>
+              <PaginationContent className="px-1 py-1">
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page - 1)
+                    }}
+                  />
+                </PaginationItem>
 
-              <div className="grid gap-3">
-                <Label htmlFor="file_type">Тип на документ</Label>
-                <select
-                  id="file_type"
-                  value={fileType}
-                  onChange={(e) => setFileType(e.target.value)}
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={submitting}
-                  required
-                >
-                  {fileTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Използвайте валидна стойност според FileType в бекенда.
-                </p>
-              </div>
-
-              <div className="grid gap-3">
-                <Label htmlFor="allowed_to_select">
-                  Позволен достъп {isPrivate ? "(задължително за частни документи)" : "(по избор)"}
-                </Label>
-
-                <div
-                  id="allowed_to_select"
-                  className="h-40 rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 overflow-auto"
-                >
-                  <div className="min-w-full">
-                    {users.map((u) => {
-                      const full = `${u.first_name} ${u.last_name} (${u.email})`;
-                      const checked = selectedUserIds.includes(u.id);
-                      return (
-                        <label
-                          key={u.id}
-                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer"
-                          title={full}
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={checked}
-                            onChange={(e) => {
-                              setSelectedUserIds((prev) =>
-                                e.target.checked
-                                  ? [...prev, u.id]
-                                  : prev.filter((id) => id !== u.id)
-                              );
-                            }}
-                          />
-                          <span className="text-sm">{full}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {loadingUsers && (
-                  <p className="text-xs text-muted-foreground">Зареждане на потребители...</p>
+                {page > 2 && (
+                  <>
+                    <PaginationItem>
+                      <PaginationLink href="#" onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(1)
+                      }}>
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                    {page > 3 && (
+                      <PaginationItem>
+                        <PaginationEllipsis/>
+                      </PaginationItem>
+                    )}
+                  </>
                 )}
-                {usersError && (
-                  <p className="text-xs text-red-600">{usersError}</p>
+
+                {page > 1 && (
+                  <PaginationItem>
+                    <PaginationLink href="#" onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page - 1)
+                    }}>
+                      {page - 1}
+                    </PaginationLink>
+                  </PaginationItem>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Използвай скрол за да видиш дълги имена. При частни документи е нужно да избереш поне един.
-                </p>
-              </div>
 
-              <div className="grid gap-3">
-                <Label htmlFor="file">Файл</Label>
-                <input
-                  id="file"
-                  type="file"
-                  className="sr-only"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  disabled={submitting}
-                  required
-                />
-                <div className="flex items-center gap-3">
-                  <Button asChild variant="secondary" disabled={submitting}>
-                    <label htmlFor="file">Избери файл</label>
-                  </Button>
-                </div>
-                <span
-                  className="text-sm text-muted-foreground truncate"
-                  title={file?.name || "Няма избран файл"}
-                  style={{maxWidth: "calc(100% - 140px)"}}
-                >
-                  {file?.name || "Няма избран файл"}
-                </span>
-              </div>
+                <PaginationItem>
+                  <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
 
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Качване..." : "Качи"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                {page < totalPages && (
+                  <PaginationItem>
+                    <PaginationLink href="#" onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page + 1)
+                    }}>
+                      {page + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                )}
+
+                {page < totalPages - 1 && (
+                  <>
+                    {page < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis/>
+                      </PaginationItem>
+                    )}
+                    <PaginationItem>
+                      <PaginationLink href="#" onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(totalPages)
+                      }}>
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </>
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page + 1)
+                    }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+            <div className="px-1 text-xs text-muted-foreground">
+              Показани {startIdx + 1}-{endIdx} от {total}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    </section>
+  )
 }
+
+export default FilesTable
