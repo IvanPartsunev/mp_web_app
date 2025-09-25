@@ -3,4 +3,4 @@
 
 // For production, use your custom API domain.
 // Make sure the subdomain matches the one in your cdk/app.py
-export const API_BASE_URL = "https://api.murdjovpojar.com/api/";
+export const API_BASE_URL = "https://api.ivan-partsunev.com/api/";

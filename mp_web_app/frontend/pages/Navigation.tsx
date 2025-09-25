@@ -185,7 +185,7 @@ export function Navigation() {
               <Link
                 key={link.label}
                 to={link.to}
-                className="text-lg font-medium"
+                className="block py-2 text-lg font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
@@ -228,7 +228,7 @@ export function Navigation() {
                 <Link
                   key={item.label}
                   to={item.to}
-                  className="block mb-1 py-2"
+                  className="block w-full mb-1 px-4 py-3 rounded-lg shadow-md bg-secondary text-secondary-foreground hover:bg-secondary/90 active:opacity-75 transition-opacity"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -241,7 +241,7 @@ export function Navigation() {
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
           <Button
-            className="mt-2"
+            className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
             onClick={() => {
               setMobileMenuOpen(false);
               window.location.assign("/upload");
@@ -256,7 +256,7 @@ export function Navigation() {
             <div className="font-semibold mb-2">Вход</div>
             <Link
               to="/login"
-              className="block mb-1"
+              className="block w-full mb-1 px-4 py-3 rounded-lg shadow-md bg-secondary text-secondary-foreground hover:bg-secondary/90 active:opacity-75 transition-opacity"
               onClick={() => setMobileMenuOpen(false)}
             >
               Влез
@@ -264,7 +264,7 @@ export function Navigation() {
             </Link>
             <Link
               to="/register"
-              className="block mb-1"
+              className="block w-full mb-1 px-4 py-3 rounded-lg shadow-md bg-secondary text-secondary-foreground hover:bg-secondary/90 active:opacity-75 transition-opacity"
               onClick={() => setMobileMenuOpen(false)}
             >
               Създай
@@ -273,7 +273,7 @@ export function Navigation() {
           </div>
         ) : (
           <Button
-            className="mt-4"
+            className="mt-4 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
             onClick={() => {
               logout();
               setMobileMenuOpen(false);
