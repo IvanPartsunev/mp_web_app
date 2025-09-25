@@ -16,7 +16,7 @@ app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc", openapi_url="/api/op
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=[f"{FRONTEND_URL}"],
+  allow_origins=[FRONTEND_URL],
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
@@ -30,4 +30,4 @@ app.include_router(news_router, prefix="/api/news")
 
 from mangum import Mangum
 
-handler = Mangum(app)
+handler = Mangum(app, lifespan="off")

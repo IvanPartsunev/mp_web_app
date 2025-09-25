@@ -17,7 +17,7 @@ from users.operations import get_user_repository
 auth_router = APIRouter(tags=["auth"])
 
 
-@auth_router.post("/login", response_model=Token)
+@auth_router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
 async def login(
   response: Response,
   form_data: OAuth2PasswordRequestForm = Depends(),
@@ -36,13 +36,13 @@ async def login(
     value=refresh_token,
     httponly=True,
     secure=True,
-    samesite="strict",
+    samesite="none",
     max_age=7 * 24 * 60 * 60,
   )
   return Token(access_token=access_token, refresh_token=refresh_token)
 
 
-@auth_router.post("/refresh", response_model=Token)
+@auth_router.post("/refresh", response_model=Token, status_code=status.HTTP_200_OK)
 async def refresh(
   response: Response,
   refresh_token: str = Cookie(None),  # Prefer HTTP-only cookie
@@ -65,7 +65,7 @@ async def refresh(
     value=new_refresh_token,
     httponly=True,
     secure=True,
-    samesite="strict",
+    samesite="none",
     max_age=7 * 24 * 60 * 60,
   )
   return Token(
@@ -74,7 +74,7 @@ async def refresh(
   )
 
 
-@auth_router.post("/logout")
+@auth_router.post("/logout", status_code=status.HTTP_200_OK)
 def logout(
   response: Response,
   refresh_token: str = Cookie(None),
@@ -87,8 +87,7 @@ def logout(
 
   response.delete_cookie(
     "refresh_token",
-    path="/",
     httponly=True,
-    samesite="strict",
+    samesite="none",
   )
   return {"msg": "Logged out"}
