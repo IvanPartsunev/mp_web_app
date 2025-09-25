@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
+from app_config import COOKIE_DOMAIN
 from auth.models import Token, TokenPayload
 from auth.operations import (
   verify_refresh_token,
@@ -38,6 +39,7 @@ async def login(
     secure=True,
     samesite="none",
     max_age=7 * 24 * 60 * 60,
+    domain=COOKIE_DOMAIN
   )
   return Token(access_token=access_token, refresh_token=refresh_token)
 
@@ -67,6 +69,7 @@ async def refresh(
     secure=True,
     samesite="none",
     max_age=7 * 24 * 60 * 60,
+    domain=COOKIE_DOMAIN
   )
   return Token(
     access_token=new_access_token,
@@ -89,5 +92,6 @@ def logout(
     "refresh_token",
     httponly=True,
     samesite="none",
+    domain=COOKIE_DOMAIN
   )
   return {"msg": "Logged out"}

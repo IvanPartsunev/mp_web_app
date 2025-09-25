@@ -18,6 +18,7 @@ def get_jwt_secret():
 
 REGION = "eu-central-1"
 FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL')
+COOKIE_DOMAIN = os.getenv('COOKIE_DOMAIN')
 MAIL_SENDER = os.getenv('MAIL_SENDER')
 ALGORITH = os.getenv('JWT_ALGORITHM')
 SECRET_KEY = get_jwt_secret()

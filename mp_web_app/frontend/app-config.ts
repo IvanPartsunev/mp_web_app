@@ -1,2 +1,6 @@
+// For local development, you can use the local server
 // export const API_BASE_URL = "http://localhost:8000/api/";
-export const API_BASE_URL = "https://xvhl4vnph4.execute-api.eu-central-1.amazonaws.com/prod/api/";
+
+// For production, use your custom API domain.
+// Make sure the subdomain matches the one in your cdk/app.py
+export const API_BASE_URL = "https://api.murdjovpojar.com/api/";

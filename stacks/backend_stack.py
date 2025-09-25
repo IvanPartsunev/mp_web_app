@@ -5,6 +5,9 @@ from aws_cdk import (
   aws_apigateway as apigateway,
   aws_dynamodb as dynamodb,
   aws_secretsmanager as secretsmanager,
+  aws_certificatemanager as acm,
+  aws_route53 as route53,
+  aws_route53_targets as route53_targets,
   RemovalPolicy,
   Duration,
   CfnOutput,
@@ -14,7 +17,7 @@ import os
 
 
 class BackendStack(Stack):
-  def __init__(self, scope: Construct, id: str, frontend_base_url: str = "", **kwargs):
+  def __init__(self, scope: Construct, id: str, frontend_base_url: str, cookie_domain: str, domain_name: str, api_subdomain: str, hosted_zone: route53.IHostedZone, certificate: acm.ICertificate, **kwargs):
     super().__init__(scope, id, **kwargs)
 
     # Create a randomly generated JWT secret
@@ -122,13 +125,14 @@ class BackendStack(Stack):
       timeout=Duration.seconds(30),
       memory_size=1024,
       environment={
-        "FRONTEND_BASE_URL": frontend_base_url or "https://d3u6t9h0xyyd0j.cloudfront.net",
+        "FRONTEND_BASE_URL": frontend_base_url,
+        "COOKIE_DOMAIN": cookie_domain,
         "USERS_TABLE_NAME": self.table1.table_name,
         "USER_CODES_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
         "NEWS_TABLE_NAME": self.table5.table_name,
-        "MAIL_SENDER": "office@murdjovpojar.com",
+        "MAIL_SENDER": "office @murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
@@ -145,6 +149,27 @@ class BackendStack(Stack):
       proxy=True,
       deploy_options=apigateway.StageOptions(stage_name="prod"),
     )
+
+    # Add custom domain to API Gateway
+    api_domain = apigateway.DomainName(
+      self, "ApiDomain",
+      domain_name=f"{api_subdomain}.{domain_name}",
+      certificate=certificate,
+      endpoint_type=apigateway.EndpointType.EDGE,
+    )
+
+    api_domain.add_base_path_mapping(self.api)
+
+    # Create a Route 53 A record for the custom domain
+    route53.ARecord(
+      self, "ApiDnsRecord",
+      zone=hosted_zone,
+      record_name=api_subdomain,
+      target=route53.RecordTarget.from_alias(
+        route53_targets.ApiGatewayDomain(api_domain)
+      ),
+    )
+
 
     # Grant Lambda access to tables
     self.table1.grant_read_write_data(self.backend_lambda)
