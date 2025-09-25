@@ -2,7 +2,7 @@
 import React from "react"
 import axios from "axios"
 import {API_BASE_URL} from "@/app-config";
-import { Button } from "@/components/ui/button"
+import {Button} from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -21,6 +21,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import apiClient from "@/context/apiClient";
 
 type FileType =
   | "governing_documents"
@@ -47,7 +48,7 @@ type FilesTableProps = {
 const API_BASE = API_BASE_URL
 const PAGE_SIZE = 25
 
-export function FilesTable({ fileType, title }: FilesTableProps) {
+export function FilesTable({fileType, title}: FilesTableProps) {
   const [data, setData] = React.useState<FileMetadata[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -59,12 +60,11 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
     setLoading(true)
     setError(null)
     try {
-      const res = await axios.get<FileMetadata[]>(
-        `${API_BASE}files/get_files`,
+      const res = await apiClient.get<FileMetadata[]>(
+        `files/get_files`,
         {
-          params: { file_type: fileType },
+          params: {file_type: fileType},
           withCredentials: true,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }
       )
       setData(res.data ?? [])
@@ -74,7 +74,7 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
     } finally {
       setLoading(false)
     }
-  }, [fileType, token])
+  }, [fileType])
 
   React.useEffect(() => {
     load()
@@ -95,8 +95,8 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
   const handleDownload = async (file: FileMetadata) => {
     if (!file.id || !file.file_name) return
     try {
-      const res = await axios.post(
-        `${API_BASE}files/download`,
+      const res = await apiClient.post(
+        `files/download`,
         {
           id: file.id,
           file_name: file.file_name,
@@ -107,11 +107,10 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
         {
           responseType: "blob",
           withCredentials: true,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         }
       )
 
-      const blob = new Blob([res.data], { type: res.headers["content-type"] || "application/octet-stream" })
+      const blob = new Blob([res.data], {type: res.headers["content-type"] || "application/octet-stream"})
       const contentDisposition = res.headers["content-disposition"] as string | undefined
       const suggestedName = (() => {
         if (contentDisposition) {
@@ -171,7 +170,8 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
                 <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
                   <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
                   <TableCell className="py-2">{file.file_name}</TableCell>
-                  <TableCell className="py-2">{file.created_at ? new Date(file.created_at).toLocaleString() : "-"}</TableCell>
+                  <TableCell
+                    className="py-2">{file.created_at ? new Date(file.created_at).toLocaleString() : "-"}</TableCell>
                   <TableCell className="text-right py-2">
                     <Button size="sm" onClick={() => handleDownload(file)}>
                       Изтегли
@@ -191,7 +191,10 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
                 <PaginationItem>
                   <PaginationPrevious
                     href="#"
-                    onClick={(e) => { e.preventDefault(); goToPage(page - 1) }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page - 1)
+                    }}
                   />
                 </PaginationItem>
 
@@ -199,13 +202,16 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
                 {page > 2 && (
                   <>
                     <PaginationItem>
-                      <PaginationLink href="#" onClick={(e) => { e.preventDefault(); goToPage(1) }}>
+                      <PaginationLink href="#" onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(1)
+                      }}>
                         1
                       </PaginationLink>
                     </PaginationItem>
                     {page > 3 && (
                       <PaginationItem>
-                        <PaginationEllipsis />
+                        <PaginationEllipsis/>
                       </PaginationItem>
                     )}
                   </>
@@ -213,7 +219,10 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
 
                 {page > 1 && (
                   <PaginationItem>
-                    <PaginationLink href="#" onClick={(e) => { e.preventDefault(); goToPage(page - 1) }}>
+                    <PaginationLink href="#" onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page - 1)
+                    }}>
                       {page - 1}
                     </PaginationLink>
                   </PaginationItem>
@@ -227,7 +236,10 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
 
                 {page < totalPages && (
                   <PaginationItem>
-                    <PaginationLink href="#" onClick={(e) => { e.preventDefault(); goToPage(page + 1) }}>
+                    <PaginationLink href="#" onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page + 1)
+                    }}>
                       {page + 1}
                     </PaginationLink>
                   </PaginationItem>
@@ -237,11 +249,14 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
                   <>
                     {page < totalPages - 2 && (
                       <PaginationItem>
-                        <PaginationEllipsis />
+                        <PaginationEllipsis/>
                       </PaginationItem>
                     )}
                     <PaginationItem>
-                      <PaginationLink href="#" onClick={(e) => { e.preventDefault(); goToPage(totalPages) }}>
+                      <PaginationLink href="#" onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(totalPages)
+                      }}>
                         {totalPages}
                       </PaginationLink>
                     </PaginationItem>
@@ -251,7 +266,10 @@ export function FilesTable({ fileType, title }: FilesTableProps) {
                 <PaginationItem>
                   <PaginationNext
                     href="#"
-                    onClick={(e) => { e.preventDefault(); goToPage(page + 1) }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page + 1)
+                    }}
                   />
                 </PaginationItem>
               </PaginationContent>
