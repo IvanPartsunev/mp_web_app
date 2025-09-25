@@ -228,7 +228,7 @@ export function Navigation() {
                 <Link
                   key={item.label}
                   to={item.to}
-                  className="block mb-1"
+                  className="block mb-1 py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
