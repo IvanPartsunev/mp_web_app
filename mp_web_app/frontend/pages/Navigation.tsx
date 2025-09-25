@@ -123,17 +123,26 @@ export function Navigation() {
   const filterDropdown = (dropdown: any[]) =>
     dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
-  // Decode role from access token to check for admin
-  const isAdmin = (() => {
+  // Decode role from access token to check role
+  const getUserRole = (): "admin" | "board" | "control" | "regular" | null => {
     try {
       const token = localStorage.getItem("access_token");
-      if (!token) return false;
-      const payload = JSON.parse(atob(token.split(".")[1] || ""));
-      return payload?.role === "admin";
+      if (!token) return null;
+      const base64Url = token.split(".")[1] || "";
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+      const payload = JSON.parse(atob(base64));
+      const role = String(payload?.role || "").toLowerCase();
+      if (role === "admin" || role === "board" || role === "control" || role === "regular") return role as any;
+      return null;
     } catch {
-      return false;
+      return null;
     }
-  })();
+  };
+
+  const role = getUserRole();
+  const isAdmin = role === "admin";
+  const isBoardOrControl = role === "board" || role === "control";
+  const isRegular = role === "regular";
 
   // Handle animation for mobile menu
   useEffect(() => {
@@ -170,20 +179,52 @@ export function Navigation() {
         </Button>
       </div>
       <nav className="flex flex-col gap-4">
-        {NAV_LINKS.map((link) =>
-          !link.dropdown ? (
-            <Link
-              key={link.label}
-              to={link.to}
-              className="text-lg font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ) : (
+        {NAV_LINKS.map((link) => {
+          if (!link.dropdown) {
+            return (
+              <Link
+                key={link.label}
+                to={link.to}
+                className="text-lg font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            );
+          }
+
+          const isDocuments = link.label === "Документи";
+          const isLists = link.label === "Списъци";
+
+          // Hide entire Documents section when not authenticated
+          if (isDocuments && !isLoggedIn) {
+            return null;
+          }
+          // Hide Lists section when not authenticated
+          if (isLists && !isLoggedIn) {
+            return null;
+          }
+
+          // Role-based filtering for Documents
+          const documentsItems = isDocuments
+            ? (isAdmin || isBoardOrControl
+              ? link.dropdown
+              : link.dropdown.filter(
+                (item: any) =>
+                  item.to === "/governing-documents" || item.to === "/forms"
+              ))
+            : filterDropdown(link.dropdown);
+
+          const itemsToRender = isDocuments ? documentsItems : link.dropdown;
+
+          if ((isDocuments || isLists) && itemsToRender.length === 0) {
+            return null;
+          }
+
+          return (
             <div key={link.label} className="mt-4">
               <div className="font-semibold mb-2">{link.label}</div>
-              {filterDropdown(link.dropdown).map((item) => (
+              {itemsToRender.map((item: any) => (
                 <Link
                   key={item.label}
                   to={item.to}
@@ -195,8 +236,8 @@ export function Navigation() {
                 </Link>
               ))}
             </div>
-          )
-        )}
+          );
+        })}
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
           <Button
@@ -252,20 +293,52 @@ export function Navigation() {
         <div className="flex p-2 border-t-2 border-b-2 border-primary w-full items-center justify-center">
           <NavigationMenu viewport={false}>
             <NavigationMenuList>
-              {NAV_LINKS.map((link) =>
-                !link.dropdown ? (
-                  <NavigationMenuItem key={link.label}>
-                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                      <Link to={link.to}>{link.label}</Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                ) : (
+              {NAV_LINKS.map((link) => {
+                if (!link.dropdown) {
+                  return (
+                    <NavigationMenuItem key={link.label}>
+                      <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <Link to={link.to}>{link.label}</Link>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  );
+                }
+
+                const isDocuments = link.label === "Документи";
+                const isLists = link.label === "Списъци";
+
+                // Hide entire Documents section when not authenticated
+                if (isDocuments && !isLoggedIn) {
+                  return null;
+                }
+                // Hide Lists section when not authenticated
+                if (isLists && !isLoggedIn) {
+                  return null;
+                }
+
+                // Role-based filtering for Documents
+                const documentsItems = isDocuments
+                  ? (isAdmin || isBoardOrControl
+                    ? link.dropdown
+                    : link.dropdown.filter(
+                      (item: any) =>
+                        item.to === "/governing-documents" || item.to === "/forms"
+                    ))
+                  : filterDropdown(link.dropdown);
+
+                const itemsToRender = isDocuments ? documentsItems : link.dropdown;
+
+                if ((isDocuments || isLists) && itemsToRender.length === 0) {
+                  return null;
+                }
+
+                return (
                   <NavigationMenuItem key={link.label}>
                     <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
                     <NavigationMenuContent className="relative z-50">
                       <ul className="grid w-[250px] gap-4">
                         <li>
-                          {filterDropdown(link.dropdown).map((item) => (
+                          {itemsToRender.map((item: any) => (
                             <NavigationMenuLink asChild key={item.label}>
                               <Link to={item.to}>
                                 <div className="font-medium">{item.label}</div>
@@ -279,8 +352,8 @@ export function Navigation() {
                       </ul>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
-                )
-              )}
+                );
+              })}
               {/* Admin upload action for desktop */}
               {isLoggedIn && isAdmin && (
                 <NavigationMenuItem>
