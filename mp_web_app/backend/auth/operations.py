@@ -18,7 +18,7 @@ from users.operations import get_user_repository, get_user_by_id, get_user_by_em
 from users.roles import UserRole, ROLE_HIERARCHY
 
 REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 1
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")

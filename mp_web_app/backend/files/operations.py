@@ -13,7 +13,9 @@ from fastapi.responses import StreamingResponse
 from app_config import AllowedFileExtensions
 from database.operations import UploadsRepository
 from files.models import FileMetadata, FileType, FileMetadataFull
+from users.roles import UserRole
 from utils.decorators import retry
+from users.models import User
 
 BUCKET = os.environ.get("UPLOADS_BUCKET")
 UPLOADS_TABLE_NAME = os.environ.get("UPLOADS_TABLE_NAME")
@@ -132,8 +134,12 @@ def _create_file_name(file_name: str, original_name: str):
   return file_name
 
 
-def download_file(file_metadata: FileMetadata | List[FileMetadata], repo: UploadsRepository, user_id: str):
+def download_file(file_metadata: FileMetadata | List[FileMetadata], user: User, repo: UploadsRepository):
   file_meta_object = get_db_metadata(file_metadata, repo)
+
+  user_id = None
+  if user.role != UserRole.REGULAR_USER.value:
+    user_id = user.id
 
   is_allowed = _check_file_allowed_to_user(file_meta_object, user_id)
   if not is_allowed:

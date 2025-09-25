@@ -50,12 +50,4 @@ async def download_files(
   repo: UploadsRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER]))
 ):
-  return download_file(file_metadata=file_metadata, repo=repo, user_id=user.id)
-
-
-@file_router.post("/download-public", status_code=status.HTTP_200_OK)
-async def download_files(
-  file_metadata: FileMetadata | List[FileMetadata],
-  repo: UploadsRepository = Depends(get_uploads_repository),
-):
-  return download_file(file_metadata=file_metadata, repo=repo)
+  return download_file(file_metadata=file_metadata, repo=repo, user=user)
