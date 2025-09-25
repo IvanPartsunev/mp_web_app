@@ -96,25 +96,51 @@ def is_token_expired(token: str):
   return datetime.now(timezone.utc).timestamp() > exp
 
 
-def verify_refresh_token(token: str) -> TokenPayload:
-  try:
-    payload = decode_token(token)
-    if payload.get("type") != "refresh":
-      raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid token type",
-      )
-    if not payload.get("valid"):
-      raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid token",
-      )
-    return TokenPayload(**payload)
-  except JWTError:
+def verify_refresh_token(token: str, repo: AuthRepository) -> TokenPayload:
+  # Decode and validate payload structure
+  payload = decode_token(token)
+  if not payload:
     raise HTTPException(
       status_code=status.HTTP_401_UNAUTHORIZED,
       detail="Invalid refresh token",
     )
+
+  try:
+    token_payload = TokenPayload(**payload)
+  except ValidationError:
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid refresh token",
+    )
+
+  if token_payload.type != "refresh":
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid token type",
+    )
+
+  if not token_payload.jti or not token_payload.sub:
+    raise HTTPException(
+      status_code=status.HTTP_401_UNAUTHORIZED,
+      detail="Invalid refresh token",
+    )
+
+  # Verify token state in the DB by JTI
+  db_item = repo.table.get_item(Key={"id": token_payload.jti}).get("Item")
+  if not db_item:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Refresh token not found")
+
+  if db_item.get("user_id") != token_payload.sub:
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This token does not belong to the user")
+
+  if not db_item.get("valid", False):
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+  expires_at = db_item.get("expires_at")
+  if expires_at and int(time.time()) >= int(expires_at):
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+
+  return token_payload
 
 
 def invalidate_token(payload: TokenPayload, repo: AuthRepository):
