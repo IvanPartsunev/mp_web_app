@@ -8,7 +8,7 @@ from uuid import uuid4
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
-from pydantic import EmailStr
+from pydantic import EmailStr, ValidationError
 
 from app_config import JWTSettings
 from auth.models import TokenPayload

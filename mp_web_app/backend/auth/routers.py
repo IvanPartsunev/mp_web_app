@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
-from app_config import JWTSettings
 from auth.models import Token, TokenPayload
 from auth.operations import (
   verify_refresh_token,
@@ -52,7 +51,7 @@ async def refresh(
   if not refresh_token:
     raise HTTPException(status_code=401, detail="Missing refresh token")
 
-  payload = verify_refresh_token(refresh_token)
+  payload = verify_refresh_token(refresh_token, auth_repo)
   if not payload:
     raise HTTPException(status_code=401, detail="Invalid refresh token")
 
