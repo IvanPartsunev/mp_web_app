@@ -17,7 +17,8 @@ import os
 
 
 class BackendStack(Stack):
-  def __init__(self, scope: Construct, id: str, frontend_base_url: str, cookie_domain: str, domain_name: str, api_subdomain: str, hosted_zone: route53.IHostedZone, certificate: acm.ICertificate, **kwargs):
+  def __init__(self, scope: Construct, id: str, frontend_base_url: str, cookie_domain: str, domain_name: str,
+               api_subdomain: str, hosted_zone: route53.IHostedZone, certificate: acm.ICertificate, **kwargs):
     super().__init__(scope, id, **kwargs)
 
     # Create a randomly generated JWT secret
@@ -132,7 +133,7 @@ class BackendStack(Stack):
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
         "NEWS_TABLE_NAME": self.table5.table_name,
-        "MAIL_SENDER": "office @murdjovpojar.com",
+        "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
@@ -170,12 +171,20 @@ class BackendStack(Stack):
       ),
     )
 
-
     # Grant Lambda access to tables
     self.table1.grant_read_write_data(self.backend_lambda)
     self.table2.grant_read_write_data(self.backend_lambda)
     self.table3.grant_read_write_data(self.backend_lambda)
     self.table4.grant_read_write_data(self.backend_lambda)
+    self.table5.grant_read_write_data(self.backend_lambda)
+
+    # Explicitly grant permission to query the Global Secondary Index on the news table
+    self.backend_lambda.add_to_role_policy(
+      iam.PolicyStatement(
+        actions=["dynamodb:Query"],
+        resources=[f"{self.table5.table_arn}/index/*"]
+      )
+    )
 
     # Grant Lambda access to SES
     self.backend_lambda.add_to_role_policy(

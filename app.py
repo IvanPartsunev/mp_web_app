@@ -1,4 +1,4 @@
-from aws_cdk import App, Environment
+from aws_cdk import App, Environment, Stack
 from aws_cdk import aws_route53 as route53
 from aws_cdk import aws_certificatemanager as acm
 
@@ -17,40 +17,51 @@ FRONTEND_SUBDOMAIN = "www"
 API_SUBDOMAIN = "api"
 
 # 3. The Hosted Zone ID for your domain from AWS Route 53.
-HOSTED_ZONE_ID = "Z04684445P1BPRRLOCFS"
+HOSTED_ZONE_ID = ""
 
 # 4. The ARN of your ACM Certificate.
 # IMPORTANT: This certificate must be in the us-east-1 region for CloudFront and API Gateway.
-CERTIFICATE_ARN = "YOUR_ACM_CERTIFICATE_ARN"
+CERTIFICATE_ARN = ""
+
+
+class DomainLookupStack(Stack):
+  def __init__(self, scope: App, id: str, **kwargs) -> None:
+    super().__init__(scope, id, **kwargs)
+
+    self.hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
+      self, "HostedZone",
+      hosted_zone_id=HOSTED_ZONE_ID,
+      zone_name=DOMAIN_NAME
+    )
+
+    self.certificate = acm.Certificate.from_certificate_arn(
+      self, "Certificate",
+      certificate_arn=CERTIFICATE_ARN
+    )
+
 
 app = App()
 
 # Optionally, set your AWS account and region here
 env = Environment(account=None, region=None)
 
-# Look up the hosted zone and certificate from your AWS account
-hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
-  app, "HostedZone",
-  hosted_zone_id=HOSTED_ZONE_ID,
-  zone_name=DOMAIN_NAME
-)
+# Create the stack that looks up your domain resources
+domain_stack = DomainLookupStack(app, "DomainLookupStack", env=env)
 
-certificate = acm.Certificate.from_certificate_arn(
-  app, "Certificate",
-  certificate_arn=CERTIFICATE_ARN
-)
-
+# Create the frontend stack, passing in the domain resources
 frontend_stack = FrontendStack(
   app, "FrontendStack",
   env=env,
   domain_name=DOMAIN_NAME,
   frontend_subdomain=FRONTEND_SUBDOMAIN,
-  hosted_zone=hosted_zone,
-  certificate=certificate
+  hosted_zone=domain_stack.hosted_zone,
+  certificate=domain_stack.certificate
 )
 
+# The uploads stack (no changes needed here)
 uploads_stack = UploadsStack(app, "UploadsStack", env=env)
 
+# Create the backend stack, passing in the domain resources
 backend_stack = BackendStack(
   app, "BackendStack",
   env=env,
@@ -58,8 +69,8 @@ backend_stack = BackendStack(
   cookie_domain=f".{DOMAIN_NAME}",
   domain_name=DOMAIN_NAME,
   api_subdomain=API_SUBDOMAIN,
-  hosted_zone=hosted_zone,
-  certificate=certificate
+  hosted_zone=domain_stack.hosted_zone,
+  certificate=domain_stack.certificate
 )
 
 app.synth()
