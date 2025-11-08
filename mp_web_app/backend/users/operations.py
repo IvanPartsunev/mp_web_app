@@ -1,18 +1,16 @@
 import os
 import re
 from datetime import datetime
-
-from boto3.dynamodb.conditions import Key
-
-from typing import Optional, List
+from typing import Optional
 from uuid import uuid4
 
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from database.repositories import UserRepository, UserCodeRepository
-from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword, UserCode
+from database.repositories import UserCodeRepository, UserRepository
+from users.models import User, UserCode, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
 USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
@@ -75,7 +73,7 @@ def hash_password(password: str, salt: str) -> str:
 
 
 def verify_password(password_hash: str, password: str, salt: str) -> bool:
-  from argon2 import exceptions, PasswordHasher
+  from argon2 import PasswordHasher, exceptions
 
   ph = PasswordHasher()
   password_with_salt = password + str(salt)
@@ -191,7 +189,7 @@ def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool 
   return repo.convert_item_to_object(response["Items"][0])
 
 
-def list_users(repo: UserRepository) -> List[User]:
+def list_users(repo: UserRepository) -> list[User]:
   """List all users from DynamoDB."""
   response = repo.table.scan()
 
@@ -316,14 +314,14 @@ def delete_user(email: EmailStr, repo: UserRepository) -> bool:
   return True
 
 
-def get_subscribed_users(repo: UserRepository) -> List[User]:
+def get_subscribed_users(repo: UserRepository) -> list[User]:
   """Get all users where subscribed=True."""
   try:
     response = repo.table.scan(
       FilterExpression=Key('subscribed').eq(True)
     )
     users = [repo.convert_item_to_object(item) for item in response['Items']]
-    
+
     # Handle pagination
     while 'LastEvaluatedKey' in response:
       response = repo.table.scan(
@@ -331,7 +329,7 @@ def get_subscribed_users(repo: UserRepository) -> List[User]:
         ExclusiveStartKey=response['LastEvaluatedKey']
       )
       users.extend([repo.convert_item_to_object(item) for item in response['Items']])
-    
+
     return users
   except ClientError as e:
     raise HTTPException(

@@ -1,6 +1,5 @@
 import json
 import os
-from typing import List
 
 import boto3
 from pydantic_settings import BaseSettings
@@ -42,7 +41,7 @@ class SesSettings(BaseSettings):
 
 
 class AllowedFileExtensions(BaseSettings):
-  allowed_file_extensions: List[str] = [
+  allowed_file_extensions: list[str] = [
     # Images
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "heic", "svg",
 

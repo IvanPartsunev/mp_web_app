@@ -4,12 +4,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app_config import FRONTEND_BASE_URL
+from auth.routers import auth_router
 from files.routers import file_router
+from gallery.routers import gallery_router
 from mail.routers import mail_router
 from news.routers import news_router
 from users.routers import user_router
-from auth.routers import auth_router
-from gallery.routers import gallery_router
 
 FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 

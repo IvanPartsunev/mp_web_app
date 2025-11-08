@@ -1,11 +1,11 @@
-import boto3
-
 from functools import lru_cache
+
+import boto3
 
 from app_config import DynamoDBSettings
 
 
-@lru_cache()
+@lru_cache
 def get_dynamodb_settings() -> DynamoDBSettings:
   """Get DynamoDB settings from environment variables."""
   return DynamoDBSettings()

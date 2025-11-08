@@ -1,18 +1,16 @@
-import boto3
-
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import lru_cache
+from typing import Optional
 
+import boto3
 from botocore.exceptions import ClientError
-from typing import Optional, Dict
-
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from app_config import SesSettings, FRONTEND_BASE_URL
-from auth.operations import generate_activation_token, generate_unsubscribe_token, generate_reset_token
+from app_config import FRONTEND_BASE_URL, SesSettings
+from auth.operations import generate_activation_token, generate_reset_token, generate_unsubscribe_token
 
 
 @lru_cache
@@ -27,7 +25,7 @@ def send_email_ses(
   to_address: str,
   subject: str,
   html_body: str,
-  headers: Optional[Dict[str, str]] = None,
+  headers: Optional[dict[str, str]] = None,
   text_body: Optional[str] = None,
   reply_to: Optional[str] = None,
 ):
@@ -176,7 +174,7 @@ def send_news_notification(
         "List-Unsubscribe": f"<{unsubscribe_link}>"
       }
     )
-  except Exception as e:
+  except Exception:
     raise HTTPException(status_code=500, detail="Failed to send email")
 
 

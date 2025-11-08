@@ -2,7 +2,6 @@ import os
 import re
 from datetime import datetime
 from functools import lru_cache
-from typing import List
 from uuid import uuid4
 
 import boto3
@@ -12,10 +11,10 @@ from fastapi.responses import StreamingResponse
 
 from app_config import AllowedFileExtensions
 from database.repositories import UploadsRepository
-from files.models import FileMetadata, FileType, FileMetadataFull
+from files.models import FileMetadata, FileMetadataFull, FileType
+from users.models import User
 from users.roles import UserRole
 from utils.decorators import retry
-from users.models import User
 
 BUCKET = os.environ.get("UPLOADS_BUCKET")
 UPLOADS_TABLE_NAME = os.environ.get("UPLOADS_TABLE_NAME")
@@ -90,7 +89,7 @@ def get_files_metadata(file_type: str, repo: UploadsRepository):
 
 
 @retry()
-def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
+def delete_file(file_metadata: list[FileMetadata], repo: UploadsRepository):
   db_metadata_objects = [get_db_metadata(file_meta, repo) for file_meta in file_metadata]
   item_ids = [metadata.id for metadata in db_metadata_objects]
   keys = [metadata.key for metadata in db_metadata_objects]
@@ -107,7 +106,7 @@ def delete_file(file_metadata: List[FileMetadata], repo: UploadsRepository):
     raise HTTPException(status_code=500, detail=f"Error when deleting the file/s: {e}")
 
 
-def _delete_file_metadata(item_ids: List[str], repo: UploadsRepository):
+def _delete_file_metadata(item_ids: list[str], repo: UploadsRepository):
   try:
     if len(item_ids) == 1:
       repo.table.delete_item(Key={"id": item_ids[0]})
@@ -128,13 +127,13 @@ def _create_file_name(file_name: str, original_name: str):
   if extension not in allowed:
     raise ValueError(f"File extension {extension.upper()} not allowed")
   cleaned_file_name = re.sub(r"[^A-Za-z0-9.\-_\s]", "", file_name).strip()
-  file_name_parts = re.split(f"[.\s\-_]", cleaned_file_name)
-  date_tag = f"{str(now.year)}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
+  file_name_parts = re.split(r"[.\s\-_]", cleaned_file_name)
+  date_tag = f"{now.year!s}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
   file_name = f"{date_tag}_{'_'.join([p.lower() for p in file_name_parts if p != ''])}_{str(uuid4())[:8]}.{extension}"
   return file_name
 
 
-def download_file(file_metadata: FileMetadata | List[FileMetadata], user: User, repo: UploadsRepository):
+def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, repo: UploadsRepository):
   file_meta_object = get_db_metadata(file_metadata, repo)
 
   user_id = None

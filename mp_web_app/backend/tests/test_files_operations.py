@@ -1,14 +1,14 @@
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
-from fastapi import HTTPException
+from unittest.mock import Mock, patch
 
+import pytest
+
+from files.models import FileMetadata, FileMetadataFull, FileType
 from files.operations import (
+    _check_file_allowed_to_user,
     _create_file_name,
     _validate_metadata,
-    _check_file_allowed_to_user,
 )
-from files.models import FileMetadata, FileMetadataFull, FileType
 
 
 class TestCreateFileName:
@@ -23,9 +23,9 @@ class TestCreateFileName:
         mock_uuid_obj.__getitem__ = Mock(return_value="abcd1234")
         mock_uuid.return_value = mock_uuid_obj
         mock_extensions.return_value = ["pdf", "doc", "txt"]
-        
+
         result = _create_file_name("My Document", "original.pdf")
-        
+
         assert result.startswith("2024_01_15_")
         assert "my_document" in result
         assert result.endswith(".pdf")
@@ -37,16 +37,16 @@ class TestCreateFileName:
         mock_datetime.now.return_value = datetime(2024, 1, 15)
         mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[:key.stop])
         mock_extensions.return_value = ["pdf", "doc", "txt"]
-        
+
         result = _create_file_name("", "report.pdf")
-        
+
         assert "report" in result
         assert result.endswith(".pdf")
 
     @patch('files.operations.get_allowed_file_extensions')
     def test_raises_error_for_invalid_extension(self, mock_extensions):
         mock_extensions.return_value = ["pdf", "doc", "txt"]
-        
+
         with pytest.raises(ValueError, match="File extension EXE not allowed"):
             _create_file_name("My File", "virus.exe")
 
@@ -57,9 +57,9 @@ class TestCreateFileName:
         mock_datetime.now.return_value = datetime(2024, 1, 15)
         mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[:key.stop])
         mock_extensions.return_value = ["pdf"]
-        
+
         result = _create_file_name("My@#$%Document!", "file.pdf")
-        
+
         # Special characters should be removed
         assert "@" not in result
         assert "#" not in result
@@ -73,9 +73,9 @@ class TestCreateFileName:
         mock_datetime.now.return_value = datetime(2024, 1, 15)
         mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[:key.stop])
         mock_extensions.return_value = ["pdf"]
-        
+
         result = _create_file_name("My-Document Name", "file.pdf")
-        
+
         # Spaces and dashes should be converted to underscores
         assert "my_document_name" in result
 
@@ -90,7 +90,7 @@ class TestValidateMetadata:
             uploaded_by="user123",
             created_at=created_at
         )
-        
+
         db_meta = FileMetadataFull(
             id="123",
             file_name="test.pdf",
@@ -100,7 +100,7 @@ class TestValidateMetadata:
             uploaded_by="user123",
             created_at=created_at
         )
-        
+
         result = _validate_metadata(file_meta, db_meta)
         assert result is True
 
@@ -112,7 +112,7 @@ class TestValidateMetadata:
             uploaded_by="user123",
             created_at="2024-01-15T10:00:00"
         )
-        
+
         db_meta = FileMetadataFull(
             id="456",  # Different ID
             file_name="test.pdf",
@@ -122,7 +122,7 @@ class TestValidateMetadata:
             uploaded_by="user123",
             created_at="2024-01-15T10:00:00"
         )
-        
+
         result = _validate_metadata(file_meta, db_meta)
         assert result is False
 
@@ -138,7 +138,7 @@ class TestCheckFileAllowedToUser:
             uploaded_by="user1",
             created_at="2024-01-01"
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id=None)
         assert result is True
 
@@ -152,7 +152,7 @@ class TestCheckFileAllowedToUser:
             uploaded_by="user1",
             created_at="2024-01-01"
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id=None)
         assert result is False
 
@@ -166,7 +166,7 @@ class TestCheckFileAllowedToUser:
             uploaded_by="user1",
             created_at="2024-01-01"
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id="user123")
         assert result is True
 
@@ -181,7 +181,7 @@ class TestCheckFileAllowedToUser:
             created_at="2024-01-01",
             allowed_to=["user123", "user456"]
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id="user123")
         assert result is True
 
@@ -196,7 +196,7 @@ class TestCheckFileAllowedToUser:
             created_at="2024-01-01",
             allowed_to=["user456", "user789"]
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id="user123")
         assert result is False
 
@@ -210,6 +210,6 @@ class TestCheckFileAllowedToUser:
             uploaded_by="user1",
             created_at="2024-01-01"
         )
-        
+
         result = _check_file_allowed_to_user(file_meta, user_id="user123")
         assert result is True

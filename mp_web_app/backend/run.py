@@ -1,4 +1,4 @@
-from files.models import FileMetadataFull, FileMetadata
+from files.models import FileMetadata, FileMetadataFull
 
 full = FileMetadataFull(
     id="123",

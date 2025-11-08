@@ -1,18 +1,18 @@
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
 from fastapi import HTTPException
 
-from users.operations import (
-    validate_phone,
-    validate_password,
-    hash_password,
-    verify_password,
-    create_user,
-    update_user,
-    delete_user,
-)
 from users.models import UserCreate, UserUpdate
+from users.operations import (
+    create_user,
+    delete_user,
+    hash_password,
+    update_user,
+    validate_password,
+    validate_phone,
+    verify_password,
+)
 
 
 class TestValidatePhone:
@@ -67,9 +67,9 @@ class TestHashAndVerifyPassword:
     def test_hash_and_verify_success(self):
         password = "TestPassword123!"
         salt = "test_salt"
-        
+
         hashed = hash_password(password, salt)
-        
+
         assert hashed is not None
         assert hashed != password
         assert verify_password(hashed, password, salt) is True
@@ -78,14 +78,14 @@ class TestHashAndVerifyPassword:
         password = "TestPassword123!"
         salt = "test_salt"
         hashed = hash_password(password, salt)
-        
+
         assert verify_password(hashed, "WrongPassword123!", salt) is False
 
     def test_verify_fails_wrong_salt(self):
         password = "TestPassword123!"
         salt = "test_salt"
         hashed = hash_password(password, salt)
-        
+
         assert verify_password(hashed, password, "wrong_salt") is False
 
 
@@ -97,13 +97,13 @@ class TestCreateUser:
         mock_password.return_value = "ValidPass123!"
         mock_phone.return_value = "+359889123456"
         mock_hash.return_value = "hashed_password"
-        
+
         mock_repo = Mock()
         mock_repo.table.put_item = Mock()
         mock_repo.convert_item_to_object = Mock(return_value=Mock())
-        
+
         mock_request = Mock()
-        
+
         user_data = UserCreate(
             first_name="John",
             last_name="Doe",
@@ -112,12 +112,12 @@ class TestCreateUser:
             password="ValidPass123!",
             user_code="CODE123"
         )
-        
+
         result = create_user(user_data, mock_request, mock_repo)
-        
+
         assert result is not None
         mock_repo.table.put_item.assert_called_once()
-        
+
         # Verify item structure
         call_args = mock_repo.table.put_item.call_args[1]
         item = call_args["Item"]
@@ -130,10 +130,10 @@ class TestCreateUser:
     @patch('users.operations.validate_password')
     def test_raises_error_on_invalid_password(self, mock_password):
         mock_password.side_effect = ValueError("Password too short")
-        
+
         mock_repo = Mock()
         mock_request = Mock()
-        
+
         user_data = UserCreate(
             first_name="John",
             last_name="Doe",
@@ -142,10 +142,10 @@ class TestCreateUser:
             password="short",
             user_code="CODE123"
         )
-        
+
         with pytest.raises(HTTPException) as exc_info:
             create_user(user_data, mock_request, mock_repo)
-        
+
         assert exc_info.value.status_code == 400
 
 
@@ -155,29 +155,29 @@ class TestUpdateUser:
         mock_user = Mock()
         mock_user.id = "user123"
         mock_get_user.return_value = mock_user
-        
+
         mock_repo = Mock()
         mock_repo.table.update_item = Mock(return_value={
             "Attributes": {"id": "user123", "role": "admin"}
         })
         mock_repo.convert_item_to_object = Mock(return_value=mock_user)
-        
+
         user_data = UserUpdate(role="admin", active=True)
-        
+
         result = update_user("user123", "test@example.com", user_data, mock_repo)
-        
+
         assert result is not None
         mock_repo.table.update_item.assert_called_once()
 
     @patch('users.operations.get_user_by_email')
     def test_returns_none_for_nonexistent_user(self, mock_get_user):
         mock_get_user.return_value = None
-        
+
         mock_repo = Mock()
         user_data = UserUpdate(role="admin")
-        
+
         result = update_user("user123", "test@example.com", user_data, mock_repo)
-        
+
         assert result is None
 
 
@@ -187,21 +187,21 @@ class TestDeleteUser:
         mock_user = Mock()
         mock_user.id = "user123"
         mock_get_user.return_value = mock_user
-        
+
         mock_repo = Mock()
         mock_repo.table.delete_item = Mock()
-        
+
         result = delete_user("test@example.com", mock_repo)
-        
+
         assert result is True
         mock_repo.table.delete_item.assert_called_once_with(Key={"id": "user123"})
 
     @patch('users.operations.get_user_by_email')
     def test_returns_false_for_nonexistent_user(self, mock_get_user):
         mock_get_user.return_value = None
-        
+
         mock_repo = Mock()
         result = delete_user("test@example.com", mock_repo)
-        
+
         assert result is False
         mock_repo.table.delete_item.assert_not_called()

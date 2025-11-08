@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import List
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
@@ -56,4 +56,4 @@ class UserCode(BaseModel):
 
 
 class UserCodes(BaseModel):
-  codes: List[str]
+  codes: list[str]

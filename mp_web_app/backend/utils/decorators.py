@@ -1,6 +1,6 @@
 import functools
-import time
 import random
+import time
 
 
 def retry(num_retry: int = 3, base_delay: float = 1.0, max_delay: float = 30.0, jitter: bool = True):

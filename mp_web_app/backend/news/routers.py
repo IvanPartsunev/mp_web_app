@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Request, Header
 from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from auth.operations import role_required
 from database.repositories import NewsRepository
 from news.models import News, NewsUpdate
-from news.operations import create_news, get_news_repository, update_news, delete_news, get_news
+from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
 from users.roles import UserRole
 
 news_router = APIRouter(tags=["news"])
@@ -22,7 +23,7 @@ async def news_get(
     auth_token = authorization.replace("Bearer ", "")
   elif token:
     auth_token = token
-  
+
   return get_news(repo=news_repo, token=auth_token)
 
 

@@ -1,14 +1,14 @@
-from fastapi import APIRouter, status, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
 from database.repositories import GalleryRepository
 from gallery.models import GalleryImageMetadata
 from gallery.operations import (
+  delete_gallery_image,
+  generate_presigned_url,
+  get_gallery_images,
   get_gallery_repository,
   upload_gallery_image,
-  get_gallery_images,
-  delete_gallery_image,
-  generate_presigned_url
 )
 from users.roles import UserRole
 
@@ -72,7 +72,7 @@ async def gallery_image_url(
     response = gallery_repo.table.get_item(Key={"id": image_id})
     if "Item" not in response:
       raise HTTPException(status_code=404, detail="Image not found")
-    
+
     item = response["Item"]
     url = generate_presigned_url(s3_key=item["s3_key"], bucket=item["s3_bucket"])
     return {"url": url}

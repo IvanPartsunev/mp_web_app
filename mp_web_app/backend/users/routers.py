@@ -1,28 +1,32 @@
-from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import EmailStr
 from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
-from auth.operations import role_required, decode_token, is_token_expired
-from database.repositories import UserRepository, UserCodeRepository
+from auth.operations import decode_token, is_token_expired, role_required
+from database.repositories import UserCodeRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
-from users.models import UserCreate, User, UserUpdate, UserUpdatePassword, UserCodes
+from users.models import User, UserCodes, UserCreate, UserUpdate, UserUpdatePassword
 from users.operations import (
-  get_user_repository,
+  create_user,
+  create_user_code,
+  delete_user,
   get_user_by_email,
   get_user_by_id,
-  create_user,
-  update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code, delete_user,
-  list_users
+  get_user_codes,
+  get_user_repository,
+  list_users,
+  update_user,
+  update_user_code,
+  update_user_password,
+  user_code_valid,
 )
 from users.roles import UserRole
 
 user_router = APIRouter(tags=["users"])
 
-@user_router.get("/list-users", response_model=List[User], status_code=status.HTTP_200_OK)
+@user_router.get("/list-users", response_model=list[User], status_code=status.HTTP_200_OK)
 async def users_list(
   user_repo: UserRepository = Depends(get_user_repository),
   user=Depends(role_required([UserRole.REGULAR_USER]))
@@ -120,7 +124,7 @@ async def user_update(
       status_code=status.HTTP_404_NOT_FOUND,
       detail="User not found"
     )
-  
+
   updated_user = update_user(user_id, existing_user.email, user_data, user_repo)
   if not updated_user:
     raise HTTPException(
@@ -143,7 +147,7 @@ async def user_delete(
       status_code=status.HTTP_400_BAD_REQUEST,
       detail="Cannot delete your own account"
     )
-  
+
   # Get user by ID to get their email
   existing_user = get_user_by_id(user_id, user_repo)
   if not existing_user:
@@ -151,7 +155,7 @@ async def user_delete(
       status_code=status.HTTP_404_NOT_FOUND,
       detail="User not found"
     )
-  
+
   success = delete_user(existing_user.email, user_repo)
   if not success:
     raise HTTPException(

@@ -1,21 +1,21 @@
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
-from typing import Optional, List, Literal
+from typing import Literal, Optional
 from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from pydantic import EmailStr, ValidationError
 
 from app_config import JWTSettings
 from auth.models import TokenPayload
-from database.repositories import UserRepository, AuthRepository
+from database.repositories import AuthRepository, UserRepository
 from users.models import User, UserSecret
-from users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
-from users.roles import UserRole, ROLE_HIERARCHY
+from users.operations import get_user_by_email, get_user_by_id, get_user_repository, verify_password
+from users.roles import ROLE_HIERARCHY, UserRole
 
 REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
 ACCESS_TOKEN_EXPIRE_MINUTES = 1
@@ -24,7 +24,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
-@lru_cache()
+@lru_cache
 def get_jwt_settings() -> JWTSettings:
   """Get JWT settings from environment variables."""
   return JWTSettings()
@@ -38,7 +38,7 @@ def get_auth_repository():
 def generate_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
-  expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+  expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
   to_encode.update({"exp": expire, "type": "access"})
   encoded_jwt = jwt.encode(to_encode, settings.secret_key, settings.algorithm)
   return encoded_jwt
@@ -47,7 +47,7 @@ def generate_access_token(data: dict, expires_delta: Optional[timedelta] = None)
 def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Optional[timedelta] = None):
   settings = get_jwt_settings()
   to_encode = data.copy()
-  expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+  expire = datetime.now(UTC) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
   jti = str(uuid4())
   # TODO: Make TTL for dynamo to automatically delete expired tokens
   expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
@@ -93,7 +93,7 @@ def is_token_expired(token: str):
   exp = payload.get("exp")
   if not exp:
     return True
-  return datetime.now(timezone.utc).timestamp() > exp
+  return datetime.now(UTC).timestamp() > exp
 
 
 def verify_refresh_token(token: str, repo: AuthRepository) -> TokenPayload:
@@ -171,7 +171,7 @@ def invalidate_token(payload: TokenPayload, repo: AuthRepository):
 
 def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
   payload = decode_token(token)
-  if not payload or payload.get("type") != "access" and payload.get("type") != "refresh":
+  if not payload or (payload.get("type") != "access" and payload.get("type") != "refresh"):
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
   user_id: str = payload.get("sub")
   user = get_user_by_id(user_id, repo)
@@ -191,7 +191,7 @@ def authenticate_user(email: str, password: str, repo: UserRepository) -> Option
   return None
 
 
-def role_required(required_roles: List[UserRole]):
+def role_required(required_roles: list[UserRole]):
   def dependency(current_user: User = Depends(get_current_user)):
     user_role = current_user.role
     if not isinstance(user_role, UserRole):
@@ -225,7 +225,7 @@ def generate_token(
     "d": lambda n: timedelta(days=n),
   }
 
-  expire_delta = datetime.now(timezone.utc) + units_map[time_units](exp)
+  expire_delta = datetime.now(UTC) + units_map[time_units](exp)
 
   payload = {
     "sub": sub,

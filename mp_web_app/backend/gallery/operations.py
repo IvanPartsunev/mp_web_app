@@ -30,12 +30,12 @@ def upload_gallery_image(file: UploadFile, image_name: str, user_id: str, repo: 
       status_code=400,
       detail=f"Invalid image format. Allowed: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}"
     )
-  
+
   # Generate unique S3 key
   image_id = str(uuid4())
   timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
   s3_key = f"gallery/{timestamp}_{image_id}.{file_extension}"
-  
+
   # Upload to S3
   s3 = boto3.client('s3')
   try:
@@ -45,7 +45,7 @@ def upload_gallery_image(file: UploadFile, image_name: str, user_id: str, repo: 
       status_code=500,
       detail=f"Failed to upload image: {e.response['Error']['Message']}"
     )
-  
+
   # Store metadata in DynamoDB
   created_at = datetime.now().isoformat()
   gallery_item = {
@@ -57,7 +57,7 @@ def upload_gallery_image(file: UploadFile, image_name: str, user_id: str, repo: 
     "uploaded_by": user_id,
     "created_at": created_at,
   }
-  
+
   try:
     repo.table.put_item(Item=gallery_item)
   except ClientError as e:
@@ -70,7 +70,7 @@ def upload_gallery_image(file: UploadFile, image_name: str, user_id: str, repo: 
       status_code=500,
       detail=f"Database error: {e.response['Error']['Message']}"
     )
-  
+
   return repo.convert_item_to_object(gallery_item)
 
 
@@ -83,7 +83,7 @@ def get_gallery_images(repo: GalleryRepository):
       ScanIndexForward=False
     )
     items = response['Items']
-    
+
     while 'LastEvaluatedKey' in response:
       response = repo.table.query(
         IndexName='gallery_created_at_index',
@@ -92,7 +92,7 @@ def get_gallery_images(repo: GalleryRepository):
         ExclusiveStartKey=response['LastEvaluatedKey']
       )
       items.extend(response['Items'])
-    
+
     return [repo.convert_item_to_object(item) for item in items]
   except ClientError as e:
     raise HTTPException(
@@ -108,7 +108,7 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
     response = repo.table.get_item(Key={"id": image_id})
     if "Item" not in response:
       raise HTTPException(status_code=404, detail="Image not found")
-    
+
     item = response["Item"]
     s3_key = item["s3_key"]
     s3_bucket = item["s3_bucket"]
@@ -117,7 +117,7 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
       status_code=500,
       detail=f"Database error: {e.response['Error']['Message']}"
     )
-  
+
   # Delete from S3
   s3 = boto3.client('s3')
   try:
@@ -127,7 +127,7 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
       status_code=500,
       detail=f"Failed to delete image from S3: {e.response['Error']['Message']}"
     )
-  
+
   # Delete from DynamoDB
   try:
     repo.table.delete_item(Key={"id": image_id})
@@ -136,7 +136,7 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
       status_code=500,
       detail=f"Failed to delete metadata: {e.response['Error']['Message']}"
     )
-  
+
   return True
 
 

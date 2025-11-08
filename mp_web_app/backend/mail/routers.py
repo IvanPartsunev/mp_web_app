@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
 from starlette.responses import HTMLResponse
+
 from auth.operations import decode_token, is_token_expired
 from database.repositories import UserRepository
-from mail.operations import send_news_notification, send_reset_email, construct_reset_link
+from mail.operations import construct_reset_link, send_news_notification, send_reset_email
 from users.models import UserUpdate, UserUpdatePasswordEmail
-from users.operations import update_user, get_user_repository, get_user_by_email
+from users.operations import get_user_by_email, get_user_repository, update_user
 
 mail_router = APIRouter(tags=["email"])
 
