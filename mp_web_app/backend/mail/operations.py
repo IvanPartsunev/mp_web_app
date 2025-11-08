@@ -96,7 +96,7 @@ def send_verification_email(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Моля, потвърдете Вашия акаунт, като натиснете бутона по-долу:</p>
                     <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили регистрация, моля игнорирайте този имейл.</p>
@@ -150,13 +150,13 @@ def send_news_notification(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Има нова новина на нашия сайт! Можете да я прочетете, като натиснете бутона по-долу:</p>
                     <a href="{news_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили абонамент за новини, моля игнорирайте този имейл.</p>
                     <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
                       Това е автоматично съобщение, моля не отговаряйте на този имейл.<br>
-                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#22c55e;">отпишете се тук</a>.
+                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#16a34a;">отпишете се тук</a>.
                     </p>
                   </td>
                 </tr>
@@ -203,7 +203,7 @@ def send_reset_email(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Моля, за да рестартирате вашата парола натиснете бутона по-долу:</p>
                     <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили рестартиране, моля игнорирайте този имейл.</p>
@@ -230,18 +230,17 @@ def send_reset_email(
     raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
 
 
-# TODO Potential issue `+ "/prod"` may cause problems
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
+  # AWS API Gateway adds /prod stage to the URL
   base_url = str(request.base_url).rstrip("/") + '/prod'
   return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 
-# TODO Potential issue `+ "/prod"` may cause problems
 def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_unsubscribe_token(user_id, email)
-  base_url = str(request.base_url).rstrip("/") + '/prod'
-  return f"{base_url}/api/mail/unsubscribe?email={email}&token={token}"
+  # Redirect to frontend page instead of backend endpoint
+  return f"{FRONTEND_BASE_URL}/unsubscribe?email={email}&token={token}"
 
 
 def construct_reset_link(user_id: str, email: EmailStr | str):

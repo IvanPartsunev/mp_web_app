@@ -32,15 +32,19 @@ async def login(
   access_token = generate_access_token({"sub": user.id, "role": user.role})
   refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
 
-  response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    max_age=7 * 24 * 60 * 60,
-    domain=COOKIE_DOMAIN
-  )
+  # Only set domain if it's not localhost (for production)
+  cookie_params = {
+    "key": "refresh_token",
+    "value": refresh_token,
+    "httponly": True,
+    "secure": True,
+    "samesite": "none",
+    "max_age": 7 * 24 * 60 * 60,
+  }
+  if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+    cookie_params["domain"] = COOKIE_DOMAIN
+  
+  response.set_cookie(**cookie_params)
   return Token(access_token=access_token, refresh_token=refresh_token)
 
 
@@ -62,15 +66,19 @@ async def refresh(
   new_access_token = generate_access_token({"sub": payload.sub, "role": payload.role})
   new_refresh_token = generate_refresh_token({"sub": payload.sub, "role": payload.role}, auth_repo)
 
-  response.set_cookie(
-    key="refresh_token",
-    value=new_refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    max_age=7 * 24 * 60 * 60,
-    domain=COOKIE_DOMAIN
-  )
+  # Only set domain if it's not localhost (for production)
+  cookie_params = {
+    "key": "refresh_token",
+    "value": new_refresh_token,
+    "httponly": True,
+    "secure": True,
+    "samesite": "none",
+    "max_age": 7 * 24 * 60 * 60,
+  }
+  if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+    cookie_params["domain"] = COOKIE_DOMAIN
+  
+  response.set_cookie(**cookie_params)
   return Token(
     access_token=new_access_token,
     refresh_token=new_refresh_token,
@@ -88,10 +96,14 @@ def logout(
     token_payload = TokenPayload(**payload)
     invalidate_token(token_payload, auth_repo)
 
-  response.delete_cookie(
-    "refresh_token",
-    httponly=True,
-    samesite="none",
-    domain=COOKIE_DOMAIN
-  )
+  # Only set domain if it's not localhost (for production)
+  cookie_params = {
+    "key": "refresh_token",
+    "httponly": True,
+    "samesite": "none",
+  }
+  if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+    cookie_params["domain"] = COOKIE_DOMAIN
+  
+  response.delete_cookie(**cookie_params)
   return {"msg": "Logged out"}
