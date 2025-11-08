@@ -2,7 +2,6 @@
 import axios, {AxiosError, AxiosInstance, InternalAxiosRequestConfig} from "axios";
 import {API_BASE_URL} from "@/app-config";
 import {getAccessToken, setAccessToken} from "@/context/tokenStore";
-import {isJwtExpired} from "@/context/jwt";
 
 // Event to notify when token is cleared
 export const tokenClearedEvent = new Event('token-cleared');
@@ -14,12 +13,12 @@ const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
-  if (token && !isJwtExpired(token)) {
+  if (token) {
+    // Always send token (even if expired) so backend returns 401
+    // This triggers the response interceptor to refresh the token
     config.headers = config.headers || {};
     (config.headers as any).Authorization = `Bearer ${token}`;
   }
-  // Don't clear expired token here - let the response interceptor handle it
-  // If token is expired, request will get 401 and trigger refresh
   return config;
 });
 
@@ -30,11 +29,11 @@ apiClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config;
-    
+
     // Only handle 401 once per request and skip refresh endpoint itself
     if (
-      error.response?.status === 401 && 
-      original && 
+      error.response?.status === 401 &&
+      original &&
       !(original as any)._retry &&
       !original.url?.includes('/auth/refresh')
     ) {
@@ -61,8 +60,8 @@ apiClient.interceptors.response.use(
         refreshPromise = (async () => {
           try {
             const res = await axios.post(
-              `${API_BASE_URL}auth/refresh`, 
-              {}, 
+              `${API_BASE_URL}auth/refresh`,
+              {},
               {withCredentials: true}
             );
             const newToken = res.data?.access_token;
@@ -95,7 +94,7 @@ apiClient.interceptors.response.use(
         }
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

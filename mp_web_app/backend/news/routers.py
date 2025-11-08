@@ -1,4 +1,5 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Request
+from fastapi import APIRouter, status, Depends, HTTPException, Request, Header
+from typing import Optional
 
 from auth.operations import role_required
 from database.repositories import NewsRepository
@@ -11,12 +12,18 @@ news_router = APIRouter(tags=["news"])
 
 @news_router.get("/get", status_code=status.HTTP_200_OK)
 async def news_get(
-    token: str | None = None,
     news_repo: NewsRepository = Depends(get_news_repository),
+    token: Optional[str] = None,  # Query param (legacy support)
+    authorization: Optional[str] = Header(None),  # Authorization header (standard)
 ):
-  if not token:
-    return get_news(repo=news_repo)
-  return get_news(repo=news_repo, token=token)
+  # Prefer Authorization header (standard), fallback to query param (legacy)
+  auth_token = None
+  if authorization and authorization.startswith("Bearer "):
+    auth_token = authorization.replace("Bearer ", "")
+  elif token:
+    auth_token = token
+  
+  return get_news(repo=news_repo, token=auth_token)
 
 
 @news_router.post("/upload", status_code=status.HTTP_201_CREATED)

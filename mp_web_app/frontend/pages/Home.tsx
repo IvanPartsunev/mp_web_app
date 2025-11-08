@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
 import {NewsCard} from "@/components/news-card";
-import {API_BASE_URL} from "@/app-config";
-import {getAccessToken} from "@/context/tokenStore";
+import apiClient from "@/context/apiClient";
+import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 import {isJwtExpired} from "@/context/jwt";
 import {
   Pagination,
@@ -25,6 +26,7 @@ interface News {
 const PAGE_SIZE = 6;
 
 export default function Home() {
+  const location = useLocation();
   const [news, setNews] = useState<News[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,31 +36,39 @@ export default function Home() {
     const fetchNews = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
+        // Check if token exists and is expired
         const token = getAccessToken();
-        
-        // Only include token if it's valid (not expired)
-        const validToken = token && !isJwtExpired(token) ? token : null;
-        
-        const url = validToken 
-          ? `${API_BASE_URL}news/get?token=${validToken}`
-          : `${API_BASE_URL}news/get`;
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error("Failed to fetch news");
+        if (token && isJwtExpired(token)) {
+          // Token is expired, explicitly refresh it first
+          try {
+            const refreshResponse = await apiClient.post("auth/refresh");
+            // Update token in localStorage with the new one from response
+            if (refreshResponse.data?.access_token) {
+              setAccessToken(refreshResponse.data.access_token);
+            }
+          } catch (refreshError) {
+            // Refresh failed, user will be logged out by apiClient
+            // Just fetch public news
+          }
         }
         
-        const data = await response.json();
-        setNews(data || []);
+        // Now fetch news with fresh token (or no token if refresh failed)
+        const response = await apiClient.get("news/get");
+        setNews(response.data || []);
       } catch (err: any) {
-        setError("Неуспешно зареждане на новините");
+        if (err.response?.status !== 401) {
+          setError("Неуспешно зареждане на новините");
+        }
+        setNews([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchNews();
-  }, []);
+  }, [location.key]); // Refetch when navigation occurs (including browser refresh)
 
   // Pagination helpers
   const total = news.length;
@@ -85,7 +95,25 @@ export default function Home() {
       
       {error && (
         <div className="text-center py-8">
-          <p className="text-destructive">{error}</p>
+          <p className="text-destructive mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              apiClient.get("news/get")
+                .then(response => setNews(response.data || []))
+                .catch(err => {
+                  if (err.response?.status !== 401) {
+                    setError("Неуспешно зареждане на новините");
+                  }
+                  setNews([]);
+                })
+                .finally(() => setLoading(false));
+            }}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Опитай отново
+          </button>
         </div>
       )}
       
