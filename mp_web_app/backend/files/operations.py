@@ -11,7 +11,7 @@ from fastapi import HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from app_config import AllowedFileExtensions
-from database.operations import UploadsRepository
+from database.repositories import UploadsRepository
 from files.models import FileMetadata, FileType, FileMetadataFull
 from users.roles import UserRole
 from utils.decorators import retry

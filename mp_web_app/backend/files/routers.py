@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, status
 
 from auth.operations import role_required
-from database.operations import UploadsRepository
+from database.repositories import UploadsRepository
 from files.models import FileMetadata, FileType, FileMetadataFull
 from files.operations import upload_file, get_uploads_repository, delete_file, get_files_metadata, download_file
 from users.roles import UserRole

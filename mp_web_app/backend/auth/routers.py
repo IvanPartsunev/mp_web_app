@@ -12,7 +12,7 @@ from auth.operations import (
   invalidate_token,
   authenticate_user, decode_token,
 )
-from database.operations import AuthRepository, UserRepository
+from database.repositories import AuthRepository, UserRepository
 from users.operations import get_user_repository
 
 auth_router = APIRouter(tags=["auth"])

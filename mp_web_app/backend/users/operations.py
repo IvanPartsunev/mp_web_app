@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from database.operations import UserRepository, UserCodeRepository
+from database.repositories import UserRepository, UserCodeRepository
 from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword, UserCode
 from users.roles import UserRole
 

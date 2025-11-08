@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 
 from auth.operations import is_token_expired
-from database.operations import NewsRepository, UserRepository
+from database.repositories import NewsRepository, UserRepository
 from news.models import News, NewsUpdate, NewsType
 from app_config import FRONTEND_BASE_URL
 

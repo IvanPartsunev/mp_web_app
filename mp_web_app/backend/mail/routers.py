@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from starlette import status
 from starlette.responses import HTMLResponse
 from auth.operations import decode_token, is_token_expired
-from database.operations import UserRepository
+from database.repositories import UserRepository
 from mail.operations import send_news_notification, send_reset_email, construct_reset_link
 from users.models import UserUpdate, UserUpdatePasswordEmail
 from users.operations import update_user, get_user_repository, get_user_by_email

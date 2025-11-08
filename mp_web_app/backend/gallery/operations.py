@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, UploadFile
 
-from database.operations import GalleryRepository
+from database.repositories import GalleryRepository
 from gallery.models import GalleryImageMetadata
 
 GALLERY_BUCKET = os.environ.get("UPLOADS_BUCKET")

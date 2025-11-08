@@ -12,7 +12,7 @@ from pydantic import EmailStr, ValidationError
 
 from app_config import JWTSettings
 from auth.models import TokenPayload
-from database.operations import UserRepository, AuthRepository
+from database.repositories import UserRepository, AuthRepository
 from users.models import User, UserSecret
 from users.operations import get_user_repository, get_user_by_id, get_user_by_email, verify_password
 from users.roles import UserRole, ROLE_HIERARCHY

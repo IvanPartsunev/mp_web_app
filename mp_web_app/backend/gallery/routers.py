@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends, HTTPException, UploadFile, File, Form
 
 from auth.operations import role_required
-from database.operations import GalleryRepository
+from database.repositories import GalleryRepository
 from gallery.models import GalleryImageMetadata
 from gallery.operations import (
   get_gallery_repository,

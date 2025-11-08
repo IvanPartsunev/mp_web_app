@@ -7,7 +7,7 @@ from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
 from auth.operations import role_required, decode_token, is_token_expired
-from database.operations import UserRepository, UserCodeRepository
+from database.repositories import UserRepository, UserCodeRepository
 from mail.operations import construct_verification_link, send_verification_email
 from users.models import UserCreate, User, UserUpdate, UserUpdatePassword, UserCodes
 from users.operations import (
