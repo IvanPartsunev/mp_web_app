@@ -21,6 +21,9 @@ def pytest_configure(config):
     os.environ["MAIL_SENDER"] = "test@example.com"
     os.environ["JWT_ALGORITHM"] = "HS256"
     os.environ["JWT_SECRET_ARN"] = "arn:aws:secretsmanager:test:secret"
+    # AWS credentials for DynamoDB
+    os.environ["AWS_ACCESS_KEY_ID"] = "test_access_key"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "test_secret_key"
     
     # Mock boto3 before any imports
     mock_sm = MagicMock()
