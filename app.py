@@ -17,11 +17,11 @@ FRONTEND_SUBDOMAIN = "www"
 API_SUBDOMAIN = "api"
 
 # 3. The Hosted Zone ID for your domain from AWS Route 53.
-HOSTED_ZONE_ID = ""
+HOSTED_ZONE_ID = "Z04684445P1BPRRLOCFS"
 
 # 4. The ARN of your ACM Certificate.
 # IMPORTANT: This certificate must be in the us-east-1 region for CloudFront and API Gateway.
-CERTIFICATE_ARN = ""
+CERTIFICATE_ARN = "arn:aws:acm:us-east-1:920373018400:certificate/ad3f9a87-f6bd-4ece-b26f-4d7ade6449b1"
 
 
 class DomainLookupStack(Stack):

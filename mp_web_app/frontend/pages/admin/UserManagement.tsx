@@ -48,7 +48,8 @@ export default function UserManagement() {
     try {
       setLoading(true);
       const response = await apiClient.get("users/list-users");
-      setUsers(response.data || []);
+      // Force a new array reference to trigger React re-render
+      setUsers([...(response.data || [])]);
     } catch (err) {
       toast({
         title: "Грешка",
@@ -84,7 +85,8 @@ export default function UserManagement() {
       });
       setEditDialogOpen(false);
       setSelectedUser(null);
-      fetchUsers();
+      setFormData(null);
+      await fetchUsers();
     } catch (err: any) {
       toast({
         title: "Грешка",
@@ -171,7 +173,13 @@ export default function UserManagement() {
         )}
 
         {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <Dialog open={editDialogOpen} onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) {
+            setFormData(null);
+            setSelectedUser(null);
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай потребител</DialogTitle>

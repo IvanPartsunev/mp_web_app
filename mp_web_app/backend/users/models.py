@@ -35,6 +35,7 @@ class UserUpdatePassword(BaseModel):
 class User(UserBase):
   id: str
   role: str
+  active: bool
   created_at: datetime
   updated_at: datetime
   subscribed: bool
