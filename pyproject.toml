@@ -5,7 +5,6 @@ description = "MP Web Site with CDK infrastructure and FastAPI backend"
 authors = [
   { name = "Ivan Partsunev", email = "ivan.parcunev@gmail.com" }
 ]
-readme = "README.md"
 requires-python = ">=3.12,<3.13"
 
 dependencies = [
