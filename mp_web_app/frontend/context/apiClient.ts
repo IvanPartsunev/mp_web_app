@@ -4,8 +4,8 @@ import {API_BASE_URL} from "@/app-config";
 import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 import {isJwtExpired} from "@/context/jwt";
 
-// Event to notify when user should be logged out
-export const authFailedEvent = new Event('auth-failed');
+// Event to notify when token is cleared
+export const tokenClearedEvent = new Event('token-cleared');
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -17,10 +17,9 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
   if (token && !isJwtExpired(token)) {
     config.headers = config.headers || {};
     (config.headers as any).Authorization = `Bearer ${token}`;
-  } else if (token && isJwtExpired(token)) {
-    // Token is expired, clear it and let the response interceptor handle refresh on 401
-    setAccessToken(null);
   }
+  // Don't clear expired token here - let the response interceptor handle it
+  // If token is expired, request will get 401 and trigger refresh
   return config;
 });
 
@@ -75,6 +74,7 @@ apiClient.interceptors.response.use(
           } catch (e) {
             // Silently handle refresh failures - don't log to console
             setAccessToken(null);
+            window.dispatchEvent(tokenClearedEvent);
             return null;
           } finally {
             isRefreshing = false;
@@ -88,20 +88,12 @@ apiClient.interceptors.response.use(
             original.headers = original.headers || {};
             (original.headers as any).Authorization = `Bearer ${newToken}`;
             return apiClient(original);
-          } else {
-            // Refresh failed, notify app to logout silently
-            window.dispatchEvent(authFailedEvent);
           }
         } catch {
           setAccessToken(null);
-          window.dispatchEvent(authFailedEvent);
+          window.dispatchEvent(tokenClearedEvent);
         }
       }
-    }
-    
-    // Suppress console errors for auth refresh failures
-    if (error.config?.url?.includes('auth/refresh') && error.response?.status === 401) {
-      return Promise.reject(new Error('Authentication expired'));
     }
     
     return Promise.reject(error);

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
@@ -36,11 +36,11 @@ export default function UserManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
-  const [formData, setFormData] = useState({
-    role: "",
-    active: false,
-    subscribed: false,
-  });
+  const [formData, setFormData] = useState<{
+    role: string;
+    active: boolean;
+    subscribed: boolean;
+  } | null>(null);
 
   const {toast} = useToast();
 
@@ -75,7 +75,7 @@ export default function UserManagement() {
   };
 
   const handleEdit = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !formData) return;
     try {
       await apiClient.put(`users/update/${selectedUser.id}`, formData);
       toast({
@@ -175,43 +175,48 @@ export default function UserManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай потребител</DialogTitle>
+              <DialogDescription>
+                Променете ролята и настройките на потребителя
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Роля</label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(value) => setFormData({...formData, role: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="regular">Обикновен</SelectItem>
-                    <SelectItem value="board">Борд</SelectItem>
-                    <SelectItem value="control">Контрол</SelectItem>
-                    <SelectItem value="admin">Администратор</SelectItem>
-                  </SelectContent>
-                </Select>
+            {formData && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Роля</label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) => setFormData({...formData, role: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">Обикновен</SelectItem>
+                      <SelectItem value="board">Борд</SelectItem>
+                      <SelectItem value="control">Контрол</SelectItem>
+                      <SelectItem value="admin">Администратор</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Активен</label>
+                  <Switch
+                    checked={formData.active}
+                    onCheckedChange={(checked) => setFormData({...formData, active: checked})}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Абониран</label>
+                  <Switch
+                    checked={formData.subscribed}
+                    onCheckedChange={(checked) => setFormData({...formData, subscribed: checked})}
+                  />
+                </div>
+                <Button onClick={handleEdit} className="w-full">
+                  Запази
+                </Button>
               </div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Активен</label>
-                <Switch
-                  checked={formData.active}
-                  onCheckedChange={(checked) => setFormData({...formData, active: checked})}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Абониран</label>
-                <Switch
-                  checked={formData.subscribed}
-                  onCheckedChange={(checked) => setFormData({...formData, subscribed: checked})}
-                />
-              </div>
-              <Button onClick={handleEdit} className="w-full">
-                Запази
-              </Button>
-            </div>
+            )}
           </DialogContent>
         </Dialog>
 

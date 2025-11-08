@@ -5,7 +5,7 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
 import {Badge} from "@/components/ui/badge";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
@@ -148,6 +148,9 @@ export default function NewsManagement() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Създай нова новина</DialogTitle>
+                <DialogDescription>
+                  Попълнете формата за да създадете нова новина
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -247,6 +250,9 @@ export default function NewsManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай новина</DialogTitle>
+              <DialogDescription>
+                Редактирайте детайлите на новината
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
