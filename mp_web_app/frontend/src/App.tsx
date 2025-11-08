@@ -4,6 +4,7 @@ import Navigation from "@/pages/Navigation";
 import Base from "@/pages/Base";
 import {Route, Routes} from "react-router-dom";
 import PageLoadingWrapper from "@/components/page-loading-wrapper";
+import {Toaster} from "@/components/ui/toaster";
 
 // Regular imports for pages that don't need API calls
 import Home from "@/pages/Home";
@@ -40,11 +41,14 @@ const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocum
 const Others = lazy(() => import("@/pages/documents/Others"));
 // @ts-ignore
 const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"))
+// @ts-ignore
+const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"))
 
 
 function App() {
   return (
     <AuthProvider>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Base/>}>
           <Route element={<Navigation/>}>
@@ -144,9 +148,17 @@ function App() {
                 </PageLoadingWrapper>
               }
             />
-            {/* Authentication routes */}
+            {/* Admin routes */}
+            <Route
+              path="admin"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на админ панела...">
+                  <AdminPanel/>
+                </PageLoadingWrapper>
+              }
+            />
 
-            <Route path="login" element={<Login/>}/>
+            {/* Authentication routes */}
             <Route path="login" element={<Login/>}/>
             <Route path="register" element={<Register/>}/>
             <Route path="forgot-password" element={<ForgotPassword/>}/>

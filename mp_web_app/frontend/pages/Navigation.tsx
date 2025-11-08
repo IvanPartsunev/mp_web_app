@@ -240,15 +240,26 @@ export function Navigation() {
         })}
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
-          <Button
-            className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              window.location.assign("/upload");
-            }}
-          >
-            Качи документ
-          </Button>
+          <>
+            <Button
+              className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.location.assign("/upload");
+              }}
+            >
+              Качи документ
+            </Button>
+            <Button
+              className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.location.assign("/admin");
+              }}
+            >
+              Админ панел
+            </Button>
+          </>
         )}
         {/* Auth section for mobile */}
         {!isLoggedIn ? (
@@ -356,11 +367,18 @@ export function Navigation() {
               })}
               {/* Admin upload action for desktop */}
               {isLoggedIn && isAdmin && (
-                <NavigationMenuItem>
-                  <Button asChild className="ml-2">
-                    <Link to="/upload">Качи документ</Link>
-                  </Button>
-                </NavigationMenuItem>
+                <>
+                  <NavigationMenuItem>
+                    <Button asChild className="ml-2">
+                      <Link to="/upload">Качи документ</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Button asChild className="ml-2">
+                      <Link to="/admin">Админ панел</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                </>
               )}
               {/* Auth section for desktop */}
               {!isLoggedIn ? (

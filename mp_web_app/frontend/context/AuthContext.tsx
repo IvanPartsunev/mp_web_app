@@ -24,9 +24,22 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
     const handleStorage = () => {
       setIsLoggedIn(getInitialAuthState());
     };
+    
+    // Listen for auth failures from apiClient
+    const handleAuthFailed = () => {
+      setIsLoggedIn(false);
+      setAccessToken(null);
+      navigate("/");
+    };
+    
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+    window.addEventListener("auth-failed", handleAuthFailed);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth-failed", handleAuthFailed);
+    };
+  }, [navigate]);
 
   const login = (accessToken: string) => {
     setAccessToken(accessToken);
@@ -36,6 +49,7 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
   const logout = async () => {
     // Clear access token first
     setAccessToken(null);
+    setIsLoggedIn(false);
 
     try {
       await fetch(`${API_BASE_URL}auth/logout`, {
@@ -46,7 +60,6 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
       // ignore network errors during logout
     }
 
-    setIsLoggedIn(false);
     navigate("/");
   };
 
