@@ -70,3 +70,10 @@ class NewsRepository(BaseRepository):
 
   def convert_item_to_object(self, item: Dict[str, Any]):
     return News(**item)
+
+
+class GalleryRepository(BaseRepository):
+
+  def convert_item_to_object(self, item: Dict[str, Any]):
+    from gallery.models import GalleryImageMetadata
+    return GalleryImageMetadata(**item)

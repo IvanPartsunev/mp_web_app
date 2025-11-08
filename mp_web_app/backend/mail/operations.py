@@ -96,7 +96,7 @@ def send_verification_email(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Моля, потвърдете Вашия акаунт, като натиснете бутона по-долу:</p>
                     <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили регистрация, моля игнорирайте този имейл.</p>
@@ -150,13 +150,13 @@ def send_news_notification(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Има нова новина на нашия сайт! Можете да я прочетете, като натиснете бутона по-долу:</p>
                     <a href="{news_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили абонамент за новини, моля игнорирайте този имейл.</p>
                     <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
                       Това е автоматично съобщение, моля не отговаряйте на този имейл.<br>
-                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#1976d2;">отпишете се тук</a>.
+                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#22c55e;">отпишете се тук</a>.
                     </p>
                   </td>
                 </tr>
@@ -203,7 +203,7 @@ def send_reset_email(
                     <p style="margin:0 0 16px 0;">Здравейте,</p>
                     <p style="margin:0 0 24px 0;">Моля, за да рестартирате вашата парола натиснете бутона по-долу:</p>
                     <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                       style="display:inline-block;padding:12px 28px;background-color:#22c55e;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
                       Кликнете тук
                     </a>
                     <p style="margin:24px 0 0 0;">Ако не сте заявили рестартиране, моля игнорирайте този имейл.</p>

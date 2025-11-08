@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 
 from auth.operations import role_required
 from database.operations import NewsRepository
@@ -21,13 +21,13 @@ async def news_get(
 
 @news_router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def news_upload(
+    request: Request,
     news_data: News,
     news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
-
+    user=Depends(role_required([UserRole.ADMIN]))
 ):
   try:
-    return create_news(news_data=news_data, repo=news_repo, user_id=user.id)
+    return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
 
@@ -37,7 +37,7 @@ async def news_update(
     update: NewsUpdate,
     news_id: str,
     news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
+    user=Depends(role_required([UserRole.ADMIN]))
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
@@ -49,6 +49,6 @@ async def news_update(
 async def news_delete(
     news_id: str,
     news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
+    user=Depends(role_required([UserRole.ADMIN]))
 ):
   return delete_news(news_id=news_id, repo=news_repo)

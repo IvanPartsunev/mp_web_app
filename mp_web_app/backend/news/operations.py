@@ -4,11 +4,12 @@ from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 from auth.operations import is_token_expired
-from database.operations import NewsRepository
+from database.operations import NewsRepository, UserRepository
 from news.models import News, NewsUpdate, NewsType
+from app_config import FRONTEND_BASE_URL
 
 NEWS_TABLE_NAME = os.environ.get('NEWS_TABLE_NAME')
 
@@ -18,7 +19,7 @@ def get_news_repository() -> NewsRepository:
   return NewsRepository(NEWS_TABLE_NAME)
 
 
-def create_news(news_data: News, repo: NewsRepository, user_id: str):
+def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Request = None):
   news_id = str(uuid4())
   title = news_data.title
   content = news_data.content
@@ -46,6 +47,17 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str):
       status_code=500,
       detail=f"Database error: {e.response['Error']['Message']}"
     )
+  
+  # Send email notifications to subscribed users (non-blocking)
+  if request:
+    try:
+      from users.operations import get_user_repository, get_subscribed_users
+      user_repo = get_user_repository()
+      notify_subscribed_users(news_data, news_id, request, user_repo)
+    except Exception as e:
+      # Log error but don't block news creation
+      print(f"Warning: Failed to send email notifications: {e}")
+  
   return repo.convert_item_to_object(news_item)
 
 
@@ -135,6 +147,36 @@ def get_news(repo: NewsRepository, news_id: str | None = None, token: str | None
     response = repo.table.query(**query_kwargs)
     items.extend(response['Items'])
   return items
+
+
+def notify_subscribed_users(news_data: News, news_id: str, request: Request, user_repo: UserRepository):
+  """Send email notifications to subscribed users about new news."""
+  from users.operations import get_subscribed_users
+  from mail.operations import send_news_notification
+  
+  try:
+    # Get all subscribed users
+    subscribed_users = get_subscribed_users(user_repo)
+    
+    # Construct news link
+    news_link = f"{FRONTEND_BASE_URL}/?news_id={news_id}"
+    
+    # Send email to each subscribed user
+    for user in subscribed_users:
+      try:
+        send_news_notification(
+          request=request,
+          user_id=user.id,
+          email=user.email,
+          news_link=news_link
+        )
+      except Exception as e:
+        # Log individual email failures but continue
+        print(f"Failed to send email to {user.email}: {e}")
+        continue
+  except Exception as e:
+    # Log error but don't raise exception
+    print(f"Error in notify_subscribed_users: {e}")
 
 
 

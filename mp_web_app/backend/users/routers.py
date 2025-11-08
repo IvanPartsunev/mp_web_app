@@ -13,6 +13,7 @@ from users.models import UserCreate, User, UserUpdate, UserUpdatePassword, UserC
 from users.operations import (
   get_user_repository,
   get_user_by_email,
+  get_user_by_id,
   create_user,
   update_user, update_user_password, get_user_codes, user_code_valid, create_user_code, update_user_code, delete_user,
   list_users
@@ -103,40 +104,58 @@ async def create_user_codes(
   for code in codes.codes:
     create_user_code(code, user_code_repo)
 
-# @router.get("/", response_model=List[User])
-# async def list_users(
-#   repo: UserRepository = Depends(get_user_repository)
-# ):
-#   """List all users."""
-#   return await repo.list_users()
-#
-#
-# @router.put("/{user_id}", response_model=User)
-# async def update_user(
-#   user_id: str,
-#   user_data: UserUpdate,
-#   repo: UserRepository = Depends(get_user_repository)
-# ):
-#   """Update a user."""
-#   user = await repo.update_user(user_id, user_data)
-#   if not user:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND,
-#       detail="User not found"
-#     )
-#   return user
-#
-#
-# @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_user(
-#   user_id: str,
-#   repo: UserRepository = Depends(get_user_repository)
-# ):
-#   """Delete a user."""
-#   success = await repo.delete_user(user_id)
-#   if not success:
-#     raise HTTPException(
-#       status_code=status.HTTP_404_NOT_FOUND,
-#       detail="User not found"
-#     )
-#   return None
+
+@user_router.put("/update/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
+async def user_update(
+  user_id: str,
+  user_data: UserUpdate,
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.ADMIN]))
+):
+  """Update a user (ADMIN only)."""
+  # Get user by ID to get their email
+  existing_user = get_user_by_id(user_id, user_repo)
+  if not existing_user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+  
+  updated_user = update_user(user_id, existing_user.email, user_data, user_repo)
+  if not updated_user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+  return updated_user
+
+
+@user_router.delete("/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def user_delete(
+  user_id: str,
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.ADMIN]))
+):
+  """Delete a user (ADMIN only)."""
+  # Prevent admin from deleting themselves
+  if user.id == user_id:
+    raise HTTPException(
+      status_code=status.HTTP_400_BAD_REQUEST,
+      detail="Cannot delete your own account"
+    )
+  
+  # Get user by ID to get their email
+  existing_user = get_user_by_id(user_id, user_repo)
+  if not existing_user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+  
+  success = delete_user(existing_user.email, user_repo)
+  if not success:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+

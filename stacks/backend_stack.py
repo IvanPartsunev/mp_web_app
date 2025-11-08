@@ -105,6 +105,23 @@ class BackendStack(Stack):
       projection_type=dynamodb.ProjectionType.ALL,
     )
 
+    self.table6 = dynamodb.TableV2(
+      self, "gallery_table",
+      table_name="gallery_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN,
+    )
+
+    self.table6.add_global_secondary_index(
+      index_name="gallery_created_at_index",
+      partition_key=dynamodb.Attribute(name="gallery", type=dynamodb.AttributeType.STRING),
+      sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
+      projection_type=dynamodb.ProjectionType.ALL,
+    )
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",
@@ -137,6 +154,7 @@ class BackendStack(Stack):
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
+        "GALLERY_TABLE_NAME": self.table6.table_name,
       }
     )
 

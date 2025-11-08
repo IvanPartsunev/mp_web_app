@@ -314,3 +314,27 @@ def delete_user(email: EmailStr, repo: UserRepository) -> bool:
 
   repo.table.delete_item(Key={"id": existing_user.id})
   return True
+
+
+def get_subscribed_users(repo: UserRepository) -> List[User]:
+  """Get all users where subscribed=True."""
+  try:
+    response = repo.table.scan(
+      FilterExpression=Key('subscribed').eq(True)
+    )
+    users = [repo.convert_item_to_object(item) for item in response['Items']]
+    
+    # Handle pagination
+    while 'LastEvaluatedKey' in response:
+      response = repo.table.scan(
+        FilterExpression=Key('subscribed').eq(True),
+        ExclusiveStartKey=response['LastEvaluatedKey']
+      )
+      users.extend([repo.convert_item_to_object(item) for item in response['Items']])
+    
+    return users
+  except ClientError as e:
+    raise HTTPException(
+      status_code=500,
+      detail=f"Database error: {e.response['Error']['Message']}"
+    )
