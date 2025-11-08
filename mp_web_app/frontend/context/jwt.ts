@@ -11,3 +11,19 @@ export function isJwtExpired(token: string): boolean {
     return true;
   }
 }
+
+export function decodeJwt(token: string): any {
+  try {
+    const [, payloadB64] = token.split(".");
+    const payloadJson = JSON.parse(atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")));
+    return payloadJson;
+  } catch {
+    return null;
+  }
+}
+
+export function getUserRole(token: string | null): string | null {
+  if (!token) return null;
+  const payload = decodeJwt(token);
+  return payload?.role || null;
+}
