@@ -20,29 +20,29 @@ import Unsubscribe from "@/pages/Unsubscribe";
 
 
 // Lazy imports for pages that make API calls
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Board = lazy(() => import("@/pages/about-us/Board"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Control = lazy(() => import("@/pages/about-us/Control"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Proxies = lazy(() => import("@/pages/lists/Proxies"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Cooperative = lazy(() => import("@/pages/lists/CooperativeMembers"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const GoverningDocuments = lazy(() => import("@/pages/documents/GoverningDocuments"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Forms = lazy(() => import("@/pages/documents/Forms"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Minutes = lazy(() => import("@/pages/documents/Minutes"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Transcripts = lazy(() => import("@/pages/documents/Transcripts"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocuments"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const Others = lazy(() => import("@/pages/documents/Others"));
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"))
-// @ts-ignore
+// @ts-expect-error - Dynamic import may not have types
 const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"))
 
 
