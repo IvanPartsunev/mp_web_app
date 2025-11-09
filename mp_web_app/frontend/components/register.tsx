@@ -35,7 +35,7 @@ export function RegisterForm({
     password: "",
     phone: "",
     confirmPassword: "",
-    user_code: "",
+    member_code: "",
   });
 
   const [errors, setErrors] = useState({
@@ -116,7 +116,7 @@ export function RegisterForm({
         last_name: formData.last_name,
         password: formData.password,
         phone: formData.phone,
-        user_code: formData.user_code,
+        member_code: formData.member_code,
       };
 
       const result = await registerUser(userData);
@@ -131,7 +131,7 @@ export function RegisterForm({
         password: "",
         phone: "",
         confirmPassword: "",
-        user_code: "",
+        member_code: "",
       });
     } catch (error) {
       setErrors((prev) => ({

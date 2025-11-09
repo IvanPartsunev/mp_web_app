@@ -9,12 +9,12 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from database.repositories import UserCodeRepository, UserRepository
-from users.models import User, UserCode, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
+from database.repositories import MemberRepository, UserRepository
+from users.models import User, Member, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
 USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
-USER_CODES_TABLE_NAME = os.environ.get('USER_CODES_TABLE_NAME')
+MEMBERS_TABLE_NAME = os.environ.get('MEMBERS_TABLE_NAME')
 
 
 def get_user_repository() -> UserRepository:
@@ -22,12 +22,12 @@ def get_user_repository() -> UserRepository:
   return UserRepository(USERS_TABLE_NAME)
 
 
-def get_user_codes() -> UserCodeRepository:
-  """Dependency to get the user repository."""
-  return UserCodeRepository(USER_CODES_TABLE_NAME)
+def get_member_codes() -> MemberRepository:
+  """Dependency to get the member repository."""
+  return MemberRepository(MEMBERS_TABLE_NAME)
 
 
-def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None:
+def member_code_valid(user_code: str, repo: MemberRepository) -> Member | None:
   response = repo.table.get_item(Key={"user_code": user_code})
 
   if 'Item' not in response or not response['Item'].get('is_valid', None):
@@ -35,7 +35,7 @@ def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None
   return repo.convert_item_to_object(response['Item'])
 
 
-def create_user_code(user_code: str, repo: UserCodeRepository):
+def create_member(user_code: str, repo: MemberRepository):
   try:
     repo.table.put_item(
       Item={
@@ -51,11 +51,11 @@ def create_user_code(user_code: str, repo: UserCodeRepository):
     )
 
 
-def update_user_code(user_code: str, repo: UserCodeRepository) -> None:
+def update_member_code(user_code: str, repo: MemberRepository) -> None:
   response = repo.table.get_item(Key={"user_code": user_code})
   user_code_obj = repo.convert_item_to_object(response["Item"])
   response = repo.table.update_item(
-    Key={'user_code': user_code_obj.user_code},
+    Key={'member_code': user_code_obj.user_code},
     UpdateExpression='SET #is_valid = :is_valid',
     ExpressionAttributeNames={'#is_valid': 'is_valid'},
     ExpressionAttributeValues={':is_valid': not user_code_obj.is_valid},

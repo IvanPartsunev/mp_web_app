@@ -27,6 +27,9 @@ dev = [
   "pytest-mock>=3.14.0,<4.0",
   "httpx>=0.28.1,<0.29",
   "ruff>=0.9.1,<0.10",
+  # Infrastructure dependencies
+  "aws-cdk-lib>=2.176.0,<3.0",
+  "constructs>=10.4.2,<11.0",
 ]
 
 [build-system]

@@ -50,9 +50,9 @@ class BackendStack(Stack):
     )
 
     self.table2 = dynamodb.TableV2(
-      self, "user_codes_table",
-      table_name="user_codes_table",
-      partition_key=dynamodb.Attribute(name="user_code", type=dynamodb.AttributeType.STRING),
+      self, "members_table",
+      table_name="members_table",
+      partition_key=dynamodb.Attribute(name="member_code", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
@@ -146,7 +146,7 @@ class BackendStack(Stack):
         "FRONTEND_BASE_URL": frontend_base_url,
         "COOKIE_DOMAIN": cookie_domain,
         "USERS_TABLE_NAME": self.table1.table_name,
-        "USER_CODES_TABLE_NAME": self.table2.table_name,
+        "MEMBERS_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
         "NEWS_TABLE_NAME": self.table5.table_name,

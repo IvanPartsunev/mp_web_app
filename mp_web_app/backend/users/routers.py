@@ -5,22 +5,22 @@ from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
 from auth.operations import decode_token, is_token_expired, role_required
-from database.repositories import UserCodeRepository, UserRepository
+from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
-from users.models import User, UserCodes, UserCreate, UserUpdate, UserUpdatePassword
+from users.models import User, Member, UserCreate, UserUpdate, UserUpdatePassword
 from users.operations import (
   create_user,
-  create_user_code,
+  create_member,
   delete_user,
   get_user_by_email,
   get_user_by_id,
-  get_user_codes,
+  get_member_codes,
   get_user_repository,
   list_users,
   update_user,
   update_user_code,
   update_user_password,
-  user_code_valid,
+  member_code_valid,
 )
 from users.roles import UserRole
 
@@ -57,7 +57,7 @@ async def user_register(
   request: Request,
   user_data: UserCreate,
   user_repo: UserRepository = Depends(get_user_repository),
-  user_code_repo: UserCodeRepository = Depends(get_user_codes)
+  user_code_repo: MemberRepository = Depends(get_member_codes)
 ):
   """Create a new user."""
 
@@ -69,7 +69,7 @@ async def user_register(
     )
 
   user_code = user_data.user_code
-  is_valid = user_code_valid(user_code, user_code_repo)
+  is_valid = member_code_valid(user_code, user_code_repo)
   if not is_valid:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -117,14 +117,14 @@ async def user_activate_account(email: EmailStr | str, token: str,
   raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or expired token")
 
 
-@user_router.post("/create_user_codes", status_code=status.HTTP_201_CREATED)
-async def create_user_codes(
-  codes: UserCodes,
-  user_code_repo: UserCodeRepository = Depends(get_user_codes),
+@user_router.post("/create_members", status_code=status.HTTP_201_CREATED)
+async def create_member(
+  members: list[Member],
+  user_code_repo: MemberRepository = Depends(get_member_codes),
   user=Depends(role_required([UserRole.ADMIN]))
 ):
-  for code in codes.codes:
-    create_user_code(code, user_code_repo)
+  for member in members:
+    create_member(code, user_code_repo)
 
 
 @user_router.put("/update/{user_id}", response_model=User, status_code=status.HTTP_200_OK)

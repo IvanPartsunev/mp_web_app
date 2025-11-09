@@ -301,7 +301,7 @@ export function Navigation() {
     <div>
       {/* Desktop Navigation */}
       {!isMobile && (
-        <div className="flex p-2 border-t-2 border-b-2 border-primary w-full items-center justify-center">
+        <div className="sticky top-0 z-40 flex p-3 border-t-2 border-b-2 border-primary w-full items-center justify-center bg-background/80 backdrop-blur-md shadow-sm transition-all duration-300">
           <NavigationMenu viewport={false}>
             <NavigationMenuList>
               {NAV_LINKS.map((link) => {
@@ -424,13 +424,13 @@ export function Navigation() {
 
       {/* Hamburger Icon for Mobile */}
       {isMobile && (
-        <div className="flex items-center p-2 border-t-2 border-b-2 border-primary w-full">
+        <div className="sticky top-0 z-40 flex items-center p-3 border-t-2 border-b-2 border-primary w-full bg-background/80 backdrop-blur-md shadow-sm">
           <Button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex items-center gap-2 w-36 h-10 bg-primary text-white rounded-lg shadow"
+            className="flex items-center gap-3 px-5 py-3 bg-primary text-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all"
             aria-label="Отвори менюто"
           >
-            <MenuIcon className="w-7 h-7"/>
+            <MenuIcon className="w-6 h-6"/>
             <span className="text-lg font-semibold">Меню</span>
           </Button>
         </div>

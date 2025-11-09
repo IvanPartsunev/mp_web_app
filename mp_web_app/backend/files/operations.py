@@ -10,7 +10,7 @@ from fastapi import HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from app_config import AllowedFileExtensions
-from database.repositories import UploadsRepository
+from database.repositories import FileMetadataRepository
 from files.models import FileMetadata, FileMetadataFull, FileType
 from users.models import User
 from users.roles import UserRole
@@ -27,11 +27,11 @@ def get_allowed_file_extensions():
 
 
 def get_uploads_repository():
-  return UploadsRepository(UPLOADS_TABLE_NAME)
+  return FileMetadataRepository(UPLOADS_TABLE_NAME)
 
 
 @retry()
-def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, repo: UploadsRepository):
+def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, repo: FileMetadataRepository):
   s3 = boto3.client('s3')
   try:
     file_name = _create_file_name(file_metadata.file_name, file.filename)
@@ -43,7 +43,7 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, rep
 
 
 def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: str, user_id: str,
-                         repo: UploadsRepository) -> FileMetadata:
+                         repo: FileMetadataRepository) -> FileMetadata:
   if file_metadata.file_type == 'private' and not file_metadata.allowed_to:
     raise HTTPException(status_code=400, detail='When [private] is selected allowed users must be specified')
   allowed_to = file_metadata.allowed_to if file_metadata.allowed_to else None
@@ -64,7 +64,7 @@ def create_file_metadata(file_metadata: FileMetadata, new_file_name: str, key: s
   return repo.convert_item_to_object_full(file_metadata_item)
 
 
-def get_files_metadata(file_type: str, repo: UploadsRepository):
+def get_files_metadata(file_type: str, repo: FileMetadataRepository):
   try:
     response = repo.table.query(
       IndexName='file_type_created_at_index',
@@ -89,7 +89,7 @@ def get_files_metadata(file_type: str, repo: UploadsRepository):
 
 
 @retry()
-def delete_file(file_metadata: list[FileMetadata], repo: UploadsRepository):
+def delete_file(file_metadata: list[FileMetadata], repo: FileMetadataRepository):
   db_metadata_objects = [get_db_metadata(file_meta, repo) for file_meta in file_metadata]
   item_ids = [metadata.id for metadata in db_metadata_objects]
   keys = [metadata.key for metadata in db_metadata_objects]
@@ -106,7 +106,7 @@ def delete_file(file_metadata: list[FileMetadata], repo: UploadsRepository):
     raise HTTPException(status_code=500, detail=f"Error when deleting the file/s: {e}")
 
 
-def _delete_file_metadata(item_ids: list[str], repo: UploadsRepository):
+def _delete_file_metadata(item_ids: list[str], repo: FileMetadataRepository):
   try:
     if len(item_ids) == 1:
       repo.table.delete_item(Key={"id": item_ids[0]})
@@ -133,7 +133,7 @@ def _create_file_name(file_name: str, original_name: str):
   return file_name
 
 
-def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, repo: UploadsRepository):
+def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, repo: FileMetadataRepository):
   file_meta_object = get_db_metadata(file_metadata, repo)
 
   user_id = None
@@ -158,7 +158,7 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
 
 
 @retry()
-def get_db_metadata(file_metadata: FileMetadata, repo: UploadsRepository) -> FileMetadataFull:
+def get_db_metadata(file_metadata: FileMetadata, repo: FileMetadataRepository) -> FileMetadataFull:
   response = repo.table.get_item(Key={'id': file_metadata.id})
   if "Item" not in response:
     raise HTTPException(status_code=400, detail=f"Metadata not found for file: {file_metadata.file_name}")

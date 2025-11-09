@@ -6,7 +6,7 @@ from auth.models import TokenPayload
 from database.db_config import get_dynamodb_resource
 from files.models import FileMetadata, FileMetadataFull
 from news.models import News
-from users.models import User, UserCode, UserSecret
+from users.models import User, Member, UserSecret
 
 
 class BaseRepository(ABC):
@@ -50,15 +50,15 @@ class AuthRepository(BaseRepository):
     return TokenPayload(**item)
 
 
-class UserCodeRepository(BaseRepository):
+class MemberRepository(BaseRepository):
 
   def convert_item_to_object(self, item: dict[str, Any]):
-    """Convert a DynamoDB item to a UserCode model."""
-    return UserCode(**item)
+    """Convert a DynamoDB item to a Member model."""
+    return Member(**item)
 
 
-class UploadsRepository(BaseRepository):
-
+class FileMetadataRepository(BaseRepository):
+  """Convert a DynamoDB item to a FileMetadata model."""
   def convert_item_to_object(self, item: dict[str, Any]):
     return FileMetadata(**item)
 
@@ -67,13 +67,13 @@ class UploadsRepository(BaseRepository):
 
 
 class NewsRepository(BaseRepository):
-
+  """Convert a DynamoDB item to a News model."""
   def convert_item_to_object(self, item: dict[str, Any]):
     return News(**item)
 
 
 class GalleryRepository(BaseRepository):
-
+  """Convert a DynamoDB item to a Gallery model."""
   def convert_item_to_object(self, item: dict[str, Any]):
     from gallery.models import GalleryImageMetadata
     return GalleryImageMetadata(**item)

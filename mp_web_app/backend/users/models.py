@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
   password: str
-  user_code: str
+  member_code: str
 
 
 class UserUpdate(BaseModel):
@@ -44,16 +44,12 @@ class User(UserBase):
 class UserSecret(BaseModel):
   id: str
   email: EmailStr
-  user_code: str
+  member_code: str
   role: str
   salt: str
   password_hash: str
 
 
-class UserCode(BaseModel):
-  user_code: str
+class Member(UserBase):
+  member_code: str
   is_valid: bool
-
-
-class UserCodes(BaseModel):
-  codes: list[str]
