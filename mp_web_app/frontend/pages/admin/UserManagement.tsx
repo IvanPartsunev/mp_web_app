@@ -200,8 +200,8 @@ export default function UserManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="regular">Обикновен</SelectItem>
-                      <SelectItem value="board">Борд</SelectItem>
-                      <SelectItem value="control">Контрол</SelectItem>
+                      <SelectItem value="board">УС</SelectItem>
+                      <SelectItem value="control">КС</SelectItem>
                       <SelectItem value="admin">Администратор</SelectItem>
                     </SelectContent>
                   </Select>

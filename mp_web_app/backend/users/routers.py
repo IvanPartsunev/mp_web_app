@@ -34,6 +34,24 @@ async def users_list(
   return list_users(user_repo)
 
 
+@user_router.get("/board-members", response_model=list[User], status_code=status.HTTP_200_OK)
+async def board_members_list(
+  user_repo: UserRepository = Depends(get_user_repository)
+):
+  """Public endpoint to get board members."""
+  all_users = list_users(user_repo)
+  return [user for user in all_users if user.role == UserRole.BOARD]
+
+
+@user_router.get("/control-members", response_model=list[User], status_code=status.HTTP_200_OK)
+async def control_members_list(
+  user_repo: UserRepository = Depends(get_user_repository)
+):
+  """Public endpoint to get control members."""
+  all_users = list_users(user_repo)
+  return [user for user in all_users if user.role == UserRole.CONTROL]
+
+
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 async def user_register(
   request: Request,
@@ -61,8 +79,8 @@ async def user_register(
   try:
     user = create_user(user_data, request, user_repo)
     verification_link = construct_verification_link(user.id, user.email, request)
-    send_verification_email(user.email, verification_link)
-    update_user_code(user_code, user_code_repo)
+    # send_verification_email(user.email, verification_link)
+    # update_user_code(user_code, user_code_repo)
   except Exception as e:
     delete_user(user_data.email, user_repo)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
