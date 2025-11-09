@@ -7,7 +7,7 @@ from auth.operations import get_auth_repository
 os.environ.setdefault("JWT_SECRET_ARN", "dummy-secret-arn")
 os.environ.setdefault("REFRESH_TABLE_NAME", "dummy-refresh-table")
 os.environ.setdefault("USERS_TABLE_NAME", "dummy-users-table")
-os.environ.setdefault("USER_CODES_TABLE_NAME", "dummy-user-codes-table")
+os.environ.setdefault("MEMBERS_TABLE_NAME", "dummy-member-table")
 
 
 @pytest.fixture

@@ -11,7 +11,7 @@ def pytest_configure(config):
     """Configure pytest before any tests run."""
     # Set environment variables BEFORE any imports
     os.environ["USERS_TABLE_NAME"] = "test_users_table"
-    os.environ["USER_CODES_TABLE_NAME"] = "test_codes_table"
+    os.environ["MEMBERS_TABLE_NAME"] = "test_codes_table"
     os.environ["REFRESH_TABLE_NAME"] = "test_refresh_table"
     os.environ["UPLOADS_TABLE_NAME"] = "test_uploads_table"
     os.environ["NEWS_TABLE_NAME"] = "test_news_table"

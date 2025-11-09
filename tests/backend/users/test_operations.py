@@ -37,7 +37,7 @@ def test_create_user_and_get_user(user_repo):
         email="test@example.com",
         phone="0888123456",
         password="StrongPass1!",
-        user_code="code123",
+        member_code="code123",
     )
     user = create_user(user_data, request=None, repo=user_repo)
     assert user.email == "test@example.com"
@@ -50,7 +50,7 @@ def test_create_user_invalid_phone(user_repo):
         email="bad@example.com",
         phone="123",
         password="StrongPass1!",
-        user_code="code123",
+        member_code="code123",
     )
     with pytest.raises(ValueError):
         create_user(bad_data, request=None, repo=user_repo)

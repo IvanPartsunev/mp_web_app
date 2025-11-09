@@ -53,3 +53,6 @@ class UserSecret(BaseModel):
 class Member(UserBase):
   member_code: str
   is_valid: bool
+  proxy: bool | None = None
+  email: EmailStr | None = None
+  phone: str | None = None

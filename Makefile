@@ -23,10 +23,16 @@ help: ## Display this help message
 
 ##@ Installation
 
-install: backend-install frontend-install ## Install all dependencies (backend + frontend)
+install: ## Install all dependencies (workspace + backend + frontend)
+	@echo "$(BLUE)Installing all dependencies...$(NC)"
+	uv sync --all-groups
+	$(MAKE) frontend-install
 	@echo "$(GREEN)✓ All dependencies installed$(NC)"
 
-install-dev: backend-install-dev frontend-install-dev ## Install all dependencies including dev tools
+install-dev: ## Install all dependencies including dev tools
+	@echo "$(BLUE)Installing all dependencies (with dev)...$(NC)"
+	uv sync --all-groups
+	$(MAKE) frontend-install-dev
 	@echo "$(GREEN)✓ All dependencies (including dev) installed$(NC)"
 
 install-prod: backend-install frontend-install ## Install only production dependencies

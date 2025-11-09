@@ -57,7 +57,7 @@ async def user_register(
   request: Request,
   user_data: UserCreate,
   user_repo: UserRepository = Depends(get_user_repository),
-  user_code_repo: MemberRepository = Depends(get_member_codes)
+  member_repo: MemberRepository = Depends(get_member_codes)
 ):
   """Create a new user."""
 
@@ -68,8 +68,8 @@ async def user_register(
       detail="User with this email already exists"
     )
 
-  user_code = user_data.user_code
-  is_valid = member_code_valid(user_code, user_code_repo)
+  member_code = user_data.member_code
+  is_valid = member_code_valid(member_code, member_repo)
   if not is_valid:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,9 +78,9 @@ async def user_register(
 
   try:
     user = create_user(user_data, request, user_repo)
-    verification_link = construct_verification_link(user.id, user.email, request)
-    send_verification_email(user.email, verification_link)
-    update_member_code(user_code, user_code_repo)
+    # verification_link = construct_verification_link(user.id, user.email, request)
+    # send_verification_email(user.email, verification_link)
+    update_member_code(member_code, member_repo)
   except Exception as e:
     delete_user(user_data.email, user_repo)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -118,13 +118,13 @@ async def user_activate_account(email: EmailStr | str, token: str,
 
 
 @user_router.post("/create_members", status_code=status.HTTP_201_CREATED)
-async def create_member(
+async def member_create(
   members: list[Member],
-  user_code_repo: MemberRepository = Depends(get_member_codes),
+  member_repo: MemberRepository = Depends(get_member_codes),
   user=Depends(role_required([UserRole.ADMIN]))
 ):
   for member in members:
-    create_member(code, user_code_repo)
+    create_member(code, member_repo)
 
 
 @user_router.put("/update/{user_id}", response_model=User, status_code=status.HTTP_200_OK)

@@ -78,7 +78,7 @@ export function RegisterForm({
     email: string;
     password: string;
     phone: string;
-    user_code: string;
+    member_code: string;
   }) => {
     return apiPost("users/register", userData);
   };
@@ -119,7 +119,7 @@ export function RegisterForm({
         member_code: formData.member_code,
       };
 
-      const result = await registerUser(userData);
+      await registerUser(userData);
 
       setIsSuccess(true);
 
@@ -143,7 +143,7 @@ export function RegisterForm({
     }
   };
 
-  // Redirect to login after success message
+  // Redirect to log in after a success message
   useEffect(() => {
     if (isSuccess) {
       const timeout = setTimeout(() => {
@@ -153,7 +153,7 @@ export function RegisterForm({
     }
   }, [isSuccess]);
 
-  // Show success message if registration was successful
+  // Show a success message if registration was successful
   if (isSuccess) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -313,8 +313,8 @@ export function RegisterForm({
                 <Input
                   id="id-number"
                   type="text"
-                  value={formData.user_code}
-                  onChange={(e) => handleInputChange("user_code", e.target.value)}
+                  value={formData.member_code}
+                  onChange={(e) => handleInputChange("member_code", e.target.value)}
                   disabled={isLoading}
                   required
                 />

@@ -27,19 +27,19 @@ def get_member_codes() -> MemberRepository:
   return MemberRepository(MEMBERS_TABLE_NAME)
 
 
-def member_code_valid(user_code: str, repo: MemberRepository) -> Member | None:
-  response = repo.table.get_item(Key={"user_code": user_code})
+def member_code_valid(member_code: str, repo: MemberRepository) -> Member | None:
+  response = repo.table.get_item(Key={"member_code": member_code})
 
   if 'Item' not in response or not response['Item'].get('is_valid', None):
     return None
   return repo.convert_item_to_object(response['Item'])
 
 
-def create_member(user_code: str, repo: MemberRepository):
+def create_member(member_code: str, repo: MemberRepository):
   try:
     repo.table.put_item(
       Item={
-        'user_code': user_code,
+        'member_code': member_code,
         'is_valid': True
       }
     )
@@ -51,14 +51,14 @@ def create_member(user_code: str, repo: MemberRepository):
     )
 
 
-def update_member_code(user_code: str, repo: MemberRepository) -> None:
-  response = repo.table.get_item(Key={"user_code": user_code})
-  user_code_obj = repo.convert_item_to_object(response["Item"])
+def update_member_code(member_code: str, repo: MemberRepository) -> None:
+  response = repo.table.get_item(Key={"member_code": member_code})
+  member_obj = repo.convert_item_to_object(response["Item"])
   response = repo.table.update_item(
-    Key={'member_code': user_code_obj.user_code},
+    Key={'member_code': member_obj.member_code},
     UpdateExpression='SET #is_valid = :is_valid',
     ExpressionAttributeNames={'#is_valid': 'is_valid'},
-    ExpressionAttributeValues={':is_valid': not user_code_obj.is_valid},
+    ExpressionAttributeValues={':is_valid': not member_obj.is_valid},
     ReturnValues="ALL_NEW"
   )
   return repo.convert_item_to_object(response["Attributes"])
@@ -137,7 +137,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     "last_name": user_data.last_name,
     "phone": phone,
     "role": user_role,
-    "user_code": user_data.user_code,
+    "member_code": user_data.member_code,
     "active": active,
     "created_at": created_at,
     "updated_at": updated_at,

@@ -110,7 +110,7 @@ class TestCreateUser:
             email="john@example.com",
             phone="0889123456",
             password="ValidPass123!",
-            user_code="CODE123"
+            member_code="CODE123"
         )
 
         result = create_user(user_data, mock_request, mock_repo)
@@ -140,7 +140,7 @@ class TestCreateUser:
             email="john@example.com",
             phone="0889123456",
             password="short",
-            user_code="CODE123"
+            member_code="CODE123"
         )
 
         with pytest.raises(HTTPException) as exc_info:
