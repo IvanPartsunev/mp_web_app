@@ -18,7 +18,7 @@ from users.operations import (
   get_user_repository,
   list_users,
   update_user,
-  update_user_code,
+  update_member_code,
   update_user_password,
   member_code_valid,
 )
@@ -80,7 +80,7 @@ async def user_register(
     user = create_user(user_data, request, user_repo)
     verification_link = construct_verification_link(user.id, user.email, request)
     send_verification_email(user.email, verification_link)
-    update_user_code(user_code, user_code_repo)
+    update_member_code(user_code, user_code_repo)
   except Exception as e:
     delete_user(user_data.email, user_repo)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
