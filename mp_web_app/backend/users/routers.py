@@ -79,8 +79,8 @@ async def user_register(
   try:
     user = create_user(user_data, request, user_repo)
     verification_link = construct_verification_link(user.id, user.email, request)
-    # send_verification_email(user.email, verification_link)
-    # update_user_code(user_code, user_code_repo)
+    send_verification_email(user.email, verification_link)
+    update_user_code(user_code, user_code_repo)
   except Exception as e:
     delete_user(user_data.email, user_repo)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
