@@ -9,59 +9,11 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, Request
 from pydantic import EmailStr
 
-from database.repositories import MemberRepository, UserRepository
-from users.models import User, Member, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
+from database.repositories import UserRepository
+from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
 USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
-MEMBERS_TABLE_NAME = os.environ.get('MEMBERS_TABLE_NAME')
-
-
-def get_user_repository() -> UserRepository:
-  """Dependency to get the user repository."""
-  return UserRepository(USERS_TABLE_NAME)
-
-
-def get_member_codes() -> MemberRepository:
-  """Dependency to get the member repository."""
-  return MemberRepository(MEMBERS_TABLE_NAME)
-
-
-def member_code_valid(member_code: str, repo: MemberRepository) -> Member | None:
-  response = repo.table.get_item(Key={"member_code": member_code})
-
-  if 'Item' not in response or not response['Item'].get('is_valid', None):
-    return None
-  return repo.convert_item_to_object(response['Item'])
-
-
-def create_member(member_code: str, repo: MemberRepository):
-  try:
-    repo.table.put_item(
-      Item={
-        'member_code': member_code,
-        'is_valid': True
-      }
-    )
-
-  except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
-
-
-def update_member_code(member_code: str, repo: MemberRepository) -> None:
-  response = repo.table.get_item(Key={"member_code": member_code})
-  member_obj = repo.convert_item_to_object(response["Item"])
-  response = repo.table.update_item(
-    Key={'member_code': member_obj.member_code},
-    UpdateExpression='SET #is_valid = :is_valid',
-    ExpressionAttributeNames={'#is_valid': 'is_valid'},
-    ExpressionAttributeValues={':is_valid': not member_obj.is_valid},
-    ReturnValues="ALL_NEW"
-  )
-  return repo.convert_item_to_object(response["Attributes"])
 
 
 def hash_password(password: str, salt: str) -> str:
@@ -108,6 +60,20 @@ def validate_password(password: str) -> str:
     raise ValueError("Password must contain at least one special symbol: !@#$%^&?")
 
   return password
+
+
+def validate_email(email: EmailStr) -> EmailStr:
+  """Check if the given email has a valid structure."""
+  pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+
+  if not re.match(pattern, str(email)):
+    raise ValueError("Email address structure is not valid")
+  return email
+
+
+def get_user_repository() -> UserRepository:
+  """Dependency to get the user repository."""
+  return UserRepository(USERS_TABLE_NAME)
 
 
 def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -> User:

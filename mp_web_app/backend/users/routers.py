@@ -7,20 +7,17 @@ from app_config import FRONTEND_BASE_URL
 from auth.operations import decode_token, is_token_expired, role_required
 from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
-from users.models import User, Member, UserCreate, UserUpdate, UserUpdatePassword
+from members.operations import get_member_repository, is_member_code_valid, update_member_code
+from users.models import User, UserCreate, UserUpdate, UserUpdatePassword
 from users.operations import (
   create_user,
-  create_member,
   delete_user,
   get_user_by_email,
   get_user_by_id,
-  get_member_codes,
   get_user_repository,
   list_users,
   update_user,
-  update_member_code,
   update_user_password,
-  member_code_valid,
 )
 from users.roles import UserRole
 
@@ -57,7 +54,7 @@ async def user_register(
   request: Request,
   user_data: UserCreate,
   user_repo: UserRepository = Depends(get_user_repository),
-  member_repo: MemberRepository = Depends(get_member_codes)
+  member_repo: MemberRepository = Depends(get_member_repository)
 ):
   """Create a new user."""
 
@@ -69,7 +66,7 @@ async def user_register(
     )
 
   member_code = user_data.member_code
-  is_valid = member_code_valid(member_code, member_repo)
+  is_valid = is_member_code_valid(member_code, member_repo)
   if not is_valid:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST,
@@ -115,16 +112,6 @@ async def user_activate_account(email: EmailStr | str, token: str,
     )
 
   raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or expired token")
-
-
-@user_router.post("/create_members", status_code=status.HTTP_201_CREATED)
-async def member_create(
-  members: list[Member],
-  member_repo: MemberRepository = Depends(get_member_codes),
-  user=Depends(role_required([UserRole.ADMIN]))
-):
-  for member in members:
-    create_member(code, member_repo)
 
 
 @user_router.put("/update/{user_id}", response_model=User, status_code=status.HTTP_200_OK)

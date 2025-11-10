@@ -6,8 +6,8 @@ from pydantic import BaseModel, EmailStr
 class UserBase(BaseModel):
   first_name: str
   last_name: str
-  email: EmailStr
-  phone: str
+  email: EmailStr | None
+  phone: str | None
 
 
 class UserCreate(UserBase):
@@ -48,11 +48,3 @@ class UserSecret(BaseModel):
   role: str
   salt: str
   password_hash: str
-
-
-class Member(UserBase):
-  member_code: str
-  is_valid: bool
-  proxy: bool | None = None
-  email: EmailStr | None = None
-  phone: str | None = None
