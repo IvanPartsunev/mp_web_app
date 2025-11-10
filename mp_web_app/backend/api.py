@@ -8,6 +8,7 @@ from auth.routers import auth_router
 from files.routers import file_router
 from gallery.routers import gallery_router
 from mail.routers import mail_router
+from members.routers import member_router
 from news.routers import news_router
 from users.routers import user_router
 
@@ -29,6 +30,7 @@ app.include_router(mail_router, prefix="/api/mail")
 app.include_router(file_router, prefix="/api/files")
 app.include_router(news_router, prefix="/api/news")
 app.include_router(gallery_router, prefix="/api/gallery")
+app.include_router(member_router, prefix="/api/member")
 
 from mangum import Mangum
 
