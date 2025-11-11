@@ -5,8 +5,9 @@ from typing import Any
 from auth.models import TokenPayload
 from database.db_config import get_dynamodb_resource
 from files.models import FileMetadata, FileMetadataFull
+from members.models import Member
 from news.models import News
-from users.models import User, Member, UserSecret
+from users.models import User, UserSecret
 
 
 class BaseRepository(ABC):
