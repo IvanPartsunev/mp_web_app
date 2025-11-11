@@ -3,5 +3,5 @@ export default function Products() {
     <section>
       <h2 className="text-2xl font-bold mb-2">Welcome to products</h2>
     </section>
-  )
+  );
 }

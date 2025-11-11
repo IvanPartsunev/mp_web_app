@@ -24,7 +24,7 @@ def retry(num_retry: int = 3, base_delay: float = 1.0, max_delay: float = 30.0, 
         except Exception as e:
           if first_exception is None:
             first_exception = e
-          delay = min(base_delay * (2 ** attempt), max_delay)
+          delay = min(base_delay * (2**attempt), max_delay)
           if jitter:
             delay = random.uniform(0, delay)
           time.sleep(delay)

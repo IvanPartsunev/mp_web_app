@@ -1,4 +1,4 @@
-import React, {lazy} from "react";
+import {lazy} from "react";
 import {AuthProvider} from "@/context/AuthContext";
 import Navigation from "@/pages/Navigation";
 import Base from "@/pages/Base";
@@ -18,52 +18,38 @@ import ForgotPassword from "@/pages/authentication/ForgotPassword";
 import NewPassword from "@/pages/authentication/NewPassword";
 import Unsubscribe from "@/pages/Unsubscribe";
 
-
 // Lazy imports for pages that make API calls
-// @ts-expect-error - Dynamic import may not have types
 const Board = lazy(() => import("@/pages/about-us/Board"));
-// @ts-expect-error - Dynamic import may not have types
 const Control = lazy(() => import("@/pages/about-us/Control"));
-// @ts-expect-error - Dynamic import may not have types
 const Proxies = lazy(() => import("@/pages/lists/Proxies"));
-// @ts-expect-error - Dynamic import may not have types
 const Cooperative = lazy(() => import("@/pages/lists/CooperativeMembers"));
-// @ts-expect-error - Dynamic import may not have types
 const GoverningDocuments = lazy(() => import("@/pages/documents/GoverningDocuments"));
-// @ts-expect-error - Dynamic import may not have types
 const Forms = lazy(() => import("@/pages/documents/Forms"));
-// @ts-expect-error - Dynamic import may not have types
 const Minutes = lazy(() => import("@/pages/documents/Minutes"));
-// @ts-expect-error - Dynamic import may not have types
 const Transcripts = lazy(() => import("@/pages/documents/Transcripts"));
-// @ts-expect-error - Dynamic import may not have types
 const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocuments"));
-// @ts-expect-error - Dynamic import may not have types
 const Others = lazy(() => import("@/pages/documents/Others"));
-// @ts-expect-error - Dynamic import may not have types
-const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"))
-// @ts-expect-error - Dynamic import may not have types
-const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"))
-
+const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"));
+const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"));
 
 function App() {
   return (
     <AuthProvider>
       <Toaster />
       <Routes>
-        <Route path="/" element={<Base/>}>
-          <Route element={<Navigation/>}>
-            <Route index element={<Home/>}/>
-            <Route path="home" element={<Home/>}/>
-            <Route path="products" element={<Products/>}/>
-            <Route path="contacts" element={<Contacts/>}/>
-            <Route path="gallery" element={<Gallery/>}/>
-            <Route path="upload" element={<Upload/>}/>
+        <Route path="/" element={<Base />}>
+          <Route element={<Navigation />}>
+            <Route index element={<Home />} />
+            <Route path="home" element={<Home />} />
+            <Route path="products" element={<Products />} />
+            <Route path="contacts" element={<Contacts />} />
+            <Route path="gallery" element={<Gallery />} />
+            <Route path="upload" element={<Upload />} />
             <Route
               path="board"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на управителния съвет...">
-                  <Board/>
+                  <Board />
                 </PageLoadingWrapper>
               }
             />
@@ -71,7 +57,7 @@ function App() {
               path="control"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на контролния съвет...">
-                  <Control/>
+                  <Control />
                 </PageLoadingWrapper>
               }
             />
@@ -80,7 +66,7 @@ function App() {
               path="proxies"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на пълномощниците...">
-                  <Proxies/>
+                  <Proxies />
                 </PageLoadingWrapper>
               }
             />
@@ -88,7 +74,7 @@ function App() {
               path="cooperative"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на член кооператорите...">
-                  <Cooperative/>
+                  <Cooperative />
                 </PageLoadingWrapper>
               }
             />
@@ -97,7 +83,7 @@ function App() {
               path="governing-documents"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на нормативните документи...">
-                  <GoverningDocuments/>
+                  <GoverningDocuments />
                 </PageLoadingWrapper>
               }
             />
@@ -105,7 +91,7 @@ function App() {
               path="forms"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на бланките...">
-                  <Forms/>
+                  <Forms />
                 </PageLoadingWrapper>
               }
             />
@@ -113,7 +99,7 @@ function App() {
               path="minutes"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на протоколите...">
-                  <Minutes/>
+                  <Minutes />
                 </PageLoadingWrapper>
               }
             />
@@ -121,7 +107,7 @@ function App() {
               path="transcripts"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на стенограмите...">
-                  <Transcripts/>
+                  <Transcripts />
                 </PageLoadingWrapper>
               }
             />
@@ -129,7 +115,7 @@ function App() {
               path="accounting-documents"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на счетоводните документи...">
-                  <AccountingDocuments/>
+                  <AccountingDocuments />
                 </PageLoadingWrapper>
               }
             />
@@ -137,7 +123,7 @@ function App() {
               path="mydocuments"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на моите документи...">
-                  <MyDocuments/>
+                  <MyDocuments />
                 </PageLoadingWrapper>
               }
             />
@@ -145,7 +131,7 @@ function App() {
               path="others"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на документите...">
-                  <Others/>
+                  <Others />
                 </PageLoadingWrapper>
               }
             />
@@ -154,17 +140,17 @@ function App() {
               path="admin"
               element={
                 <PageLoadingWrapper loadingText="Зареждане на админ панела...">
-                  <AdminPanel/>
+                  <AdminPanel />
                 </PageLoadingWrapper>
               }
             />
 
             {/* Authentication routes */}
-            <Route path="login" element={<Login/>}/>
-            <Route path="register" element={<Register/>}/>
-            <Route path="forgot-password" element={<ForgotPassword/>}/>
-            <Route path="new-password" element={<NewPassword/>}/>
-            <Route path="unsubscribe" element={<Unsubscribe/>}/>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="new-password" element={<NewPassword />} />
+            <Route path="unsubscribe" element={<Unsubscribe />} />
           </Route>
         </Route>
       </Routes>

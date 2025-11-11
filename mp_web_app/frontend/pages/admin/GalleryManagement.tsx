@@ -26,7 +26,7 @@ export default function GalleryManagement() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageName, setImageName] = useState("");
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {toast} = useToast();
 
@@ -80,34 +80,34 @@ export default function GalleryManagement() {
       });
       return;
     }
-    
+
     try {
       setUploading(true);
-      
+
       const formData = new FormData();
       formData.append("file", selectedFile);
       if (imageName) {
         formData.append("image_name", imageName);
       }
-      
+
       await apiClient.post("gallery/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
       toast({
         title: "Успех",
         description: "Снимката е качена успешно",
       });
-      
+
       // Reset form
       setSelectedFile(null);
       setImageName("");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      
+
       fetchGallery();
     } catch (err: any) {
       toast({
@@ -127,7 +127,7 @@ export default function GalleryManagement() {
 
   const handleDelete = async () => {
     if (!selectedImage) return;
-    
+
     try {
       await apiClient.delete(`gallery/delete?image_id=${selectedImage.id}`);
       toast({
@@ -146,8 +146,6 @@ export default function GalleryManagement() {
     }
   };
 
-
-
   return (
     <AdminLayout title="Управление на галерия">
       <div className="space-y-6">
@@ -163,15 +161,9 @@ export default function GalleryManagement() {
           >
             <div>
               <label className="text-sm font-medium">Избери снимка</label>
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                disabled={uploading}
-              />
+              <Input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} disabled={uploading} />
             </div>
-            
+
             {selectedFile && (
               <div>
                 <label className="text-sm font-medium">Име на снимката (опционално)</label>
@@ -183,12 +175,8 @@ export default function GalleryManagement() {
                 />
               </div>
             )}
-            
-            <Button
-              type="submit"
-              disabled={uploading || !selectedFile}
-              className="w-full"
-            >
+
+            <Button type="submit" disabled={uploading || !selectedFile} className="w-full">
               {uploading ? "Качване..." : "Качи снимка"}
             </Button>
           </form>
@@ -196,10 +184,8 @@ export default function GalleryManagement() {
 
         {/* Gallery Grid */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">
-            Галерия ({images.length} снимки)
-          </h3>
-          
+          <h3 className="text-lg font-semibold mb-4">Галерия ({images.length} снимки)</h3>
+
           {loading ? (
             <p className="text-center text-muted-foreground">Зареждане...</p>
           ) : images.length === 0 ? (
@@ -208,14 +194,10 @@ export default function GalleryManagement() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[250px] gap-4">
               {images.map((image) => {
                 if (!imageUrls[image.id]) return null;
-                
+
                 return (
                   <Card key={image.id} className="overflow-hidden relative group p-0">
-                    <img
-                      src={imageUrls[image.id]}
-                      alt={image.image_name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={imageUrls[image.id]} alt={image.image_name} className="w-full h-full object-cover" />
                     <Button
                       variant="destructive"
                       size="icon"

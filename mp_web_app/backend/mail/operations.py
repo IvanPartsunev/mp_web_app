@@ -38,15 +38,16 @@ def send_email_ses(
   if text_body is None:
     # Fallback to plain text if not provided
     import re
-    text_body = re.sub('<[^<]+?>', '', html_body)
+
+    text_body = re.sub("<[^<]+?>", "", html_body)
 
   # Build the MIME message
-  msg = MIMEMultipart('alternative')
-  msg['Subject'] = Header(subject, 'utf-8')
-  msg['From'] = settings.sender
-  msg['To'] = to_address
+  msg = MIMEMultipart("alternative")
+  msg["Subject"] = Header(subject, "utf-8")
+  msg["From"] = settings.sender
+  msg["To"] = to_address
   if reply_to:
-    msg['Reply-To'] = reply_to
+    msg["Reply-To"] = reply_to
 
   # Add custom headers
   if headers:
@@ -54,16 +55,14 @@ def send_email_ses(
       msg[k] = v
 
   # Attach plain text and HTML parts
-  part1 = MIMEText(text_body, 'plain', 'utf-8')
-  part2 = MIMEText(html_body, 'html', 'utf-8')
+  part1 = MIMEText(text_body, "plain", "utf-8")
+  part2 = MIMEText(html_body, "html", "utf-8")
   msg.attach(part1)
   msg.attach(part2)
 
   try:
     response = ses_client.send_raw_email(
-      Source=settings.sender,
-      Destinations=[to_address],
-      RawMessage={'Data': msg.as_string()}
+      Source=settings.sender, Destinations=[to_address], RawMessage={"Data": msg.as_string()}
     )
     return response
   except ClientError as e:
@@ -167,12 +166,7 @@ def send_news_notification(
     """
   try:
     send_email_ses(
-      to_address=email,
-      subject=subject,
-      html_body=html_body,
-      headers={
-        "List-Unsubscribe": f"<{unsubscribe_link}>"
-      }
+      to_address=email, subject=subject, html_body=html_body, headers={"List-Unsubscribe": f"<{unsubscribe_link}>"}
     )
   except Exception:
     raise HTTPException(status_code=500, detail="Failed to send email")
@@ -231,7 +225,7 @@ def send_reset_email(
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
   # AWS API Gateway adds /prod stage to the URL
-  base_url = str(request.base_url).rstrip("/") + '/prod'
+  base_url = str(request.base_url).rstrip("/") + "/prod"
   return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 

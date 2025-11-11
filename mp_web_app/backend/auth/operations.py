@@ -17,7 +17,7 @@ from users.models import User, UserSecret
 from users.operations import get_user_by_email, get_user_by_id, get_user_repository, verify_password
 from users.roles import ROLE_HIERARCHY, UserRole
 
-REFRESH_TABLE_NAME = os.environ.get('REFRESH_TABLE_NAME')
+REFRESH_TABLE_NAME = os.environ.get("REFRESH_TABLE_NAME")
 ACCESS_TOKEN_EXPIRE_MINUTES = 1
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
@@ -151,22 +151,12 @@ def invalidate_token(payload: TokenPayload, repo: AuthRepository):
   item = response.get("Item")
 
   if not item:
-    raise HTTPException(
-      status_code=status.HTTP_404_NOT_FOUND,
-      detail="Refresh token not found"
-    )
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Refresh token not found")
 
   if item.get("user_id") != user_id:
-    raise HTTPException(
-      status_code=status.HTTP_403_FORBIDDEN,
-      detail="This token does not belong to the user"
-    )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This token does not belong to the user")
 
-  repo.table.update_item(
-    Key={"id": jti},
-    UpdateExpression="SET valid = :v",
-    ExpressionAttributeValues={":v": False}
-  )
+  repo.table.update_item(Key={"id": jti}, UpdateExpression="SET valid = :v", ExpressionAttributeValues={":v": False})
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
@@ -212,9 +202,10 @@ def role_required(required_roles: list[UserRole]):
 
 def generate_token(
   sub: EmailStr | str,
-  user_id: str, t_type: Literal["activation", "unsubscribe", "reset"],
+  user_id: str,
+  t_type: Literal["activation", "unsubscribe", "reset"],
   exp: int,
-  time_units: Literal["s", "m", "h", "d"]
+  time_units: Literal["s", "m", "h", "d"],
 ):
   settings = get_jwt_settings()
 

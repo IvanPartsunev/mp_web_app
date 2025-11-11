@@ -55,7 +55,6 @@ export default function Gallery() {
 
   return (
     <section className="container mx-auto px-4 py-8">
-
       {loading && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">Зареждане на галерията...</p>
@@ -76,15 +75,12 @@ export default function Gallery() {
 
       {!loading && !error && images.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[200px] gap-4">
-          {images.map((image) => (
-            imageUrls[image.id] && (
-              <GalleryImageCard
-                key={image.id}
-                imageUrl={imageUrls[image.id]}
-                imageName={image.image_name}
-              />
-            )
-          ))}
+          {images.map(
+            (image) =>
+              imageUrls[image.id] && (
+                <GalleryImageCard key={image.id} imageUrl={imageUrls[image.id]} imageName={image.image_name} />
+              )
+          )}
         </div>
       )}
     </section>

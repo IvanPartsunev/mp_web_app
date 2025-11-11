@@ -13,9 +13,9 @@ news_router = APIRouter(tags=["news"])
 
 @news_router.get("/get", status_code=status.HTTP_200_OK)
 async def news_get(
-    news_repo: NewsRepository = Depends(get_news_repository),
-    token: Optional[str] = None,  # Query param (legacy support)
-    authorization: Optional[str] = Header(None),  # Authorization header (standard)
+  news_repo: NewsRepository = Depends(get_news_repository),
+  token: Optional[str] = None,  # Query param (legacy support)
+  authorization: Optional[str] = Header(None),  # Authorization header (standard)
 ):
   # Prefer Authorization header (standard), fallback to query param (legacy)
   auth_token = None
@@ -29,10 +29,10 @@ async def news_get(
 
 @news_router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def news_upload(
-    request: Request,
-    news_data: News,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.ADMIN]))
+  request: Request,
+  news_data: News,
+  news_repo: NewsRepository = Depends(get_news_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
@@ -42,10 +42,10 @@ async def news_upload(
 
 @news_router.post("/update", status_code=status.HTTP_200_OK)
 async def news_update(
-    update: NewsUpdate,
-    news_id: str,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.ADMIN]))
+  update: NewsUpdate,
+  news_id: str,
+  news_repo: NewsRepository = Depends(get_news_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
@@ -55,8 +55,6 @@ async def news_update(
 
 @news_router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def news_delete(
-    news_id: str,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.ADMIN]))
+  news_id: str, news_repo: NewsRepository = Depends(get_news_repository), user=Depends(role_required([UserRole.ADMIN]))
 ):
   return delete_news(news_id=news_id, repo=news_repo)

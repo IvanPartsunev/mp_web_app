@@ -30,12 +30,11 @@ class BaseRepository(ABC):
 
 
 class UserRepository(BaseRepository):
-
   def convert_item_to_object(self, item: dict[str, Any]) -> User:
     """Convert a DynamoDB item to a User model."""
     # Convert Decimal to int for phone
-    if 'phone' in item and isinstance(item['phone'], Decimal):
-      item['phone'] = str(item['phone'])
+    if "phone" in item and isinstance(item["phone"], Decimal):
+      item["phone"] = str(item["phone"])
 
     return User(**item)
 
@@ -45,14 +44,12 @@ class UserRepository(BaseRepository):
 
 
 class AuthRepository(BaseRepository):
-
   def convert_item_to_object(self, item: dict[str, Any]) -> TokenPayload:
     """Convert a DynamoDB item to a Token model."""
     return TokenPayload(**item)
 
 
 class MemberRepository(BaseRepository):
-
   def convert_item_to_object(self, item: dict[str, Any]):
     """Convert a DynamoDB item to a Member model."""
     return Member(**item)
@@ -60,6 +57,7 @@ class MemberRepository(BaseRepository):
 
 class FileMetadataRepository(BaseRepository):
   """Convert a DynamoDB item to a FileMetadata model."""
+
   def convert_item_to_object(self, item: dict[str, Any]):
     return FileMetadata(**item)
 
@@ -69,12 +67,15 @@ class FileMetadataRepository(BaseRepository):
 
 class NewsRepository(BaseRepository):
   """Convert a DynamoDB item to a News model."""
+
   def convert_item_to_object(self, item: dict[str, Any]):
     return News(**item)
 
 
 class GalleryRepository(BaseRepository):
   """Convert a DynamoDB item to a Gallery model."""
+
   def convert_item_to_object(self, item: dict[str, Any]):
     from gallery.models import GalleryImageMetadata
+
     return GalleryImageMetadata(**item)

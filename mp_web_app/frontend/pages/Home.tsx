@@ -37,7 +37,7 @@ export default function Home() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Check if token exists and is expired
         const token = getAccessToken();
         if (token && isJwtExpired(token)) {
@@ -53,7 +53,7 @@ export default function Home() {
             // Just fetch public news
           }
         }
-        
+
         // Now fetch news with fresh token (or no token if refresh failed)
         const response = await apiClient.get("news/get");
         setNews(response.data || []);
@@ -80,19 +80,19 @@ export default function Home() {
   const goToPage = (p: number) => {
     if (p < 1 || p > totalPages) return;
     setPage(p);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({top: 0, behavior: "smooth"});
   };
 
   return (
     <section className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">Новини</h2>
-      
+
       {loading && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">Зареждане на новини...</p>
         </div>
       )}
-      
+
       {error && (
         <div className="text-center py-8">
           <p className="text-destructive mb-4">{error}</p>
@@ -100,9 +100,10 @@ export default function Home() {
             onClick={() => {
               setError(null);
               setLoading(true);
-              apiClient.get("news/get")
-                .then(response => setNews(response.data || []))
-                .catch(err => {
+              apiClient
+                .get("news/get")
+                .then((response) => setNews(response.data || []))
+                .catch((err) => {
                   if (err.response?.status !== 401) {
                     setError("Неуспешно зареждане на новините");
                   }
@@ -116,13 +117,13 @@ export default function Home() {
           </button>
         </div>
       )}
-      
+
       {!loading && !error && news.length === 0 && (
         <div className="text-center py-8">
           <p className="text-muted-foreground">Няма налични новини</p>
         </div>
       )}
-      
+
       {!loading && !error && news.length > 0 && (
         <>
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">

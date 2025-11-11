@@ -16,7 +16,7 @@ def get_dynamodb_client():
   settings = get_dynamodb_settings()
 
   client = boto3.client(
-    'dynamodb',
+    "dynamodb",
     region_name=settings.region_name,
   )
 
@@ -28,7 +28,7 @@ def get_dynamodb_resource():
   settings = get_dynamodb_settings()
 
   resource = boto3.resource(
-    'dynamodb',
+    "dynamodb",
     region_name=settings.region_name,
   )
 

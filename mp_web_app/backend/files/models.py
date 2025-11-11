@@ -22,7 +22,6 @@ class FileMetadata(BaseModel):
   created_at: str = datetime.now().isoformat()
 
 
-
 class FileMetadataFull(FileMetadata):
   bucket: str | None = None
   key: str | None = None

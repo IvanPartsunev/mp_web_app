@@ -54,7 +54,10 @@ export default function UploadFile() {
         return;
       }
       const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+      const base64 = base64Url
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+        .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
       if (String(payload?.role ?? "").toUpperCase() !== "ADMIN") {
         navigate("/");
@@ -70,12 +73,9 @@ export default function UploadFile() {
       setLoadingUsers(true);
       setUsersError("");
       try {
-        const res = await apiClient.get<User[]>(
-          `users/list-users`,
-          {
-            withCredentials: true,
-          }
-        );
+        const res = await apiClient.get<User[]>(`users/list-users`, {
+          withCredentials: true,
+        });
         setUsers(Array.isArray(res.data) ? res.data : []);
       } catch (e: any) {
         const msg = e?.response?.data?.detail || e?.message || "Неуспех при зареждане на потребителите.";
@@ -86,7 +86,6 @@ export default function UploadFile() {
     };
     fetchUsers();
   }, []);
-
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,14 +110,10 @@ export default function UploadFile() {
       selectedUserIds.forEach((id) => fd.append("allowed_to", id));
       fd.append("file", file);
 
-      await apiClient.post(
-        `files/upload`,
-        fd,
-        {
-          // Let axios set multipart/form-data with boundary automatically
-          withCredentials: true,
-        }
-      );
+      await apiClient.post(`files/upload`, fd, {
+        // Let axios set multipart/form-data with boundary automatically
+        withCredentials: true,
+      });
 
       setSuccess("Файлът беше качен успешно.");
       setFile(null);
@@ -129,13 +124,8 @@ export default function UploadFile() {
         setSuccess("");
         navigate("/upload", {replace: true});
       }, 1200);
-
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.message ||
-        err?.message ||
-        "Неуспех при качване.";
+      const msg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Неуспех при качване.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -151,16 +141,14 @@ export default function UploadFile() {
           <CardHeader>
             <CardTitle>Качи документ</CardTitle>
             <CardDescription>
-              Попълнете информацията за документа и изберете файл за качване.
-              Полетата за тип и достъп трябва да съответстват на правилата във вашата система.
+              Попълнете информацията за документа и изберете файл за качване. Полетата за тип и достъп трябва да
+              съответстват на правилата във вашата система.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
               )}
               {success && (
                 <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">
@@ -196,9 +184,7 @@ export default function UploadFile() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground">
-                  Използвайте валидна стойност според FileType в бекенда.
-                </p>
+                <p className="text-xs text-muted-foreground">Използвайте валидна стойност според FileType в бекенда.</p>
               </div>
 
               <div className="grid gap-3">
@@ -226,9 +212,7 @@ export default function UploadFile() {
                             checked={checked}
                             onChange={(e) => {
                               setSelectedUserIds((prev) =>
-                                e.target.checked
-                                  ? [...prev, u.id]
-                                  : prev.filter((id) => id !== u.id)
+                                e.target.checked ? [...prev, u.id] : prev.filter((id) => id !== u.id)
                               );
                             }}
                           />
@@ -239,12 +223,8 @@ export default function UploadFile() {
                   </div>
                 </div>
 
-                {loadingUsers && (
-                  <p className="text-xs text-muted-foreground">Зареждане на потребители...</p>
-                )}
-                {usersError && (
-                  <p className="text-xs text-red-600">{usersError}</p>
-                )}
+                {loadingUsers && <p className="text-xs text-muted-foreground">Зареждане на потребители...</p>}
+                {usersError && <p className="text-xs text-red-600">{usersError}</p>}
                 <p className="text-xs text-muted-foreground">
                   Използвай скрол за да видиш дълги имена. При частни документи е нужно да избереш поне един.
                 </p>

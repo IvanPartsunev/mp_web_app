@@ -50,9 +50,7 @@ export default function Unsubscribe() {
             <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-600" />
             <h1 className="text-2xl font-bold mb-2">Успешно отписване</h1>
             <p className="text-muted-foreground mb-6">{message}</p>
-            <p className="text-sm text-muted-foreground mb-6">
-              Няма да получавате повече имейли с новини от нас.
-            </p>
+            <p className="text-sm text-muted-foreground mb-6">Няма да получавате повече имейли с новини от нас.</p>
             <Link to="/">
               <Button>Към началната страница</Button>
             </Link>

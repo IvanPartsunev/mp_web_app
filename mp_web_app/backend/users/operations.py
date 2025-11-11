@@ -13,11 +13,12 @@ from database.repositories import UserRepository
 from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
-USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
 
 def hash_password(password: str, salt: str) -> str:
   from argon2 import PasswordHasher
+
   ph = PasswordHasher()
   password_with_salt = password + str(salt)
   hashed_password = ph.hash(password_with_salt)
@@ -50,13 +51,13 @@ def validate_password(password: str) -> str:
     raise ValueError("Password must be at less than 30 characters long")
   if len(password) < 8:
     raise ValueError("Password must be at least 8 characters long")
-  if not re.search(r'[A-Z]', password):
+  if not re.search(r"[A-Z]", password):
     raise ValueError("Password must contain at least one uppercase letter")
-  if not re.search(r'[a-z]', password):
+  if not re.search(r"[a-z]", password):
     raise ValueError("Password must contain at least one lowercase letter")
-  if not re.search(r'[0-9]', password):
+  if not re.search(r"[0-9]", password):
     raise ValueError("Password must contain at least one digit")
-  if not re.search(r'[!@#$%^&?]', password):
+  if not re.search(r"[!@#$%^&?]", password):
     raise ValueError("Password must contain at least one special symbol: !@#$%^&?")
 
   return password
@@ -64,7 +65,7 @@ def validate_password(password: str) -> str:
 
 def validate_email(email: EmailStr) -> EmailStr:
   """Check if the given email has a valid structure."""
-  pattern = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+  pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
   if not re.match(pattern, str(email)):
     raise ValueError("Email address structure is not valid")
@@ -91,10 +92,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     hashed_password = hash_password(password, salt)
     phone = validate_phone(user_data.phone)
   except ValueError as e:
-    raise HTTPException(
-      status_code=400,
-      detail=f"Error when creating {user_data.email}: {e}"
-    )
+    raise HTTPException(status_code=400, detail=f"Error when creating {user_data.email}: {e}")
 
   user_item = {
     "id": user_id,
@@ -109,21 +107,15 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     "updated_at": updated_at,
     "salt": salt,
     "password_hash": hashed_password,
-    "subscribed": True
+    "subscribed": True,
   }
 
   try:
     repo.table.put_item(Item=user_item)
   except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
+    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
   except Exception as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"An unexpected error occurred while creating the user. {e}"
-    )
+    raise HTTPException(status_code=500, detail=f"An unexpected error occurred while creating the user. {e}")
 
   return repo.convert_item_to_object(user_item)
 
@@ -142,10 +134,7 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
 
 def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
-  response = repo.table.query(
-    IndexName="email_index",
-    KeyConditionExpression=Key("email").eq(email)
-  )
+  response = repo.table.query(IndexName="email_index", KeyConditionExpression=Key("email").eq(email))
 
   if not response["Items"]:
     return None
@@ -162,8 +151,9 @@ def list_users(repo: UserRepository) -> list[User]:
   return [repo.convert_item_to_object(item) for item in response["Items"]]
 
 
-def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[
-  User]:
+def update_user(
+  user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository
+) -> Optional[User]:
   """Update a user in DynamoDB."""
 
   existing_user = get_user_by_email(user_email, repo)
@@ -190,10 +180,7 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
     try:
       phone = validate_phone(user_data.phone)
     except ValueError as e:
-      raise HTTPException(
-        status_code=400,
-        detail=f"Error when creating {user_data.email}: {e}"
-      )
+      raise HTTPException(status_code=400, detail=f"Error when creating {user_data.email}: {e}")
     update_expression_parts.append("#phone = :phone")
     expression_attribute_values[":phone"] = phone
     expression_attribute_names["#phone"] = "phone"
@@ -228,8 +215,9 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def update_user_password(user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword,
-                         repo: UserRepository) -> Optional[User]:
+def update_user_password(
+  user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword, repo: UserRepository
+) -> Optional[User]:
   """Update the user's password in DynamoDB."""
 
   existing_user = get_user_by_email(user_email, repo, secret=True)
@@ -240,10 +228,7 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
     password = validate_password(user_data.password)
     hashed_password = hash_password(password, existing_user.salt)
   except ValueError as e:
-    raise HTTPException(
-      status_code=400,
-      detail=f"Error when updating password for {user_data.email}: {e}"
-    )
+    raise HTTPException(status_code=400, detail=f"Error when updating password for {user_data.email}: {e}")
 
   update_expression_parts = []
   expression_attribute_values = {}
@@ -264,7 +249,7 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
     UpdateExpression=update_expression,
     ExpressionAttributeValues=expression_attribute_values,
     ExpressionAttributeNames=expression_attribute_names,
-    ReturnValues="ALL_NEW"
+    ReturnValues="ALL_NEW",
   )
   return repo.convert_item_to_object(response["Attributes"])
 
@@ -283,22 +268,16 @@ def delete_user(email: EmailStr, repo: UserRepository) -> bool:
 def get_subscribed_users(repo: UserRepository) -> list[User]:
   """Get all users where subscribed=True."""
   try:
-    response = repo.table.scan(
-      FilterExpression=Key('subscribed').eq(True)
-    )
-    users = [repo.convert_item_to_object(item) for item in response['Items']]
+    response = repo.table.scan(FilterExpression=Key("subscribed").eq(True))
+    users = [repo.convert_item_to_object(item) for item in response["Items"]]
 
     # Handle pagination
-    while 'LastEvaluatedKey' in response:
+    while "LastEvaluatedKey" in response:
       response = repo.table.scan(
-        FilterExpression=Key('subscribed').eq(True),
-        ExclusiveStartKey=response['LastEvaluatedKey']
+        FilterExpression=Key("subscribed").eq(True), ExclusiveStartKey=response["LastEvaluatedKey"]
       )
-      users.extend([repo.convert_item_to_object(item) for item in response['Items']])
+      users.extend([repo.convert_item_to_object(item) for item in response["Items"]])
 
     return users
   except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
+    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")

@@ -15,7 +15,7 @@ export function GalleryImageCard({imageUrl, imageName}: GalleryImageCardProps) {
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const ratio = img.naturalWidth / img.naturalHeight;
-    
+
     // More accurate aspect ratio detection
     if (ratio > 1.15) {
       setAspectRatio("landscape");
@@ -24,7 +24,7 @@ export function GalleryImageCard({imageUrl, imageName}: GalleryImageCardProps) {
     } else {
       setAspectRatio("square");
     }
-    
+
     setImageLoaded(true);
   };
 
@@ -45,9 +45,7 @@ export function GalleryImageCard({imageUrl, imageName}: GalleryImageCardProps) {
           <img
             src={imageUrl}
             alt={imageName}
-            className={`w-full h-full object-cover transition-opacity ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className={`w-full h-full object-cover transition-opacity ${imageLoaded ? "opacity-100" : "opacity-0"}`}
             loading="lazy"
             onLoad={handleImageLoad}
           />
@@ -57,11 +55,7 @@ export function GalleryImageCard({imageUrl, imageName}: GalleryImageCardProps) {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl">
           <DialogTitle className="sr-only">{imageName}</DialogTitle>
-          <img
-            src={imageUrl}
-            alt={imageName}
-            className="w-full h-auto max-h-[80vh] object-contain"
-          />
+          <img src={imageUrl} alt={imageName} className="w-full h-auto max-h-[80vh] object-contain" />
         </DialogContent>
       </Dialog>
     </>

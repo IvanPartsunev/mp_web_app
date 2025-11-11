@@ -4,7 +4,7 @@ import {API_BASE_URL} from "@/app-config";
 import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 
 // Event to notify when token is cleared
-export const tokenClearedEvent = new Event('token-cleared');
+export const tokenClearedEvent = new Event("token-cleared");
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
       error.response?.status === 401 &&
       original &&
       !(original as any)._retry &&
-      !original.url?.includes('/auth/refresh')
+      !original.url?.includes("/auth/refresh")
     ) {
       (original as any)._retry = true;
 
@@ -59,11 +59,7 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
         refreshPromise = (async () => {
           try {
-            const res = await axios.post(
-              `${API_BASE_URL}auth/refresh`,
-              {},
-              {withCredentials: true}
-            );
+            const res = await axios.post(`${API_BASE_URL}auth/refresh`, {}, {withCredentials: true});
             const newToken = res.data?.access_token;
             if (newToken) {
               setAccessToken(newToken);

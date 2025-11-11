@@ -18,7 +18,7 @@ function getInitialAuthState(): boolean {
   return !!token;
 }
 
-export const AuthProvider = ({children}: { children: ReactNode }) => {
+export const AuthProvider = ({children}: {children: ReactNode}) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
   const navigate = useNavigate();
 
@@ -65,15 +65,15 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
     const handleStorage = () => {
       checkAuth();
     };
-    
+
     // Listen for token cleared event from apiClient (when refresh fails)
     const handleTokenCleared = () => {
       setIsLoggedIn(false);
     };
-    
+
     window.addEventListener("storage", handleStorage);
     window.addEventListener("token-cleared", handleTokenCleared);
-    
+
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("token-cleared", handleTokenCleared);
@@ -102,11 +102,7 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
     navigate("/");
   };
 
-  return (
-    <AuthContext.Provider value={{isLoggedIn, login, logout, checkAuth}}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{isLoggedIn, login, logout, checkAuth}}>{children}</AuthContext.Provider>;
 };
 
 export function useAuth() {

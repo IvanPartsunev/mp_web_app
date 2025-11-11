@@ -20,8 +20,7 @@ async def send_notification(request: Request, user_id: str, user_email: str, lin
 
 
 @mail_router.post("/forgot-password", status_code=status.HTTP_200_OK)
-async def send_reset_request(user_data: UserUpdatePasswordEmail,
-                             repo: UserRepository = Depends(get_user_repository)):
+async def send_reset_request(user_data: UserUpdatePasswordEmail, repo: UserRepository = Depends(get_user_repository)):
   email = user_data.email
   user = get_user_by_email(email, repo, secret=True)
   user_id = user.id

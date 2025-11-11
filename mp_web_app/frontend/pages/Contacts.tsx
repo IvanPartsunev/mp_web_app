@@ -4,7 +4,6 @@ import {Mail, Phone, MapPin} from "lucide-react";
 export default function Contacts() {
   return (
     <section className="container mx-auto px-4 py-8">
-
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Contact Information Card */}
         <Card>
@@ -69,9 +68,7 @@ export default function Contacts() {
                 title="Местоположение на ГПК Мурджов пожар"
               />
             </div>
-            <p className="text-sm text-muted-foreground mt-3 text-center">
-              с. Славейно, обл. Смолян
-            </p>
+            <p className="text-sm text-muted-foreground mt-3 text-center">с. Славейно, обл. Смолян</p>
           </CardContent>
         </Card>
         {/* Welcome and History Card */}
@@ -80,7 +77,6 @@ export default function Contacts() {
             <CardTitle className="text-2xl">За нас</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-justify">
-
             <div className="pt-4 border-t">
               <p>
                 Горовладелческа производителна кооперация «Мурджов пожар» в с. Славейно е една от старите кооперации в
@@ -88,8 +84,8 @@ export default function Contacts() {
               </p>
               <p className="mt-3">
                 Учредена е на 20 декември 1924 г. като кооперация на собствениците на ревира «Мурджов пожар»,
-                регистрирана в Пашмаклийския окръжен съд с определение № 568 от 18 май 1926 г. В следващите две години
-                в Славейно са учредени още две горовладелчески кооперации — «Балийско» и «Черни връх».
+                регистрирана в Пашмаклийския окръжен съд с определение № 568 от 18 май 1926 г. В следващите две години в
+                Славейно са учредени още две горовладелчески кооперации — «Балийско» и «Черни връх».
               </p>
               <p className="mt-3">
                 Със закон за задружното стопанисване на частните гори (ДВ бр.25/1942г.) се въвежда задължителното

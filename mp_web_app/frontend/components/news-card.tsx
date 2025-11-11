@@ -26,7 +26,7 @@ export function NewsCard({title, content, author_id, created_at, news_type}: New
           <CardTitle className="text-xl font-bold leading-tight hover:text-primary transition-colors">
             {title}
           </CardTitle>
-          <Badge 
+          <Badge
             variant={news_type === "private" ? "default" : "secondary"}
             className="shrink-0 px-3 py-1 rounded-full"
           >
@@ -39,9 +39,7 @@ export function NewsCard({title, content, author_id, created_at, news_type}: New
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-          {content}
-        </p>
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{content}</p>
       </CardContent>
     </Card>
   );

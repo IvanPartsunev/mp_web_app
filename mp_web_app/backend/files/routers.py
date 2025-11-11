@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 
 from auth.operations import role_required
@@ -17,7 +16,7 @@ async def upload_files(
   allowed_to: list[str] = Form([]),
   file: UploadFile = File(...),
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
   file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
   return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
@@ -27,7 +26,7 @@ async def upload_files(
 async def get_files(
   file_type: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
   return get_files_metadata(file_type, repo)
 
@@ -36,7 +35,7 @@ async def get_files(
 async def delete_files(
   files_metadata: list[FileMetadata],
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
   delete_file(files_metadata, repo)
   file_names = [file.file_name for file in files_metadata]
@@ -47,6 +46,6 @@ async def delete_files(
 async def download_files(
   file_metadata: FileMetadata | list[FileMetadata],
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))
+  user=Depends(role_required([UserRole.REGULAR_USER])),
 ):
   return download_file(file_metadata=file_metadata, repo=repo, user=user)

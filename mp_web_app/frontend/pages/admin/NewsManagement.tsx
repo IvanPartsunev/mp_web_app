@@ -5,13 +5,19 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {Badge} from "@/components/ui/badge";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 import {getAccessToken} from "@/context/tokenStore";
-
 
 interface News {
   id: string;
@@ -29,7 +35,7 @@ export default function NewsManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -43,7 +49,7 @@ export default function NewsManagement() {
       setLoading(true);
       const token = getAccessToken();
       const response = await apiClient.get("news/get", {
-        params: token ? { token } : {},
+        params: token ? {token} : {},
       });
       setNews(response.data || []);
     } catch (err: any) {
@@ -148,9 +154,7 @@ export default function NewsManagement() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Създай нова новина</DialogTitle>
-                <DialogDescription>
-                  Попълнете формата за да създадете нова новина
-                </DialogDescription>
+                <DialogDescription>Попълнете формата за да създадете нова новина</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -174,9 +178,7 @@ export default function NewsManagement() {
                   <label className="text-sm font-medium">Тип</label>
                   <Select
                     value={formData.news_type}
-                    onValueChange={(value: "regular" | "private") =>
-                      setFormData({...formData, news_type: value})
-                    }
+                    onValueChange={(value: "regular" | "private") => setFormData({...formData, news_type: value})}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -218,23 +220,13 @@ export default function NewsManagement() {
                       {item.news_type === "private" ? "За членове" : "Обществена"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {new Date(item.created_at).toLocaleDateString("bg-BG")}
-                  </TableCell>
+                  <TableCell>{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(item)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         Редактирай
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => openDeleteDialog(item)}
-                      >
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item)}>
                         Изтрий
                       </Button>
                     </div>
@@ -250,17 +242,12 @@ export default function NewsManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай новина</DialogTitle>
-              <DialogDescription>
-                Редактирайте детайлите на новината
-              </DialogDescription>
+              <DialogDescription>Редактирайте детайлите на новината</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Заглавие</label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                />
+                <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
               </div>
               <div>
                 <label className="text-sm font-medium">Съдържание</label>
@@ -274,9 +261,7 @@ export default function NewsManagement() {
                 <label className="text-sm font-medium">Тип</label>
                 <Select
                   value={formData.news_type}
-                  onValueChange={(value: "regular" | "private") =>
-                    setFormData({...formData, news_type: value})
-                  }
+                  onValueChange={(value: "regular" | "private") => setFormData({...formData, news_type: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />

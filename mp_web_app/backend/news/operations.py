@@ -11,7 +11,7 @@ from auth.operations import is_token_expired
 from database.repositories import NewsRepository, UserRepository
 from news.models import News, NewsType, NewsUpdate
 
-NEWS_TABLE_NAME = os.environ.get('NEWS_TABLE_NAME')
+NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")
 
 
 def get_news_repository() -> NewsRepository:
@@ -43,15 +43,13 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
   try:
     repo.table.put_item(Item=news_item)
   except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
+    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
 
   # Send email notifications to subscribed users (non-blocking)
   if request:
     try:
       from users.operations import get_user_repository
+
       user_repo = get_user_repository()
       notify_subscribed_users(news_data, news_id, request, user_repo)
     except Exception as e:
@@ -132,20 +130,20 @@ def get_news(repo: NewsRepository, news_id: str | None = None, token: str | None
   one_year_ago_iso = one_year_ago.isoformat()
 
   query_kwargs = {
-    "IndexName": 'news_created_at_index',
-    "KeyConditionExpression": Key("news").eq('news') & Key('created_at').gte(one_year_ago_iso),
+    "IndexName": "news_created_at_index",
+    "KeyConditionExpression": Key("news").eq("news") & Key("created_at").gte(one_year_ago_iso),
     "ScanIndexForward": False,
   }
 
   if not token or is_token_expired(token):
-    query_kwargs['FilterExpression'] = Attr('news_type').eq(NewsType.regular)
+    query_kwargs["FilterExpression"] = Attr("news_type").eq(NewsType.regular)
 
   response = repo.table.query(**query_kwargs)
-  items = response['Items']
+  items = response["Items"]
 
-  while 'LastEvaluatedKey' in response:
+  while "LastEvaluatedKey" in response:
     response = repo.table.query(**query_kwargs)
-    items.extend(response['Items'])
+    items.extend(response["Items"])
   return items
 
 
@@ -164,12 +162,7 @@ def notify_subscribed_users(news_data: News, news_id: str, request: Request, use
     # Send email to each subscribed user
     for user in subscribed_users:
       try:
-        send_news_notification(
-          request=request,
-          user_id=user.id,
-          email=user.email,
-          news_link=news_link
-        )
+        send_news_notification(request=request, user_id=user.id, email=user.email, news_link=news_link)
       except Exception as e:
         # Log individual email failures but continue
         print(f"Failed to send email to {user.email}: {e}")
@@ -177,6 +170,3 @@ def notify_subscribed_users(news_data: News, news_id: str, request: Request, use
   except Exception as e:
     # Log error but don't raise exception
     print(f"Error in notify_subscribed_users: {e}")
-
-
-

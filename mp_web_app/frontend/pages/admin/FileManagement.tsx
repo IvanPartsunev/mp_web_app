@@ -36,7 +36,7 @@ export default function FileManagement() {
         "private_documents",
         "others",
       ];
-      
+
       const allFiles: FileMetadata[] = [];
       for (const type of fileTypes) {
         try {
@@ -48,7 +48,7 @@ export default function FileManagement() {
           console.error(`Failed to fetch ${type}:`, err);
         }
       }
-      
+
       setFiles(allFiles);
     } catch (err) {
       toast({
@@ -78,20 +78,22 @@ export default function FileManagement() {
   const handleDelete = async () => {
     try {
       const filesToDelete = files.filter((f) => selectedFiles.has(f.id));
-      
+
       // Call delete endpoint for each file
       for (const file of filesToDelete) {
         await apiClient.delete("files/delete", {
-          data: [{
-            id: file.id,
-            file_name: file.file_name,
-            file_type: file.file_type,
-            uploaded_by: file.uploaded_by,
-            created_at: file.created_at,
-          }],
+          data: [
+            {
+              id: file.id,
+              file_name: file.file_name,
+              file_type: file.file_type,
+              uploaded_by: file.uploaded_by,
+              created_at: file.created_at,
+            },
+          ],
         });
       }
-      
+
       toast({
         title: "Успех",
         description: `${filesToDelete.length} файла са изтрити успешно`,
@@ -108,26 +110,24 @@ export default function FileManagement() {
     }
   };
 
-  const groupedFiles = files.reduce((acc, file) => {
-    if (!acc[file.file_type]) {
-      acc[file.file_type] = [];
-    }
-    acc[file.file_type].push(file);
-    return acc;
-  }, {} as Record<string, FileMetadata[]>);
+  const groupedFiles = files.reduce(
+    (acc, file) => {
+      if (!acc[file.file_type]) {
+        acc[file.file_type] = [];
+      }
+      acc[file.file_type].push(file);
+      return acc;
+    },
+    {} as Record<string, FileMetadata[]>
+  );
 
   return (
     <AdminLayout title="Управление на файлове">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">
-            Списък с файлове ({files.length} общо)
-          </h3>
+          <h3 className="text-lg font-semibold">Списък с файлове ({files.length} общо)</h3>
           {selectedFiles.size > 0 && (
-            <Button
-              variant="destructive"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
+            <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
               Изтрий избраните ({selectedFiles.size})
             </Button>
           )}
@@ -177,9 +177,7 @@ export default function FileManagement() {
                         </TableCell>
                         <TableCell className="font-medium">{file.file_name}</TableCell>
                         <TableCell>{file.uploaded_by}</TableCell>
-                        <TableCell>
-                          {new Date(file.created_at).toLocaleDateString("bg-BG")}
-                        </TableCell>
+                        <TableCell>{new Date(file.created_at).toLocaleDateString("bg-BG")}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

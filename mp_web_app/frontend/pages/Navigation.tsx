@@ -120,8 +120,7 @@ export function Navigation() {
   const isMobile = windowWidth < 980;
 
   // Helper to filter dropdown items based on auth
-  const filterDropdown = (dropdown: any[]) =>
-    dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
+  const filterDropdown = (dropdown: any[]) => dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
   // Decode role from access token to check role
   const getUserRole = (): "admin" | "board" | "control" | "regular" | null => {
@@ -129,7 +128,10 @@ export function Navigation() {
       const token = localStorage.getItem("access_token");
       if (!token) return null;
       const base64Url = token.split(".")[1] || "";
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+      const base64 = base64Url
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+        .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role || "").toLowerCase();
       if (role === "admin" || role === "board" || role === "control" || role === "regular") return role as any;
@@ -162,10 +164,11 @@ export function Navigation() {
       className={`
         fixed inset-0 z-50 bg-background flex flex-col p-6
         transition-all duration-300 overflow-y-auto
-        ${menuAnimating
-        ? "opacity-100 translate-x-0 pointer-events-auto"
-        : "opacity-0 -translate-x-full pointer-events-none"
-      }
+        ${
+          menuAnimating
+            ? "opacity-100 translate-x-0 pointer-events-auto"
+            : "opacity-0 -translate-x-full pointer-events-none"
+        }
       `}
     >
       <div className="flex justify-between items-center mb-8">
@@ -175,7 +178,7 @@ export function Navigation() {
           className="p-2 rounded hover:bg-accent menu-button bg-primary"
           aria-label="Затвори менюто"
         >
-          <CloseIcon size={28}/>
+          <CloseIcon size={28} />
         </Button>
       </div>
       <nav className="flex flex-col gap-4">
@@ -207,12 +210,9 @@ export function Navigation() {
 
           // Role-based filtering for Documents
           const documentsItems = isDocuments
-            ? (isAdmin || isBoardOrControl
+            ? isAdmin || isBoardOrControl
               ? link.dropdown
-              : link.dropdown.filter(
-                (item: any) =>
-                  item.to === "/governing-documents" || item.to === "/forms"
-              ))
+              : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
             : filterDropdown(link.dropdown);
 
           const itemsToRender = isDocuments ? documentsItems : link.dropdown;
@@ -329,12 +329,9 @@ export function Navigation() {
 
                 // Role-based filtering for Documents
                 const documentsItems = isDocuments
-                  ? (isAdmin || isBoardOrControl
+                  ? isAdmin || isBoardOrControl
                     ? link.dropdown
-                    : link.dropdown.filter(
-                      (item: any) =>
-                        item.to === "/governing-documents" || item.to === "/forms"
-                    ))
+                    : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
                   : filterDropdown(link.dropdown);
 
                 const itemsToRender = isDocuments ? documentsItems : link.dropdown;
@@ -353,9 +350,7 @@ export function Navigation() {
                             <NavigationMenuLink asChild key={item.label}>
                               <Link to={item.to}>
                                 <div className="font-medium">{item.label}</div>
-                                <div className="text-muted-foreground text-xs">
-                                  {item.description}
-                                </div>
+                                <div className="text-muted-foreground text-xs">{item.description}</div>
                               </Link>
                             </NavigationMenuLink>
                           ))}
@@ -390,17 +385,13 @@ export function Navigation() {
                         <NavigationMenuLink asChild>
                           <Link to="/login">
                             <div className="font-medium">Влез</div>
-                            <div className="text-muted-foreground text-xs">
-                              Влезе в своя акаунт
-                            </div>
+                            <div className="text-muted-foreground text-xs">Влезе в своя акаунт</div>
                           </Link>
                         </NavigationMenuLink>
                         <NavigationMenuLink asChild>
                           <Link to="/register">
                             <div className="font-medium">Създай</div>
-                            <div className="text-muted-foreground text-xs">
-                              Създай акаунт ако си член на ГПК
-                            </div>
+                            <div className="text-muted-foreground text-xs">Създай акаунт ако си член на ГПК</div>
                           </Link>
                         </NavigationMenuLink>
                       </li>
@@ -409,10 +400,7 @@ export function Navigation() {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem>
-                  <Button
-                    className="ml-2"
-                    onClick={logout}
-                  >
+                  <Button className="ml-2" onClick={logout}>
                     Изход
                   </Button>
                 </NavigationMenuItem>
@@ -430,7 +418,7 @@ export function Navigation() {
             className="flex items-center gap-3 px-5 py-3 bg-primary text-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all"
             aria-label="Отвори менюто"
           >
-            <MenuIcon className="w-6 h-6"/>
+            <MenuIcon className="w-6 h-6" />
             <span className="text-lg font-semibold">Меню</span>
           </Button>
         </div>
@@ -440,7 +428,7 @@ export function Navigation() {
       {showMobileMenu && mobileMenu}
 
       <div>
-        <Outlet/>
+        <Outlet />
       </div>
     </div>
   );

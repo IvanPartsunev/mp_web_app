@@ -1,13 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {X as XIcon} from "lucide-react";
@@ -19,12 +13,7 @@ interface NewPasswordFormProps extends React.ComponentProps<"div"> {
   token: string;
 }
 
-export function NewPasswordForm({
-                                  className,
-                                  email,
-                                  token,
-                                  ...props
-                                }: NewPasswordFormProps) {
+export function NewPasswordForm({className, email, token, ...props}: NewPasswordFormProps) {
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
@@ -62,10 +51,7 @@ export function NewPasswordForm({
   };
 
   const validatePasswords = () => {
-    return (
-      formData.password === formData.confirmPassword &&
-      formData.password.length > 0
-    );
+    return formData.password === formData.confirmPassword && formData.password.length > 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,16 +77,13 @@ export function NewPasswordForm({
         password: formData.password,
       };
 
-      const response = await fetch(
-        `${API_BASE_URL}users/reset-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}users/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       let result;
       try {
@@ -131,10 +114,7 @@ export function NewPasswordForm({
   };
 
   const passwordsMatch = validatePasswords();
-  const showPasswordError =
-    errors.submitted &&
-    !passwordsMatch &&
-    formData.confirmPassword.length > 0;
+  const showPasswordError = errors.submitted && !passwordsMatch && formData.confirmPassword.length > 0;
 
   // Redirect to login after success message
   useEffect(() => {
@@ -152,18 +132,12 @@ export function NewPasswordForm({
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">
-              Паролата е сменена успешно!
-            </CardTitle>
+            <CardTitle className="text-center">Паролата е сменена успешно!</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <p className="text-green-600 mb-4">
-                Можете да влезете с новата си парола.
-              </p>
-              <p className="text-sm text-gray-500">
-                Ще бъдете пренасочени ...
-              </p>
+              <p className="text-green-600 mb-4">Можете да влезете с новата си парола.</p>
+              <p className="text-sm text-gray-500">Ще бъдете пренасочени ...</p>
             </div>
           </CardContent>
         </Card>
@@ -181,9 +155,7 @@ export function NewPasswordForm({
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {errors.api && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {errors.api}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{errors.api}</div>
               )}
 
               <div className="grid gap-3">
@@ -194,9 +166,7 @@ export function NewPasswordForm({
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
+                  onChange={(e) => handleInputChange("password", e.target.value)}
                   disabled={isLoading}
                   required
                 />
@@ -210,43 +180,30 @@ export function NewPasswordForm({
                   id="confirm-password"
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                  className={cn(
-                    showPasswordError &&
-                    "border-red-500 focus-visible:ring-red-500/20"
-                  )}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  className={cn(showPasswordError && "border-red-500 focus-visible:ring-red-500/20")}
                   disabled={isLoading}
                   required
                 />
                 {showPasswordError && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
-                    <XIcon size={14}/>
+                    <XIcon size={14} />
                     Паролите не съвпадат
                   </p>
                 )}
                 {formData.confirmPassword.length > 0 && passwordsMatch && (
-                  <p className="text-sm text-green-600">
-                    ✓ Паролите съвпадат
-                  </p>
+                  <p className="text-sm text-green-600">✓ Паролите съвпадат</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква,
-                  една цифра и един специален символ: !@#$%^&?
+                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква, една
+                  цифра и един специален символ: !@#$%^&?
                 </p>
               </div>
 
-              <CardDescription>
-                Моля, въведете новата си парола два пъти за потвърждение.
-              </CardDescription>
+              <CardDescription>Моля, въведете новата си парола два пъти за потвърждение.</CardDescription>
 
               <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Смяна на парола..." : "Смени паролата"}
                 </Button>
               </div>

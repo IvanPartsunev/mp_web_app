@@ -9,7 +9,6 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 
-
 interface User {
   id: string;
   first_name: string;
@@ -35,7 +34,7 @@ export default function UserManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
+
   const [formData, setFormData] = useState<{
     role: string;
     active: boolean;
@@ -150,18 +149,10 @@ export default function UserManagement() {
                   <TableCell>{user.subscribed ? "Да" : "Не"}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(user)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
                         Редактирай
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => openDeleteDialog(user)}
-                      >
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
                         Изтрий
                       </Button>
                     </div>
@@ -173,28 +164,26 @@ export default function UserManagement() {
         )}
 
         {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={(open) => {
-          setEditDialogOpen(open);
-          if (!open) {
-            setFormData(null);
-            setSelectedUser(null);
-          }
-        }}>
+        <Dialog
+          open={editDialogOpen}
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) {
+              setFormData(null);
+              setSelectedUser(null);
+            }
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай потребител</DialogTitle>
-              <DialogDescription>
-                Променете ролята и настройките на потребителя
-              </DialogDescription>
+              <DialogDescription>Променете ролята и настройките на потребителя</DialogDescription>
             </DialogHeader>
             {formData && (
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Роля</label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value) => setFormData({...formData, role: value})}
-                  >
+                  <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
