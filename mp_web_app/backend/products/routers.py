@@ -23,8 +23,9 @@ async def product_create(
   ...
 
 
-@product_router.post("/update", status_code=status.HTTP_200_OK)
+@product_router.put("/update/{product_id}", status_code=status.HTTP_200_OK)
 async def product_update(
+  product_id: str,
   product: ProductModel,
   product_repo: ProductRepository = Depends(get_product_repository),
   user=Depends(role_required([UserRole.ADMIN]))
@@ -32,8 +33,8 @@ async def product_update(
   ...
 
 
-@product_router.post("/delete", status_code=status.HTTP_204_NO_CONTENT)
-async def product_update(
+@product_router.delete("/delete/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def product_delete(
   product_id: str,
   product_repo: ProductRepository = Depends(get_product_repository),
   user=Depends(role_required([UserRole.ADMIN]))

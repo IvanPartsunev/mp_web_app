@@ -31,9 +31,8 @@ app.include_router(mail_router, prefix="/api/mail")
 app.include_router(file_router, prefix="/api/files")
 app.include_router(news_router, prefix="/api/news")
 app.include_router(gallery_router, prefix="/api/gallery")
-app.include_router(member_router, prefix="/api/member")
-
-app.include_router(product_router, prefix="/api/product")
+app.include_router(member_router, prefix="/api/members")
+app.include_router(product_router, prefix="/api/products")
 
 from mangum import Mangum
 

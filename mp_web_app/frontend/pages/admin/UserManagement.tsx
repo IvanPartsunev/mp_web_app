@@ -46,7 +46,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get("users/list-users");
+      const response = await apiClient.get("users/list");
       // Force a new array reference to trigger React re-render
       setUsers([...(response.data || [])]);
     } catch (err) {

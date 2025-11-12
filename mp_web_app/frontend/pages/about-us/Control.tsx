@@ -22,7 +22,7 @@ export default function Control() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await apiClient.get("users/control-members");
+        const response = await apiClient.get("users/control");
         setMembers(response.data || []);
       } catch (error) {
         console.error("Failed to fetch control members:", error);

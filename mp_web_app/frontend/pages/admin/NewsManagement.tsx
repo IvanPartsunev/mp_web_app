@@ -48,7 +48,7 @@ export default function NewsManagement() {
     try {
       setLoading(true);
       const token = getAccessToken();
-      const response = await apiClient.get("news/get", {
+      const response = await apiClient.get("news/list", {
         params: token ? {token} : {},
       });
       setNews(response.data || []);
@@ -69,7 +69,7 @@ export default function NewsManagement() {
 
   const handleCreate = async () => {
     try {
-      await apiClient.post("news/upload", formData);
+      await apiClient.post("news/create", formData);
       toast({
         title: "Успех",
         description: "Новината е създадена успешно",
@@ -89,7 +89,7 @@ export default function NewsManagement() {
   const handleEdit = async () => {
     if (!selectedNews) return;
     try {
-      await apiClient.post(`news/update?news_id=${selectedNews.id}`, formData);
+      await apiClient.put(`news/update/${selectedNews.id}`, formData);
       toast({
         title: "Успех",
         description: "Новината е обновена успешно",
@@ -110,7 +110,7 @@ export default function NewsManagement() {
   const handleDelete = async () => {
     if (!selectedNews) return;
     try {
-      await apiClient.delete(`news/delete?news_id=${selectedNews.id}`);
+      await apiClient.delete(`news/delete/${selectedNews.id}`);
       toast({
         title: "Успех",
         description: "Новината е изтрита успешно",

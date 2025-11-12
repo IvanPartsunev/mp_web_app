@@ -44,7 +44,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         // Make a lightweight request to validate token
         // If token is expired, apiClient interceptor will automatically refresh it
         // Using news/get as a lightweight endpoint (returns quickly)
-        await apiClient.get("news/get");
+        await apiClient.get("news/list");
         // If we get here, token is valid or was refreshed successfully
         setIsLoggedIn(true);
       } catch (error: any) {

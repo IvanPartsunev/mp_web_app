@@ -55,7 +55,7 @@ export default function Home() {
         }
 
         // Now fetch news with fresh token (or no token if refresh failed)
-        const response = await apiClient.get("news/get");
+        const response = await apiClient.get("news/list");
         setNews(response.data || []);
       } catch (err: any) {
         if (err.response?.status !== 401) {

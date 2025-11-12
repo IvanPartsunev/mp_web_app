@@ -18,8 +18,8 @@ from users.roles import UserRole
 file_router = APIRouter(tags=["files"])
 
 
-@file_router.post("/upload", response_model=FileMetadata, status_code=status.HTTP_201_CREATED)
-async def upload_files(
+@file_router.post("/create", response_model=FileMetadata, status_code=status.HTTP_201_CREATED)
+async def file_create(
   file_name: str = Form(...),
   file_type: FileType = Form(...),
   allowed_to: list[str] = Form([]),
@@ -40,8 +40,8 @@ async def upload_files(
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@file_router.get("/get_files", status_code=status.HTTP_200_OK)
-async def get_files(
+@file_router.get("/list", status_code=status.HTTP_200_OK)
+async def files_list(
   file_type: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
@@ -52,16 +52,17 @@ async def get_files(
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@file_router.post("/delete_files", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_files(
-  files_metadata: list[FileMetadata],
+@file_router.delete("/delete/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def file_delete(
+  file_id: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.ADMIN]))
 ):
+  """Delete a single file by ID (ADMIN only)."""
   try:
-    delete_file(files_metadata, repo)
-    file_names = [file.file_name for file in files_metadata]
-    return f"Deleted file names: {', '.join(file_names)}"
+    delete_file(file_id, repo)
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
   except FileUploadError as e:
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except MetadataError as e:

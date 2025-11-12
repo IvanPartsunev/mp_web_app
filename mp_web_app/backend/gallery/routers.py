@@ -16,8 +16,8 @@ from users.roles import UserRole
 gallery_router = APIRouter(tags=["gallery"])
 
 
-@gallery_router.post("/upload", response_model=GalleryImageMetadata, status_code=status.HTTP_201_CREATED)
-async def gallery_upload(
+@gallery_router.post("/create", response_model=GalleryImageMetadata, status_code=status.HTTP_201_CREATED)
+async def gallery_create(
   file: UploadFile = File(...),
   image_name: str = Form(None),
   gallery_repo: GalleryRepository = Depends(get_gallery_repository),
@@ -49,7 +49,7 @@ async def gallery_list(gallery_repo: GalleryRepository = Depends(get_gallery_rep
     )
 
 
-@gallery_router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+@gallery_router.delete("/delete/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def gallery_delete(
   image_id: str,
   gallery_repo: GalleryRepository = Depends(get_gallery_repository),
@@ -70,7 +70,7 @@ async def gallery_delete(
     )
 
 
-@gallery_router.get("/image/{image_id}", status_code=status.HTTP_200_OK)
+@gallery_router.get("/{image_id}/url", status_code=status.HTTP_200_OK)
 async def gallery_image_url(image_id: str, gallery_repo: GalleryRepository = Depends(get_gallery_repository)):
   """Get presigned URL for a gallery image."""
   try:

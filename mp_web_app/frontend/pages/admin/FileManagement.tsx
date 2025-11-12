@@ -40,7 +40,7 @@ export default function FileManagement() {
       const allFiles: FileMetadata[] = [];
       for (const type of fileTypes) {
         try {
-          const response = await apiClient.get(`files/get?file_type=${type}`);
+          const response = await apiClient.get(`files/list?file_type=${type}`);
           if (response.data) {
             allFiles.push(...response.data);
           }
@@ -79,19 +79,9 @@ export default function FileManagement() {
     try {
       const filesToDelete = files.filter((f) => selectedFiles.has(f.id));
 
-      // Call delete endpoint for each file
+      // Delete each file
       for (const file of filesToDelete) {
-        await apiClient.delete("files/delete", {
-          data: [
-            {
-              id: file.id,
-              file_name: file.file_name,
-              file_type: file.file_type,
-              uploaded_by: file.uploaded_by,
-              created_at: file.created_at,
-            },
-          ],
-        });
+        await apiClient.delete(`files/delete/${file.id}`);
       }
 
       toast({

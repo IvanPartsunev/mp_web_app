@@ -98,34 +98,24 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository):
     raise MetadataError(f"Failed to fetch files metadata: {e}")
 
 
-@retry()
-def delete_file(file_metadata: list[FileMetadata], repo: FileMetadataRepository):
-  db_metadata_objects = [get_db_metadata(file_meta, repo) for file_meta in file_metadata]
-  item_ids = [metadata.id for metadata in db_metadata_objects]
-  keys = [metadata.key for metadata in db_metadata_objects]
-
+def delete_file(file_id: str, repo: FileMetadataRepository) -> bool:
+  """Delete a single file by ID."""
   s3 = boto3.client("s3")
-  try:
-    if len(file_metadata) == 1:
-      s3.delete_object(Bucket=BUCKET, Key=keys[0])
-    else:
-      objects = [{"Key": key} for key in keys]
-      s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects})
-    _delete_file_metadata(item_ids=item_ids, repo=repo)
-  except Exception as e:
-    raise FileUploadError(f"Error when deleting the file/s: {e}")
 
-
-def _delete_file_metadata(item_ids: list[str], repo: FileMetadataRepository):
   try:
-    if len(item_ids) == 1:
-      repo.table.delete_item(Key={"id": item_ids[0]})
-    else:
-      with repo.table.batch_write() as batch:
-        for item_id in item_ids:
-          batch.delete_item(Key={"id": item_id})
+    response = repo.table.get_item(Key={"id": file_id})
+    if "Item" not in response:
+      raise FileNotFoundError(f"File with id {file_id} not found")
+
+    db_metadata = repo.convert_item_to_object_full(response["Item"])
+    s3.delete_object(Bucket=db_metadata.bucket, Key=db_metadata.key)
+    repo.table.delete_item(Key={"id": file_id})
+
+    return True
+  except FileNotFoundError:
+    raise
   except Exception as e:
-    raise MetadataError(f"Failed to delete metadata: {e}")
+    raise FileUploadError(f"Error when deleting the file: {e}")
 
 
 def _create_file_name(file_name: str, original_name: str):

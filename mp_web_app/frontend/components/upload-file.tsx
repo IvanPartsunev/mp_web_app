@@ -110,7 +110,7 @@ export default function UploadFile() {
       selectedUserIds.forEach((id) => fd.append("allowed_to", id));
       fd.append("file", file);
 
-      await apiClient.post(`files/upload`, fd, {
+      await apiClient.post(`files/create`, fd, {
         // Let axios set multipart/form-data with boundary automatically
         withCredentials: true,
       });

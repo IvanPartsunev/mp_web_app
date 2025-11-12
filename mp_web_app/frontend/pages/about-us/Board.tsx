@@ -22,7 +22,7 @@ export default function Board() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await apiClient.get("users/board-members");
+        const response = await apiClient.get("users/board");
         setMembers(response.data || []);
       } catch (error) {
         console.error("Failed to fetch board members:", error);

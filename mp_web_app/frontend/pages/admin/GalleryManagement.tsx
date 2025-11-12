@@ -90,7 +90,7 @@ export default function GalleryManagement() {
         formData.append("image_name", imageName);
       }
 
-      await apiClient.post("gallery/upload", formData, {
+      await apiClient.post("gallery/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -129,7 +129,7 @@ export default function GalleryManagement() {
     if (!selectedImage) return;
 
     try {
-      await apiClient.delete(`gallery/delete?image_id=${selectedImage.id}`);
+      await apiClient.delete(`gallery/delete/${selectedImage.id}`);
       toast({
         title: "Успех",
         description: "Снимката е изтрита успешно",

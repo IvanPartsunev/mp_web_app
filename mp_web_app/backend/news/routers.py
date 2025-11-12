@@ -12,8 +12,8 @@ from users.roles import UserRole
 news_router = APIRouter(tags=["news"])
 
 
-@news_router.get("/get", status_code=status.HTTP_200_OK)
-async def news_get(
+@news_router.get("/list", status_code=status.HTTP_200_OK)
+async def news_list(
   news_repo: NewsRepository = Depends(get_news_repository),
   token: Optional[str] = None,  # Query param (legacy support)
   authorization: Optional[str] = Header(None),  # Authorization header (standard)
@@ -28,8 +28,8 @@ async def news_get(
   return get_news(repo=news_repo, token=auth_token)
 
 
-@news_router.post("/upload", status_code=status.HTTP_201_CREATED)
-async def news_upload(
+@news_router.post("/create", status_code=status.HTTP_201_CREATED)
+async def news_create(
   request: Request,
   news_data: News,
   news_repo: NewsRepository = Depends(get_news_repository),
@@ -43,10 +43,10 @@ async def news_upload(
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
 
 
-@news_router.post("/update", status_code=status.HTTP_200_OK)
+@news_router.put("/update/{news_id}", status_code=status.HTTP_200_OK)
 async def news_update(
-  update: NewsUpdate,
   news_id: str,
+  update: NewsUpdate,
   news_repo: NewsRepository = Depends(get_news_repository),
   user=Depends(role_required([UserRole.ADMIN])),
 ):
@@ -58,7 +58,7 @@ async def news_update(
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
 
 
-@news_router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+@news_router.delete("/delete/{news_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def news_delete(
   news_id: str, news_repo: NewsRepository = Depends(get_news_repository), user=Depends(role_required([UserRole.ADMIN]))
 ):

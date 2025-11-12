@@ -24,7 +24,7 @@ from users.roles import UserRole
 user_router = APIRouter(tags=["users"])
 
 
-@user_router.get("/list-users", response_model=list[User], status_code=status.HTTP_200_OK)
+@user_router.get("/list", response_model=list[User], status_code=status.HTTP_200_OK)
 async def users_list(
   user_repo: UserRepository = Depends(get_user_repository), user=Depends(role_required([UserRole.REGULAR_USER]))
 ):
@@ -34,7 +34,7 @@ async def users_list(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@user_router.get("/board-members", response_model=list[User], status_code=status.HTTP_200_OK)
+@user_router.get("/board", response_model=list[User], status_code=status.HTTP_200_OK)
 async def board_members_list(user_repo: UserRepository = Depends(get_user_repository)):
   """Public endpoint to get board members."""
   try:
@@ -44,7 +44,7 @@ async def board_members_list(user_repo: UserRepository = Depends(get_user_reposi
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@user_router.get("/control-members", response_model=list[User], status_code=status.HTTP_200_OK)
+@user_router.get("/control", response_model=list[User], status_code=status.HTTP_200_OK)
 async def control_members_list(user_repo: UserRepository = Depends(get_user_repository)):
   """Public endpoint to get control members."""
   try:
