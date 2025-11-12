@@ -1,8 +1,8 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from fastapi import HTTPException
 
+from users.exceptions import ValidationError
 from users.models import UserCreate, UserUpdate
 from users.operations import (
   create_user,
@@ -143,10 +143,8 @@ class TestCreateUser:
       member_code="CODE123",
     )
 
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(ValidationError):
       create_user(user_data, mock_request, mock_repo)
-
-    assert exc_info.value.status_code == 400
 
 
 class TestUpdateUser:

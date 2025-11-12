@@ -4,6 +4,7 @@ from starlette.responses import HTMLResponse
 
 from auth.operations import decode_token, is_token_expired
 from database.repositories import UserRepository
+from mail.exceptions import EmailSendError, InvalidTokenError
 from mail.operations import construct_reset_link, send_news_notification, send_reset_email
 from users.models import UserUpdate, UserUpdatePasswordEmail
 from users.operations import get_user_by_email, get_user_repository, update_user
@@ -13,19 +14,25 @@ mail_router = APIRouter(tags=["email"])
 
 @mail_router.post("/send-news", status_code=status.HTTP_200_OK)
 async def send_notification(request: Request, user_id: str, user_email: str, link: str):
-  user_id = user_id
-  user_email = user_email
-  link = link
-  send_news_notification(request, user_id, user_email, link)
+  try:
+    user_id = user_id
+    user_email = user_email
+    link = link
+    send_news_notification(request, user_id, user_email, link)
+  except EmailSendError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @mail_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 async def send_reset_request(user_data: UserUpdatePasswordEmail, repo: UserRepository = Depends(get_user_repository)):
-  email = user_data.email
-  user = get_user_by_email(email, repo, secret=True)
-  user_id = user.id
-  link = construct_reset_link(user_id, email)
-  send_reset_email(email, link)
+  try:
+    email = user_data.email
+    user = get_user_by_email(email, repo, secret=True)
+    user_id = user.id
+    link = construct_reset_link(user_id, email)
+    send_reset_email(email, link)
+  except EmailSendError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @mail_router.get("/unsubscribe", response_class=HTMLResponse)

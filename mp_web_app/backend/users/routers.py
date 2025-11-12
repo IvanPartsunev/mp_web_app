@@ -7,6 +7,7 @@ from auth.operations import decode_token, is_token_expired, role_required
 from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
 from members.operations import get_member_repository, is_member_code_valid, update_member_code
+from users.exceptions import DatabaseError, UserAlreadyExistsError, UserNotFoundError, ValidationError
 from users.models import User, UserCreate, UserUpdate, UserUpdatePassword
 from users.operations import (
   create_user,
@@ -27,21 +28,30 @@ user_router = APIRouter(tags=["users"])
 async def users_list(
   user_repo: UserRepository = Depends(get_user_repository), user=Depends(role_required([UserRole.REGULAR_USER]))
 ):
-  return list_users(user_repo)
+  try:
+    return list_users(user_repo)
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @user_router.get("/board-members", response_model=list[User], status_code=status.HTTP_200_OK)
 async def board_members_list(user_repo: UserRepository = Depends(get_user_repository)):
   """Public endpoint to get board members."""
-  all_users = list_users(user_repo)
-  return [user for user in all_users if user.role == UserRole.BOARD]
+  try:
+    all_users = list_users(user_repo)
+    return [user for user in all_users if user.role == UserRole.BOARD]
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @user_router.get("/control-members", response_model=list[User], status_code=status.HTTP_200_OK)
 async def control_members_list(user_repo: UserRepository = Depends(get_user_repository)):
   """Public endpoint to get control members."""
-  all_users = list_users(user_repo)
-  return [user for user in all_users if user.role == UserRole.CONTROL]
+  try:
+    all_users = list_users(user_repo)
+    return [user for user in all_users if user.role == UserRole.CONTROL]
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @user_router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -64,9 +74,15 @@ async def user_register(
 
   try:
     user = create_user(user_data, request, user_repo)
-    # verification_link = construct_verification_link(user.id, user.email, request)
-    # send_verification_email(user.email, verification_link)
+    verification_link = construct_verification_link(user.id, user.email, request)
+    send_verification_email(user.email, verification_link)
     update_member_code(member_code, member_repo)
+  except ValidationError as e:
+    delete_user(user_data.email, user_repo)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except DatabaseError as e:
+    delete_user(user_data.email, user_repo)
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     delete_user(user_data.email, user_repo)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -81,7 +97,12 @@ async def user_reset_password(user_data: UserUpdatePassword, user_repo: UserRepo
   email = payload.get("sub")
 
   if not is_token_expired(token) and email == payload.get("sub") and payload.get("type") == "reset":
-    return update_user_password(user_id, email, user_data, user_repo)
+    try:
+      return update_user_password(user_id, email, user_data, user_repo)
+    except ValidationError as e:
+      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except DatabaseError as e:
+      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
 
@@ -113,10 +134,15 @@ async def user_update(
   if not existing_user:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-  updated_user = update_user(user_id, existing_user.email, user_data, user_repo)
-  if not updated_user:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-  return updated_user
+  try:
+    updated_user = update_user(user_id, existing_user.email, user_data, user_repo)
+    if not updated_user:
+      raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return updated_user
+  except ValidationError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @user_router.delete("/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -4,11 +4,11 @@ import os
 from typing import Any
 
 from botocore.exceptions import ClientError
-from fastapi import HTTPException
 from starlette.datastructures import UploadFile
 
 from database.repositories import MemberRepository
-from members.models import Member
+from members.exceptions import DatabaseError, InvalidFileTypeError, MemberNotFoundError, ValidationError
+from members.models import Member, MemberUpdate
 from users.operations import validate_email, validate_phone
 
 MEMBERS_TABLE_NAME = os.environ.get("MEMBERS_TABLE_NAME")
@@ -40,7 +40,7 @@ def create_member(member: Member, repo: MemberRepository):
   try:
     repo.table.put_item(Item=member_item)
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
 
 async def convert_members_list(file: UploadFile) -> list[dict[str, Any]]:
@@ -97,7 +97,7 @@ def update_member_code(member_code: str, repo: MemberRepository) -> None:
 
 def is_valid_file_type(file_name: str):
   if not file_name.endswith(".csv"):
-    raise ValueError("Invalid members list file type. Allowed type: ['.csv']")
+    raise InvalidFileTypeError("Invalid members list file type. Allowed type: ['.csv']")
 
 
 def _normalize_members(new_members_list: list[dict[str, Any]]):

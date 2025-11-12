@@ -1,8 +1,8 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from fastapi import HTTPException
 
+from news.exceptions import DatabaseError
 from news.models import News, NewsType, NewsUpdate
 from news.operations import (
   create_news,
@@ -49,10 +49,8 @@ class TestCreateNews:
 
     news_data = News(title="Test News", content="Test content", news_type=NewsType.regular)
 
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(DatabaseError):
       create_news(news_data, mock_repo, "user123")
-
-    assert exc_info.value.status_code == 500
 
 
 class TestDeleteNews:

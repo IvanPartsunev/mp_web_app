@@ -11,8 +11,10 @@ from jose import JWTError, jwt
 from pydantic import EmailStr, ValidationError
 
 from app_config import JWTSettings
+from auth.exceptions import ForbiddenError, InvalidTokenError, RefreshTokenNotFoundError, UnauthorizedError
 from auth.models import TokenPayload
 from database.repositories import AuthRepository, UserRepository
+from users.exceptions import UserNotFoundError
 from users.models import User, UserSecret
 from users.operations import get_user_by_email, get_user_by_id, get_user_repository, verify_password
 from users.roles import ROLE_HIERARCHY, UserRole
@@ -49,9 +51,8 @@ def generate_refresh_token(data: dict, repo: AuthRepository, expires_delta: Opti
   to_encode = data.copy()
   expire = datetime.now(UTC) + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
   jti = str(uuid4())
-  # TODO: Make TTL for dynamo to automatically delete expired tokens
-  expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
 
+  expires_at = int(time.time()) + REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
   refresh = {
     "id": jti,
     "user_id": data["sub"],
@@ -100,45 +101,33 @@ def verify_refresh_token(token: str, repo: AuthRepository) -> TokenPayload:
   # Decode and validate payload structure
   payload = decode_token(token)
   if not payload:
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Invalid refresh token",
-    )
+    raise InvalidTokenError("Invalid refresh token")
 
   try:
     token_payload = TokenPayload(**payload)
   except ValidationError:
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Invalid refresh token",
-    )
+    raise InvalidTokenError("Invalid refresh token")
 
   if token_payload.type != "refresh":
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Invalid token type",
-    )
+    raise InvalidTokenError("Invalid token type")
 
   if not token_payload.jti or not token_payload.sub:
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail="Invalid refresh token",
-    )
+    raise InvalidTokenError("Invalid refresh token")
 
   # Verify token state in the DB by JTI
   db_item = repo.table.get_item(Key={"id": token_payload.jti}).get("Item")
   if not db_item:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Refresh token not found")
+    raise RefreshTokenNotFoundError("Refresh token not found")
 
   if db_item.get("user_id") != token_payload.sub:
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This token does not belong to the user")
+    raise ForbiddenError("This token does not belong to the user")
 
   if not db_item.get("valid", False):
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    raise UnauthorizedError("Invalid token")
 
   expires_at = db_item.get("expires_at")
   if expires_at and int(time.time()) >= int(expires_at):
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+    raise UnauthorizedError("Refresh token expired")
 
   return token_payload
 
@@ -151,23 +140,28 @@ def invalidate_token(payload: TokenPayload, repo: AuthRepository):
   item = response.get("Item")
 
   if not item:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Refresh token not found")
+    raise RefreshTokenNotFoundError("Refresh token not found")
 
   if item.get("user_id") != user_id:
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This token does not belong to the user")
+    raise ForbiddenError("This token does not belong to the user")
 
   repo.table.update_item(Key={"id": jti}, UpdateExpression="SET valid = :v", ExpressionAttributeValues={":v": False})
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository = Depends(get_user_repository)):
-  payload = decode_token(token)
-  if not payload or (payload.get("type") != "access" and payload.get("type") != "refresh"):
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-  user_id: str = payload.get("sub")
-  user = get_user_by_id(user_id, repo)
-  if not user:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-  return user
+  try:
+    payload = decode_token(token)
+    if not payload or (payload.get("type") != "access" and payload.get("type") != "refresh"):
+      raise UnauthorizedError("Invalid or expired token")
+    user_id: str = payload.get("sub")
+    user = get_user_by_id(user_id, repo)
+    if not user:
+      raise UserNotFoundError("User not found")
+    return user
+  except UnauthorizedError as e:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+  except UserNotFoundError as e:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 def authenticate_user(email: str, password: str, repo: UserRepository) -> Optional[UserSecret]:
@@ -183,19 +177,19 @@ def authenticate_user(email: str, password: str, repo: UserRepository) -> Option
 
 def role_required(required_roles: list[UserRole]):
   def dependency(current_user: User = Depends(get_current_user)):
-    user_role = current_user.role
-    if not isinstance(user_role, UserRole):
-      user_role = UserRole(user_role)
+    try:
+      user_role = current_user.role
+      if not isinstance(user_role, UserRole):
+        user_role = UserRole(user_role)
 
-    allowed_roles = ROLE_HIERARCHY.get(user_role, [])
+      allowed_roles = ROLE_HIERARCHY.get(user_role, [])
 
-    if not any(role in allowed_roles for role in required_roles):
-      raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="You do not have access to this resource",
-      )
+      if not any(role in allowed_roles for role in required_roles):
+        raise ForbiddenError("You do not have access to this resource")
 
-    return current_user
+      return current_user
+    except ForbiddenError as e:
+      raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
   return dependency
 

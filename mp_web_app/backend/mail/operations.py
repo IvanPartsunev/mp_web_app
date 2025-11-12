@@ -6,11 +6,12 @@ from typing import Optional
 
 import boto3
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, Request
+from fastapi import Request
 from pydantic import EmailStr
 
 from app_config import FRONTEND_BASE_URL, SesSettings
 from auth.operations import generate_activation_token, generate_reset_token, generate_unsubscribe_token
+from mail.exceptions import EmailSendError
 
 
 @lru_cache
@@ -117,7 +118,7 @@ def send_verification_email(
       html_body=html_body,
     )
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+    raise EmailSendError(f"Failed to send email: {e}")
 
 
 def send_news_notification(
@@ -169,7 +170,7 @@ def send_news_notification(
       to_address=email, subject=subject, html_body=html_body, headers={"List-Unsubscribe": f"<{unsubscribe_link}>"}
     )
   except Exception:
-    raise HTTPException(status_code=500, detail="Failed to send email")
+    raise EmailSendError("Failed to send email")
 
 
 def send_reset_email(
@@ -219,7 +220,7 @@ def send_reset_email(
       html_body=html_body,
     )
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+    raise EmailSendError(f"Failed to send email: {e}")
 
 
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:

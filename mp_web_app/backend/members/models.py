@@ -9,3 +9,8 @@ class Member(BaseModel):
   member_code: str
   member_code_valid: bool = True
   proxy: bool = False
+
+
+class MemberUpdate(BaseModel):
+  email: EmailStr | None = None
+  phone: str | None = None

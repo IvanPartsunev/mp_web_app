@@ -1,7 +1,16 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
 from database.repositories import FileMetadataRepository
+from files.exceptions import (
+  FileAccessDeniedError,
+  FileNotFoundError,
+  FileUploadError,
+  InvalidFileExtensionError,
+  InvalidMetadataError,
+  MetadataError,
+  MissingAllowedUsersError,
+)
 from files.models import FileMetadata, FileMetadataFull, FileType
 from files.operations import delete_file, download_file, get_files_metadata, get_uploads_repository, upload_file
 from users.roles import UserRole
@@ -18,8 +27,17 @@ async def upload_files(
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
-  file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
-  return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+  try:
+    file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
+    return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+  except MissingAllowedUsersError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except InvalidFileExtensionError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except FileUploadError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @file_router.get("/get_files", status_code=status.HTTP_200_OK)
@@ -28,7 +46,10 @@ async def get_files(
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
-  return get_files_metadata(file_type, repo)
+  try:
+    return get_files_metadata(file_type, repo)
+  except MetadataError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @file_router.post("/delete_files", status_code=status.HTTP_204_NO_CONTENT)
@@ -37,9 +58,14 @@ async def delete_files(
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
 ):
-  delete_file(files_metadata, repo)
-  file_names = [file.file_name for file in files_metadata]
-  return f"Deleted file names: {', '.join(file_names)}"
+  try:
+    delete_file(files_metadata, repo)
+    file_names = [file.file_name for file in files_metadata]
+    return f"Deleted file names: {', '.join(file_names)}"
+  except FileUploadError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @file_router.post("/download", status_code=status.HTTP_200_OK)
@@ -48,4 +74,13 @@ async def download_files(
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.REGULAR_USER])),
 ):
-  return download_file(file_metadata=file_metadata, repo=repo, user=user)
+  try:
+    return download_file(file_metadata=file_metadata, repo=repo, user=user)
+  except FileAccessDeniedError as e:
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except InvalidMetadataError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

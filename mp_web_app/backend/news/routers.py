@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from auth.operations import role_required
 from database.repositories import NewsRepository
+from news.exceptions import DatabaseError
 from news.models import News, NewsUpdate
 from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
 from users.roles import UserRole
@@ -36,6 +37,8 @@ async def news_upload(
 ):
   try:
     return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
 
@@ -49,6 +52,8 @@ async def news_update(
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
 

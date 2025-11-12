@@ -5,9 +5,10 @@ from uuid import uuid4
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from database.repositories import GalleryRepository
+from gallery.exceptions import DatabaseError, ImageNotFoundError, ImageUploadError, InvalidImageFormatError, PresignedUrlError
 from gallery.models import GalleryImageMetadata
 
 GALLERY_BUCKET = os.environ.get("UPLOADS_BUCKET")
@@ -28,7 +29,7 @@ def upload_gallery_image(
   # Validate file extension
   file_extension = file.filename.split(".")[-1].lower()
   if file_extension not in ALLOWED_IMAGE_EXTENSIONS:
-    raise HTTPException(status_code=400, detail=f"Invalid image format. Allowed: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}")
+    raise InvalidImageFormatError(ALLOWED_IMAGE_EXTENSIONS)
 
   # Generate unique S3 key
   image_id = str(uuid4())
@@ -40,7 +41,7 @@ def upload_gallery_image(
   try:
     s3.upload_fileobj(file.file, GALLERY_BUCKET, s3_key)
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Failed to upload image: {e.response['Error']['Message']}")
+    raise ImageUploadError(f"Failed to upload image: {e.response['Error']['Message']}")
 
   # Store metadata in DynamoDB
   created_at = datetime.now().isoformat()
@@ -62,7 +63,7 @@ def upload_gallery_image(
       s3.delete_object(Bucket=GALLERY_BUCKET, Key=s3_key)
     except:
       pass
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
   return repo.convert_item_to_object(gallery_item)
 
@@ -86,7 +87,7 @@ def get_gallery_images(repo: GalleryRepository):
 
     return [repo.convert_item_to_object(item) for item in items]
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Failed to fetch gallery images: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Failed to fetch gallery images: {e.response['Error']['Message']}")
 
 
 def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
@@ -95,26 +96,26 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
   try:
     response = repo.table.get_item(Key={"id": image_id})
     if "Item" not in response:
-      raise HTTPException(status_code=404, detail="Image not found")
+      raise ImageNotFoundError("Image not found")
 
     item = response["Item"]
     s3_key = item["s3_key"]
     s3_bucket = item["s3_bucket"]
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
   # Delete from S3
   s3 = boto3.client("s3")
   try:
     s3.delete_object(Bucket=s3_bucket, Key=s3_key)
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Failed to delete image from S3: {e.response['Error']['Message']}")
+    raise ImageUploadError(f"Failed to delete image from S3: {e.response['Error']['Message']}")
 
   # Delete from DynamoDB
   try:
     repo.table.delete_item(Key={"id": image_id})
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Failed to delete metadata: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Failed to delete metadata: {e.response['Error']['Message']}")
 
   return True
 
@@ -126,4 +127,4 @@ def generate_presigned_url(s3_key: str, bucket: str, expiration: int = 3600) -> 
     url = s3.generate_presigned_url("get_object", Params={"Bucket": bucket, "Key": s3_key}, ExpiresIn=expiration)
     return url
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {e.response['Error']['Message']}")
+    raise PresignedUrlError(f"Failed to generate presigned URL: {e.response['Error']['Message']}")

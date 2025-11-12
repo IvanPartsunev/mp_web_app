@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 
 from auth.operations import role_required
 from database.repositories import GalleryRepository
+from gallery.exceptions import DatabaseError, ImageNotFoundError, ImageUploadError, InvalidImageFormatError, PresignedUrlError
 from gallery.models import GalleryImageMetadata
 from gallery.operations import (
   delete_gallery_image,
@@ -25,6 +26,12 @@ async def gallery_upload(
   """Upload a new gallery image (ADMIN only)."""
   try:
     return upload_gallery_image(file=file, image_name=image_name, user_id=user.id, repo=gallery_repo)
+  except InvalidImageFormatError as e:
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+  except ImageUploadError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during gallery upload: {e}")
 
@@ -34,6 +41,8 @@ async def gallery_list(gallery_repo: GalleryRepository = Depends(get_gallery_rep
   """List all gallery images (public access)."""
   try:
     return get_gallery_images(repo=gallery_repo)
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(
       status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to fetch gallery images: {e}"
@@ -49,6 +58,12 @@ async def gallery_delete(
   """Delete a gallery image (ADMIN only)."""
   try:
     delete_gallery_image(image_id=image_id, repo=gallery_repo)
+  except ImageNotFoundError as e:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+  except ImageUploadError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(
       status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during gallery deletion: {e}"
@@ -61,10 +76,14 @@ async def gallery_image_url(image_id: str, gallery_repo: GalleryRepository = Dep
   try:
     response = gallery_repo.table.get_item(Key={"id": image_id})
     if "Item" not in response:
-      raise HTTPException(status_code=404, detail="Image not found")
+      raise ImageNotFoundError("Image not found")
 
     item = response["Item"]
     url = generate_presigned_url(s3_key=item["s3_key"], bucket=item["s3_bucket"])
     return {"url": url}
+  except ImageNotFoundError as e:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+  except PresignedUrlError as e:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised: {e}")

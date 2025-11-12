@@ -6,10 +6,11 @@ from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, Request
+from fastapi import Request
 from pydantic import EmailStr
 
 from database.repositories import UserRepository
+from users.exceptions import DatabaseError, ValidationError
 from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
@@ -92,7 +93,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     hashed_password = hash_password(password, salt)
     phone = validate_phone(user_data.phone)
   except ValueError as e:
-    raise HTTPException(status_code=400, detail=f"Error when creating {user_data.email}: {e}")
+    raise ValidationError(f"Error when creating {user_data.email}: {e}")
 
   user_item = {
     "id": user_id,
@@ -113,9 +114,9 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   try:
     repo.table.put_item(Item=user_item)
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"An unexpected error occurred while creating the user. {e}")
+    raise DatabaseError(f"An unexpected error occurred while creating the user. {e}")
 
   return repo.convert_item_to_object(user_item)
 
@@ -180,7 +181,7 @@ def update_user(
     try:
       phone = validate_phone(user_data.phone)
     except ValueError as e:
-      raise HTTPException(status_code=400, detail=f"Error when creating {user_data.email}: {e}")
+      raise ValidationError(f"Error when creating {user_data.email}: {e}")
     update_expression_parts.append("#phone = :phone")
     expression_attribute_values[":phone"] = phone
     expression_attribute_names["#phone"] = "phone"
@@ -228,7 +229,7 @@ def update_user_password(
     password = validate_password(user_data.password)
     hashed_password = hash_password(password, existing_user.salt)
   except ValueError as e:
-    raise HTTPException(status_code=400, detail=f"Error when updating password for {user_data.email}: {e}")
+    raise ValidationError(f"Error when updating password for {user_data.email}: {e}")
 
   update_expression_parts = []
   expression_attribute_values = {}
@@ -280,4 +281,4 @@ def get_subscribed_users(repo: UserRepository) -> list[User]:
 
     return users
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")

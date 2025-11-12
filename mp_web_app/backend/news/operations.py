@@ -4,11 +4,12 @@ from uuid import uuid4
 
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, Request
+from fastapi import Request
 
 from app_config import FRONTEND_BASE_URL
 from auth.operations import is_token_expired
 from database.repositories import NewsRepository, UserRepository
+from news.exceptions import DatabaseError
 from news.models import News, NewsType, NewsUpdate
 
 NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")
@@ -43,7 +44,7 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
   try:
     repo.table.put_item(Item=news_item)
   except ClientError as e:
-    raise HTTPException(status_code=500, detail=f"Database error: {e.response['Error']['Message']}")
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
   # Send email notifications to subscribed users (non-blocking)
   if request:

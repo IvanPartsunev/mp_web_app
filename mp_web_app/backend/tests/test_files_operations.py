@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from files.exceptions import InvalidFileExtensionError
 from files.models import FileMetadata, FileMetadataFull, FileType
 from files.operations import (
   _check_file_allowed_to_user,
@@ -47,7 +48,7 @@ class TestCreateFileName:
   def test_raises_error_for_invalid_extension(self, mock_extensions):
     mock_extensions.return_value = ["pdf", "doc", "txt"]
 
-    with pytest.raises(ValueError, match="File extension EXE not allowed"):
+    with pytest.raises(InvalidFileExtensionError):
       _create_file_name("My File", "virus.exe")
 
   @patch("files.operations.get_allowed_file_extensions")

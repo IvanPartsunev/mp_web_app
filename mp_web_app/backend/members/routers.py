@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from auth.operations import role_required
 from database.repositories import MemberRepository
+from members.exceptions import DatabaseError, InvalidFileTypeError
 from members.models import Member
 from members.operations import (
   convert_members_list,
@@ -23,6 +24,8 @@ async def member_create(
 ):
   try:
     create_member(member, member_repo)
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))
 
@@ -38,5 +41,9 @@ async def members_upload(
     is_valid_file_type(file_name)
     data = await convert_members_list(file)
     sync_members_list(data, member_repo)
-  except ValueError as e:
+  except InvalidFileTypeError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))

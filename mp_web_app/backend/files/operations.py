@@ -6,11 +6,20 @@ from uuid import uuid4
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 from app_config import AllowedFileExtensions
 from database.repositories import FileMetadataRepository
+from files.exceptions import (
+  FileAccessDeniedError,
+  FileNotFoundError,
+  FileUploadError,
+  InvalidFileExtensionError,
+  InvalidMetadataError,
+  MetadataError,
+  MissingAllowedUsersError,
+)
 from files.models import FileMetadata, FileMetadataFull, FileType
 from users.models import User
 from users.roles import UserRole
@@ -39,14 +48,14 @@ def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, rep
     s3.upload_fileobj(file.file, BUCKET, key)
     return create_file_metadata(file_metadata, file_name, key, user_id, repo)
   except Exception as e:
-    raise HTTPException(status_code=400, detail=f"Error when uploading the file: {e}")
+    raise FileUploadError(f"Error when uploading the file: {e}")
 
 
 def create_file_metadata(
   file_metadata: FileMetadata, new_file_name: str, key: str, user_id: str, repo: FileMetadataRepository
 ) -> FileMetadata:
   if file_metadata.file_type == "private" and not file_metadata.allowed_to:
-    raise HTTPException(status_code=400, detail="When [private] is selected allowed users must be specified")
+    raise MissingAllowedUsersError()
   allowed_to = file_metadata.allowed_to if file_metadata.allowed_to else None
   file_metadata_item = {
     "id": str(uuid4()),
@@ -61,7 +70,7 @@ def create_file_metadata(
   try:
     repo.table.put_item(Item=file_metadata_item)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Failed to create metadata: {e}")
+    raise MetadataError(f"Failed to create metadata: {e}")
   return repo.convert_item_to_object_full(file_metadata_item)
 
 
@@ -86,7 +95,7 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository):
     return files_metadata
 
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Failed to fetch files metadata: {e}")
+    raise MetadataError(f"Failed to fetch files metadata: {e}")
 
 
 @retry()
@@ -104,7 +113,7 @@ def delete_file(file_metadata: list[FileMetadata], repo: FileMetadataRepository)
       s3.delete_objects(Bucket=BUCKET, Delete={"Objects": objects})
     _delete_file_metadata(item_ids=item_ids, repo=repo)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Error when deleting the file/s: {e}")
+    raise FileUploadError(f"Error when deleting the file/s: {e}")
 
 
 def _delete_file_metadata(item_ids: list[str], repo: FileMetadataRepository):
@@ -116,7 +125,7 @@ def _delete_file_metadata(item_ids: list[str], repo: FileMetadataRepository):
         for item_id in item_ids:
           batch.delete_item(Key={"id": item_id})
   except Exception as e:
-    raise HTTPException(status_code=500, detail=f"Failed to delete metadata: {e}")
+    raise MetadataError(f"Failed to delete metadata: {e}")
 
 
 def _create_file_name(file_name: str, original_name: str):
@@ -126,7 +135,7 @@ def _create_file_name(file_name: str, original_name: str):
   allowed = get_allowed_file_extensions()
   extension = original_name.split(".")[-1]
   if extension not in allowed:
-    raise ValueError(f"File extension {extension.upper()} not allowed")
+    raise InvalidFileExtensionError(extension, allowed)
   cleaned_file_name = re.sub(r"[^A-Za-z0-9.\-_\s]", "", file_name).strip()
   file_name_parts = re.split(r"[.\s\-_]", cleaned_file_name)
   date_tag = f"{now.year!s}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
@@ -143,7 +152,7 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
 
   is_allowed = _check_file_allowed_to_user(file_meta_object, user_id)
   if not is_allowed:
-    raise HTTPException(status_code=403, detail=f"File {file_meta_object.file_name} not allowed to user.")
+    raise FileAccessDeniedError(file_meta_object.file_name)
 
   s3 = boto3.client("s3")
   try:
@@ -155,19 +164,19 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
       headers={"Content-Disposition": f'attachment; filename="{file_meta_object.key}"'},
     )
   except s3.exceptions.NoSuchKey:
-    raise HTTPException(status_code=404, detail="File not found")
+    raise FileNotFoundError("File not found")
 
 
 @retry()
 def get_db_metadata(file_metadata: FileMetadata, repo: FileMetadataRepository) -> FileMetadataFull:
   response = repo.table.get_item(Key={"id": file_metadata.id})
   if "Item" not in response:
-    raise HTTPException(status_code=400, detail=f"Metadata not found for file: {file_metadata.file_name}")
+    raise MetadataError(f"Metadata not found for file: {file_metadata.file_name}")
 
   db_metadata_object = repo.convert_item_to_object_full(response["Item"])
   is_metadata_valid = _validate_metadata(file_metadata, db_metadata_object)
   if not is_metadata_valid:
-    raise HTTPException(status_code=400, detail=f"Metadata not valid for file: {file_metadata.file_name}")
+    raise InvalidMetadataError(file_metadata.file_name)
   return db_metadata_object
 
 
