@@ -10,6 +10,7 @@ from gallery.routers import gallery_router
 from mail.routers import mail_router
 from members.routers import member_router
 from news.routers import news_router
+from products.routers import product_router
 from users.routers import user_router
 
 FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
@@ -31,6 +32,8 @@ app.include_router(file_router, prefix="/api/files")
 app.include_router(news_router, prefix="/api/news")
 app.include_router(gallery_router, prefix="/api/gallery")
 app.include_router(member_router, prefix="/api/member")
+
+app.include_router(product_router, prefix="/api/product")
 
 from mangum import Mangum
 

@@ -7,6 +7,7 @@ from database.db_config import get_dynamodb_resource
 from files.models import FileMetadata, FileMetadataFull
 from members.models import Member
 from news.models import News
+from products.models import ProductModel
 from users.models import User, UserSecret
 
 
@@ -79,3 +80,9 @@ class GalleryRepository(BaseRepository):
     from gallery.models import GalleryImageMetadata
 
     return GalleryImageMetadata(**item)
+
+
+class ProductRepository(BaseRepository):
+  """Convert a DynamoDB item to a Product model."""
+  def convert_item_to_object(self, item: dict[str, Any]):
+    return ProductModel(**item)

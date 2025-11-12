@@ -122,6 +122,18 @@ class BackendStack(Stack):
       sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
       projection_type=dynamodb.ProjectionType.ALL,
     )
+
+    self.table7 = dynamodb.TableV2(
+      self, "products_table",
+      table_name="products_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN
+    )
+
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",

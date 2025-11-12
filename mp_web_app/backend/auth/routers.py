@@ -40,7 +40,6 @@ async def login(
   access_token = generate_access_token({"sub": user.id, "role": user.role})
   refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
 
-  # Only set domain if it's not localhost (for production)
   cookie_params = {
     "key": "refresh_token",
     "value": refresh_token,

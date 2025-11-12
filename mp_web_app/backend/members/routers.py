@@ -55,7 +55,7 @@ async def members_list(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.post("/create_members", status_code=status.HTTP_201_CREATED)
+@member_router.post("/create_member", status_code=status.HTTP_201_CREATED)
 async def member_create(
   member: Member,
   member_repo: MemberRepository = Depends(get_member_repository),
