@@ -124,6 +124,86 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
   return normalized_members_list
 
 
+def get_member_by_code(member_code: str, repo: MemberRepository) -> Member | None:
+  """Get a member by member code."""
+  response = repo.table.get_item(Key={"member_code": member_code})
+
+  if "Item" not in response:
+    return None
+
+  return repo.convert_item_to_object(response["Item"])
+
+
+def update_member(member_code: str, member_data: MemberUpdate, repo: MemberRepository) -> Member:
+  """Update member email and phone."""
+
+  existing_member = get_member_by_code(member_code, repo)
+  if not existing_member:
+    raise MemberNotFoundError(member_code)
+
+  update_expression_parts = []
+  expression_attribute_values = {}
+  expression_attribute_names = {}
+
+  if member_data.email is not None:
+    try:
+      validated_email = validate_email(member_data.email)
+      update_expression_parts.append("#email = :email")
+      expression_attribute_values[":email"] = validated_email
+      expression_attribute_names["#email"] = "email"
+    except ValueError as e:
+      raise ValidationError(f"Invalid email: {e}")
+
+  if member_data.phone is not None:
+    try:
+      validated_phone = validate_phone(member_data.phone)
+      update_expression_parts.append("#phone = :phone")
+      expression_attribute_values[":phone"] = validated_phone
+      expression_attribute_names["#phone"] = "phone"
+    except ValueError as e:
+      raise ValidationError(f"Invalid phone: {e}")
+
+  if not update_expression_parts:
+    return existing_member
+
+  update_expression = "SET " + ", ".join(update_expression_parts)
+
+  try:
+    response = repo.table.update_item(
+      Key={"member_code": member_code},
+      UpdateExpression=update_expression,
+      ExpressionAttributeValues=expression_attribute_values,
+      ExpressionAttributeNames=expression_attribute_names,
+      ReturnValues="ALL_NEW",
+    )
+    return repo.convert_item_to_object(response["Attributes"])
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+
+def delete_member(member_code: str, repo: MemberRepository) -> bool:
+  """Delete a member by member code."""
+
+  existing_member = get_member_by_code(member_code, repo)
+  if not existing_member:
+    raise MemberNotFoundError(member_code)
+
+  try:
+    repo.table.delete_item(Key={"member_code": member_code})
+    return True
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+
+def list_members(repo: MemberRepository) -> list[Member]:
+  """List all members."""
+  try:
+    members = _get_members_from_db(repo)
+    return [repo.convert_item_to_object(member) for member in members]
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+
 def _get_members_from_db(repo: MemberRepository) -> list[dict[str, Any]]:
   members = []
   scan_kwargs = {}
