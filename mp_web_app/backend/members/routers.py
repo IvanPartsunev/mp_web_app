@@ -1,9 +1,11 @@
+from typing import Union
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
-from auth.operations import role_required
+from auth.operations import get_current_user, role_required
 from database.repositories import MemberRepository
 from members.exceptions import DatabaseError, InvalidFileTypeError, MemberNotFoundError, ValidationError
-from members.models import Member, MemberUpdate
+from members.models import Member, MemberPublic, MemberUpdate
 from members.operations import (
   convert_members_list,
   create_member,
@@ -14,19 +16,41 @@ from members.operations import (
   sync_members_list,
   update_member,
 )
+from users.models import User
 from users.roles import UserRole
 
 member_router = APIRouter(tags=["member"])
 
 
-@member_router.get("/list", response_model=list[Member], status_code=status.HTTP_200_OK)
+@member_router.get("/list", response_model=Union[list[Member], list[MemberPublic]], status_code=status.HTTP_200_OK)
 async def members_list(
+  proxy_only: bool = False,
   member_repo: MemberRepository = Depends(get_member_repository),
-  user=Depends(role_required([UserRole.ADMIN])),
+  current_user: User = Depends(get_current_user),
 ):
-  """List all members (ADMIN only)."""
+  """
+  List all members or filter by proxy status.
+
+  Access:
+  - All authenticated users can access this endpoint
+  - ADMIN, BOARD, CONTROL: See full details (name, email, phone)
+  - REGULAR_USER: See only names (first_name, last_name, proxy)
+
+  Query Parameters:
+  - proxy_only: If True, returns only members with proxy=True. Default is False (returns all members).
+  """
   try:
-    return list_members(member_repo)
+    members = list_members(member_repo, proxy_only=proxy_only)
+
+    privileged_roles = [UserRole.ADMIN, UserRole.BOARD, UserRole.CONTROL]
+    user_role = current_user.role if isinstance(current_user.role, UserRole) else UserRole(current_user.role)
+
+    if user_role in privileged_roles:
+      return members
+    else:
+      return [
+        MemberPublic(first_name=m.first_name, last_name=m.last_name, proxy=m.proxy) for m in members
+      ]
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 

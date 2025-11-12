@@ -195,11 +195,16 @@ def delete_member(member_code: str, repo: MemberRepository) -> bool:
     raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
 
-def list_members(repo: MemberRepository) -> list[Member]:
-  """List all members."""
+def list_members(repo: MemberRepository, proxy_only: bool = False) -> list[Member]:
+  """List all members or filter by proxy status."""
   try:
     members = _get_members_from_db(repo)
-    return [repo.convert_item_to_object(member) for member in members]
+    member_objects = [repo.convert_item_to_object(member) for member in members]
+
+    if proxy_only:
+      return [m for m in member_objects if m.proxy]
+
+    return member_objects
   except ClientError as e:
     raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
