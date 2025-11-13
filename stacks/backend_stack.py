@@ -179,6 +179,7 @@ class BackendStack(Stack):
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
         "GALLERY_TABLE_NAME": self.table6.table_name,
+        "PRODUCTS_TABLE_NAME": self.table7.table_name,
         # CloudFront configuration
         "USE_CLOUDFRONT": "true" if uploads_cloudfront_domain else "false",
         "CLOUDFRONT_DOMAIN": uploads_cloudfront_domain or "",
@@ -223,6 +224,8 @@ class BackendStack(Stack):
     self.table3.grant_read_write_data(self.backend_lambda)
     self.table4.grant_read_write_data(self.backend_lambda)
     self.table5.grant_read_write_data(self.backend_lambda)
+    self.table6.grant_read_write_data(self.backend_lambda)
+    self.table7.grant_read_write_data(self.backend_lambda)
 
     # Explicitly grant permission to query the Global Secondary Index on the news table
     self.backend_lambda.add_to_role_policy(
