@@ -1,4 +1,3 @@
-import * as React from "react";
 import {useState, useEffect} from "react";
 import {Link} from "react-router-dom";
 import {Outlet} from "react-router-dom";
@@ -139,7 +138,6 @@ export function Navigation() {
   const role = getUserRole();
   const isAdmin = role === "admin";
   const isBoardOrControl = role === "board" || role === "control";
-  const isRegular = role === "regular";
 
   // Handle animation for mobile menu
   useEffect(() => {

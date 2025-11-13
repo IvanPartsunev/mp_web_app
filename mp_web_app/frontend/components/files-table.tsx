@@ -1,7 +1,5 @@
 // components/files/FilesTable.tsx
 import React from "react";
-import axios from "axios";
-import {API_BASE_URL} from "@/app-config";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -38,16 +36,13 @@ type FilesTableProps = {
   title?: string;
 };
 
-const API_BASE = API_BASE_URL;
 const PAGE_SIZE = 25;
 
-export function FilesTable({fileType, title}: FilesTableProps) {
+export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
   const [data, setData] = React.useState<FileMetadata[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const [page, setPage] = React.useState<number>(1);
-
-  const token = React.useMemo(() => localStorage.getItem("access_token"), []);
 
   const load = React.useCallback(async () => {
     setLoading(true);

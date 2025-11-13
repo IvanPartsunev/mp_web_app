@@ -1,16 +1,14 @@
-import React from "react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 
 interface NewsCardProps {
   title: string;
   content: string;
-  author_id: string;
   created_at: string;
   news_type: "regular" | "private";
 }
 
-export function NewsCard({title, content, author_id, created_at, news_type}: NewsCardProps) {
+export function NewsCard({title, content, created_at, news_type}: NewsCardProps) {
   const formattedDate = new Date(created_at).toLocaleDateString("bg-BG", {
     year: "numeric",
     month: "long",

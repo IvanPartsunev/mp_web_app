@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 import {NewsCard} from "@/components/news-card";
 import apiClient from "@/context/apiClient";
@@ -131,7 +131,6 @@ export default function Home() {
                 key={item.id}
                 title={item.title}
                 content={item.content}
-                author_id={item.author_id}
                 created_at={item.created_at}
                 news_type={item.news_type}
               />

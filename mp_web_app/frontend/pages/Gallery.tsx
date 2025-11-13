@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {GalleryImageCard} from "@/components/gallery-image-card";
 import {API_BASE_URL} from "@/app-config";
 

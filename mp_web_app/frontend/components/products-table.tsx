@@ -28,7 +28,7 @@ type ProductsTableProps = {
 
 const PAGE_SIZE = 25;
 
-export function ProductsTable({title}: ProductsTableProps) {
+export function ProductsTable({title = "Продукти"}: ProductsTableProps) {
   const [data, setData] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -66,6 +66,7 @@ export function ProductsTable({title}: ProductsTableProps) {
 
   return (
     <section className="container mx-auto px-4 py-8">
+      {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <Card>
         <CardHeader>
