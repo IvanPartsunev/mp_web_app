@@ -19,6 +19,8 @@ from gallery.models import GalleryImageMetadata
 
 GALLERY_BUCKET = os.environ.get("UPLOADS_BUCKET")
 GALLERY_TABLE_NAME = os.environ.get("GALLERY_TABLE_NAME")
+CLOUDFRONT_DOMAIN = os.environ.get("CLOUDFRONT_DOMAIN")  # e.g., d123.cloudfront.net
+USE_CLOUDFRONT = os.environ.get("USE_CLOUDFRONT", "false").lower() == "true"
 
 ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
 
@@ -74,8 +76,17 @@ def upload_gallery_image(
   return repo.convert_item_to_object(gallery_item)
 
 
-def get_gallery_images(repo: GalleryRepository):
-  """Retrieve all gallery images from DynamoDB."""
+def get_gallery_images(repo: GalleryRepository, include_urls: bool = True):
+  """
+  Retrieve all gallery images from DynamoDB.
+  
+  Args:
+    repo: Gallery repository
+    include_urls: If True, adds 'url' field with CloudFront/S3 URL to each image
+  
+  Returns:
+    List of gallery image objects with optional URLs
+  """
   try:
     response = repo.table.query(
       IndexName="gallery_created_at_index", KeyConditionExpression=Key("gallery").eq("gallery"), ScanIndexForward=False
@@ -91,7 +102,18 @@ def get_gallery_images(repo: GalleryRepository):
       )
       items.extend(response["Items"])
 
-    return [repo.convert_item_to_object(item) for item in items]
+    images = [repo.convert_item_to_object(item) for item in items]
+    
+    # Add URLs to each image if requested
+    if include_urls:
+      for image in images:
+        try:
+          image.url = generate_presigned_url(s3_key=image.s3_key, bucket=image.s3_bucket)
+        except Exception:
+          # If URL generation fails, skip this image
+          image.url = None
+    
+    return images
   except ClientError as e:
     raise DatabaseError(f"Failed to fetch gallery images: {e.response['Error']['Message']}")
 
@@ -127,7 +149,17 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
 
 
 def generate_presigned_url(s3_key: str, bucket: str, expiration: int = 3600) -> str:
-  """Generate presigned URL for image access."""
+  """
+  Generate URL for image access.
+  
+  If CloudFront is enabled, returns CloudFront URL (permanent, cached).
+  Otherwise, returns S3 presigned URL (temporary, direct to S3).
+  """
+  # Use CloudFront if configured (recommended for production)
+  if USE_CLOUDFRONT and CLOUDFRONT_DOMAIN:
+    return f"https://{CLOUDFRONT_DOMAIN}/{s3_key}"
+  
+  # Fallback to S3 presigned URL
   s3 = boto3.client("s3")
   try:
     url = s3.generate_presigned_url("get_object", Params={"Bucket": bucket, "Key": s3_key}, ExpiresIn=expiration)

@@ -17,8 +17,20 @@ import os
 
 
 class BackendStack(Stack):
-  def __init__(self, scope: Construct, id: str, frontend_base_url: str, cookie_domain: str, domain_name: str,
-               api_subdomain: str, hosted_zone: route53.IHostedZone, certificate: acm.ICertificate, **kwargs):
+  def __init__(
+    self,
+    scope: Construct,
+    id: str,
+    frontend_base_url: str,
+    cookie_domain: str,
+    domain_name: str,
+    api_subdomain: str,
+    hosted_zone: route53.IHostedZone,
+    certificate: acm.ICertificate,
+    uploads_cloudfront_domain: str = None,  # CloudFront domain from UploadsStack
+    uploads_distribution_id: str = None,  # Distribution ID for cache invalidation
+    **kwargs
+  ):
     super().__init__(scope, id, **kwargs)
 
     # Create a randomly generated JWT secret
@@ -167,6 +179,10 @@ class BackendStack(Stack):
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
         "GALLERY_TABLE_NAME": self.table6.table_name,
+        # CloudFront configuration
+        "USE_CLOUDFRONT": "true" if uploads_cloudfront_domain else "false",
+        "CLOUDFRONT_DOMAIN": uploads_cloudfront_domain or "",
+        "CLOUDFRONT_DISTRIBUTION_ID": uploads_distribution_id or "",
       }
     )
 
@@ -238,6 +254,19 @@ class BackendStack(Stack):
         ]
       )
     )
+
+    # Grant Lambda permission to invalidate CloudFront cache (if CloudFront is configured)
+    if uploads_distribution_id:
+      self.backend_lambda.add_to_role_policy(
+        iam.PolicyStatement(
+          actions=[
+            "cloudfront:CreateInvalidation",
+            "cloudfront:GetInvalidation",
+            "cloudfront:ListInvalidations"
+          ],
+          resources=[f"arn:aws:cloudfront::{self.account}:distribution/{uploads_distribution_id}"]
+        )
+      )
 
     # Outputs
     CfnOutput(self, "ApiUrl", value=self.api.url)

@@ -58,10 +58,10 @@ frontend_stack = FrontendStack(
   certificate=domain_stack.certificate
 )
 
-# The uploads stack (no changes needed here)
+# Create the uploads stack
 uploads_stack = UploadsStack(app, "UploadsStack", env=env)
 
-# Create the backend stack, passing in the domain resources
+# Create the backend stack, passing in the domain resources AND uploads CloudFront domain
 backend_stack = BackendStack(
   app, "BackendStack",
   env=env,
@@ -70,7 +70,9 @@ backend_stack = BackendStack(
   domain_name=DOMAIN_NAME,
   api_subdomain=API_SUBDOMAIN,
   hosted_zone=domain_stack.hosted_zone,
-  certificate=domain_stack.certificate
+  certificate=domain_stack.certificate,
+  uploads_cloudfront_domain=uploads_stack.uploads_distribution.distribution_domain_name,  # Pass CloudFront domain
+  uploads_distribution_id=uploads_stack.uploads_distribution.distribution_id,  # Pass distribution ID
 )
 
 app.synth()

@@ -12,3 +12,4 @@ class GalleryImageMetadata(BaseModel):
   s3_bucket: str
   uploaded_by: str
   created_at: str
+  url: str | None = None  # CloudFront or S3 presigned URL
