@@ -20,7 +20,7 @@ def get_product_repository() -> ProductRepository:
 def get_product(repo: ProductRepository, product_id: str) -> Product:
   response = repo.table.get_item(Key={"id": product_id})
   if "Item" not in response:
-    raise ProductNotFoundError
+    raise ProductNotFoundError(product_id)
   return repo.convert_item_to_object(response["Item"])
 
 

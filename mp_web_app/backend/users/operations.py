@@ -9,9 +9,8 @@ from botocore.exceptions import ClientError
 from fastapi import Request
 from pydantic import EmailStr
 
-from database.exceptions import DatabaseError
 from database.repositories import UserRepository
-from users.exceptions import ValidationError
+from users.exceptions import DatabaseError, UserNotFoundError, ValidationError
 from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
@@ -122,12 +121,12 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
   return repo.convert_item_to_object(user_item)
 
 
-def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
-  """Get a user by ID from DynamoDB."""
+def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> User | UserSecret:
+  """Get a user by ID from DynamoDB. Raises UserNotFoundError if not found."""
   response = repo.table.get_item(Key={"id": user_id})
 
   if "Item" not in response:
-    return None
+    raise UserNotFoundError(user_id)
 
   if secret:
     return repo.convert_item_to_object_secret(response["Item"])
@@ -155,12 +154,12 @@ def list_users(repo: UserRepository) -> list[User]:
 
 def update_user(
   user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository
-) -> Optional[User]:
-  """Update a user in DynamoDB."""
+) -> User:
+  """Update a user in DynamoDB. Raises UserNotFoundError if not found."""
 
   existing_user = get_user_by_email(user_email, repo)
   if not existing_user:
-    return None
+    raise UserNotFoundError(user_email)
 
   # Build update expression
   update_expression_parts = []
@@ -219,12 +218,12 @@ def update_user(
 
 def update_user_password(
   user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword, repo: UserRepository
-) -> Optional[User]:
-  """Update the user's password in DynamoDB."""
+) -> User:
+  """Update the user's password in DynamoDB. Raises UserNotFoundError if not found."""
 
   existing_user = get_user_by_email(user_email, repo, secret=True)
   if not existing_user:
-    return None
+    raise UserNotFoundError(user_email)
 
   try:
     password = validate_password(user_data.password)
@@ -256,15 +255,14 @@ def update_user_password(
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def delete_user(email: EmailStr, repo: UserRepository) -> bool:
-  """Delete a user from DynamoDB."""
+def delete_user(email: EmailStr, repo: UserRepository) -> None:
+  """Delete a user from DynamoDB. Raises UserNotFoundError if not found."""
   # First, check if the user exists
   existing_user = get_user_by_email(email, repo)
   if not existing_user:
-    return False
+    raise UserNotFoundError(email)
 
   repo.table.delete_item(Key={"id": existing_user.id})
-  return True
 
 
 def get_subscribed_users(repo: UserRepository) -> list[User]:

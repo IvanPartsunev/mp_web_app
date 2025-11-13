@@ -53,6 +53,8 @@ async def product_update(
     existing_product = get_product(product_repo, product_id)
     update_product(product_data, existing_product, product_repo)
   except ProductNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))
@@ -68,6 +70,8 @@ async def product_delete(
     existing_product = get_product(product_repo, product_id)
     delete_product(existing_product, product_repo)
   except ProductNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))

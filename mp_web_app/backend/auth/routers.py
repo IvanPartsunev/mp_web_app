@@ -35,7 +35,7 @@ async def login(
 ):
   user = authenticate_user(form_data.username, form_data.password, user_repo)
   if not user:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
   access_token = generate_access_token({"sub": user.id, "role": user.role})
   refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
@@ -92,15 +92,15 @@ async def refresh(
       refresh_token=new_refresh_token,
     )
   except MissingRefreshTokenError as e:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    raise HTTPException(status_code=401, detail=str(e))
   except InvalidTokenError as e:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    raise HTTPException(status_code=401, detail=str(e))
   except UnauthorizedError as e:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    raise HTTPException(status_code=401, detail=str(e))
   except RefreshTokenNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
   except ForbiddenError as e:
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    raise HTTPException(status_code=403, detail=str(e))
 
 
 @auth_router.post("/logout", status_code=status.HTTP_200_OK)

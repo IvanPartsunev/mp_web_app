@@ -11,6 +11,7 @@ from app_config import FRONTEND_BASE_URL
 from auth.operations import is_token_expired
 from database.exceptions import DatabaseError
 from database.repositories import NewsRepository, UserRepository
+from news.exceptions import NewsNotFoundError
 from news.models import News, NewsType, NewsUpdate
 
 NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")
@@ -61,19 +62,13 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
 
 
 def delete_news(news_id: str, repo: NewsRepository):
-  existing_news = get_news(repo, news_id)
-  if not existing_news:
-    return False
-
+  existing_news = get_news_by_id(repo, news_id)
   repo.table.delete_item(Key={"id": news_id})
   return True
 
 
 def update_news(news_update: NewsUpdate, news_id: str, user_id: str, repo: NewsRepository):
-  existing_news = get_news(repo, news_id)
-
-  if not existing_news:
-    return None
+  existing_news = get_news_by_id(repo, news_id)
 
   # Build update expression
   update_expression_parts = []
@@ -120,12 +115,16 @@ def update_news(news_update: NewsUpdate, news_id: str, user_id: str, repo: NewsR
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def get_news(repo: NewsRepository, news_id: str | None = None, token: str | None = None):
-  if news_id:
-    response = repo.table.get_item(Key={"id": news_id})
-    if "Item" not in response:
-      return None
-    return repo.convert_item_to_object(response["Item"])
+def get_news_by_id(repo: NewsRepository, news_id: str):
+  """Get a single news item by ID. Raises NewsNotFoundError if not found."""
+  response = repo.table.get_item(Key={"id": news_id})
+  if "Item" not in response:
+    raise NewsNotFoundError(news_id)
+  return repo.convert_item_to_object(response["Item"])
+
+
+def get_news(repo: NewsRepository, token: str | None = None):
+  """Get list of news items, filtered by token permissions."""
 
   one_year_ago = datetime.now() - timedelta(days=365)
   one_year_ago_iso = one_year_ago.isoformat()

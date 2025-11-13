@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from auth.operations import role_required
 from database.exceptions import DatabaseError
 from database.repositories import NewsRepository
+from news.exceptions import NewsNotFoundError
 from news.models import News, NewsUpdate
 from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
 from users.roles import UserRole
@@ -38,9 +39,9 @@ async def news_create(
   try:
     return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
   except DatabaseError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
+    raise HTTPException(status_code=400, detail=str(e))
 
 
 @news_router.put("/update/{news_id}", status_code=status.HTTP_200_OK)
@@ -52,14 +53,23 @@ async def news_update(
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
+  except NewsNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
+    raise HTTPException(status_code=400, detail=str(e))
 
 
 @news_router.delete("/delete/{news_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def news_delete(
   news_id: str, news_repo: NewsRepository = Depends(get_news_repository), user=Depends(role_required([UserRole.ADMIN]))
 ):
-  return delete_news(news_id=news_id, repo=news_repo)
+  try:
+    return delete_news(news_id=news_id, repo=news_repo)
+  except NewsNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))

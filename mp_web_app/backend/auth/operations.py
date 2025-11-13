@@ -159,9 +159,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository =
       raise UserNotFoundError("User not found")
     return user
   except UnauthorizedError as e:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    raise HTTPException(status_code=401, detail=str(e))
   except UserNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
 
 
 def authenticate_user(email: str, password: str, repo: UserRepository) -> Optional[UserSecret]:
@@ -189,7 +189,7 @@ def role_required(required_roles: list[UserRole]):
 
       return current_user
     except ForbiddenError as e:
-      raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+      raise HTTPException(status_code=403, detail=str(e))
 
   return dependency
 

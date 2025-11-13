@@ -79,11 +79,11 @@ async def member_update(
   try:
     return update_member(member_code, member_data, member_repo)
   except MemberNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
   except ValidationError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
   except DatabaseError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @member_router.delete("/delete/{member_code}", status_code=status.HTTP_204_NO_CONTENT)
@@ -96,9 +96,9 @@ async def member_delete(
   try:
     delete_member(member_code, member_repo)
   except MemberNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @member_router.post("/sync_members_list", status_code=status.HTTP_200_OK)

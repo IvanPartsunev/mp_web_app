@@ -33,13 +33,13 @@ async def file_create(
     )
     return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
   except MissingAllowedUsersError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
   except InvalidFileExtensionError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
   except FileUploadError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
   except MetadataError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @file_router.get("/list", status_code=status.HTTP_200_OK)
@@ -51,7 +51,7 @@ async def files_list(
   try:
     return get_files_metadata(file_type, repo)
   except MetadataError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @file_router.delete("/delete/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -64,11 +64,11 @@ async def file_delete(
   try:
     delete_file(file_id, repo)
   except FileNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
   except FileUploadError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
   except MetadataError as e:
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @file_router.post("/download", status_code=status.HTTP_200_OK)
@@ -80,10 +80,10 @@ async def download_files(
   try:
     return download_file(file_metadata=file_metadata, repo=repo, user=user)
   except FileAccessDeniedError as e:
-    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    raise HTTPException(status_code=403, detail=str(e))
   except FileNotFoundError as e:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    raise HTTPException(status_code=404, detail=str(e))
   except MetadataError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
   except InvalidMetadataError as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    raise HTTPException(status_code=400, detail=str(e))
