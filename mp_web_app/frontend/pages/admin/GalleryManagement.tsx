@@ -37,16 +37,13 @@ export default function GalleryManagement() {
       const galleryImages = response.data || [];
       setImages(galleryImages);
 
-      // Fetch presigned URLs for each image
+      // URLs now come with the response
       const urls: Record<string, string> = {};
-      for (const image of galleryImages) {
-        try {
-          const urlResponse = await apiClient.get(`gallery/image/${image.id}`);
-          urls[image.id] = urlResponse.data.url;
-        } catch {
-          // Silently skip images that fail to load
+      galleryImages.forEach((image: any) => {
+        if (image.url) {
+          urls[image.id] = image.url;
         }
-      }
+      });
       setImageUrls(urls);
     } catch (err: any) {
       toast({

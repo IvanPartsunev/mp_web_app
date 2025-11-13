@@ -53,9 +53,15 @@ export function GalleryImageCard({imageUrl, imageName}: GalleryImageCardProps) {
       </Card>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 border-0 bg-transparent shadow-none">
           <DialogTitle className="sr-only">{imageName}</DialogTitle>
-          <img src={imageUrl} alt={imageName} className="w-full h-auto max-h-[80vh] object-contain" />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <img
+              src={imageUrl}
+              alt={imageName}
+              className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-lg"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </>

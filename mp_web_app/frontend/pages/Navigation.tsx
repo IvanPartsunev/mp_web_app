@@ -22,7 +22,7 @@ const NAV_LINKS = [
   {label: "Контакти", to: "/contacts"},
   {label: "Галерия", to: "/gallery"},
   {
-    label: "За нас",
+    label: "Списъци",
     dropdown: [
       {
         label: "Управителен съвет",
@@ -34,11 +34,6 @@ const NAV_LINKS = [
         to: "/control",
         description: "Списък на членовете на КС към ГПК.",
       },
-    ],
-  },
-  {
-    label: "Списъци",
-    dropdown: [
       {
         label: "Пълномощници",
         to: "/proxies",

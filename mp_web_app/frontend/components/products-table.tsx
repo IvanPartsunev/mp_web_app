@@ -1,8 +1,5 @@
-// components/files/FilesTable.tsx
+// components/products-table.tsx
 import React from "react";
-import axios from "axios";
-import {API_BASE_URL} from "@/app-config";
-import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {
@@ -16,55 +13,40 @@ import {
 } from "@/components/ui/pagination";
 import apiClient from "@/context/apiClient";
 
-type FileType =
-  | "governing_documents"
-  | "forms"
-  | "minutes"
-  | "transcripts"
-  | "accounting"
-  | "private_documents"
-  | "others";
-
-type FileMetadata = {
+type Product = {
   id?: string | null;
-  file_name?: string | null;
-  file_type: FileType;
-  uploaded_by?: string | null;
-  created_at?: string | null;
+  name: string;
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+  description?: string | null;
 };
 
-type FilesTableProps = {
-  fileType: FileType;
+type ProductsTableProps = {
   title?: string;
 };
 
-const API_BASE = API_BASE_URL;
 const PAGE_SIZE = 25;
 
-export function FilesTable({fileType, title}: FilesTableProps) {
-  const [data, setData] = React.useState<FileMetadata[]>([]);
+export function ProductsTable({title}: ProductsTableProps) {
+  const [data, setData] = React.useState<Product[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const [page, setPage] = React.useState<number>(1);
-
-  const token = React.useMemo(() => localStorage.getItem("access_token"), []);
 
   const load = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<FileMetadata[]>(`files/list`, {
-        params: {file_type: fileType},
-        withCredentials: true,
-      });
+      const res = await apiClient.get<Product[]>(`products/list`);
       setData(res.data ?? []);
-      setPage(1); // reset page on type change/fresh load
+      setPage(1);
     } catch (e: any) {
       setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.");
     } finally {
       setLoading(false);
     }
-  }, [fileType]);
+  }, []);
 
   React.useEffect(() => {
     load();
@@ -82,54 +64,12 @@ export function FilesTable({fileType, title}: FilesTableProps) {
     setPage(p);
   };
 
-  const handleDownload = async (file: FileMetadata) => {
-    if (!file.id || !file.file_name) return;
-    try {
-      const res = await apiClient.post(
-        `files/download`,
-        {
-          id: file.id,
-          file_name: file.file_name,
-          file_type: file.file_type,
-          uploaded_by: file.uploaded_by ?? null,
-          created_at: file.created_at ?? null,
-        } as FileMetadata,
-        {
-          responseType: "blob",
-          withCredentials: true,
-        }
-      );
-
-      const blob = new Blob([res.data], {type: res.headers["content-type"] || "application/octet-stream"});
-      const contentDisposition = res.headers["content-disposition"] as string | undefined;
-      const suggestedName = (() => {
-        if (contentDisposition) {
-          const match = /filename\*?=(?:UTF-8'')?"?([^"]+)"?/i.exec(contentDisposition);
-          if (match && match[1]) return decodeURIComponent(match[1]);
-        }
-        return file.file_name || "download";
-      })();
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = suggestedName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.");
-    }
-  };
-
   return (
     <section className="container mx-auto px-4 py-8">
-      {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <Card>
         <CardHeader>
-          <CardTitle>Списък с налични файлове</CardTitle>
+          <CardTitle>Списък с налични продукти</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -137,47 +77,45 @@ export function FilesTable({fileType, title}: FilesTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px] py-2">№</TableHead>
-                <TableHead className="py-2">Име на файл</TableHead>
-                <TableHead className="py-2">Дата на създаване</TableHead>
-                <TableHead className="text-right py-2">Действия</TableHead>
+                <TableHead className="py-2">Име</TableHead>
+                <TableHead className="py-2 text-center">Дължина (см)</TableHead>
+                <TableHead className="py-2 text-center">Ширина (см)</TableHead>
+                <TableHead className="py-2 text-center">Височина (см)</TableHead>
+                <TableHead className="py-2">Описание</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
+                  <TableCell colSpan={6} className="py-2">
                     Зареждане...
                   </TableCell>
                 </TableRow>
               )}
               {error && !loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-red-600 py-2">
+                  <TableCell colSpan={6} className="text-red-600 py-2">
                     {error}
                   </TableCell>
                 </TableRow>
               )}
               {!loading && !error && pageItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
-                    Няма налични записи.
+                  <TableCell colSpan={6} className="py-2">
+                    Няма налични продукти.
                   </TableCell>
                 </TableRow>
               )}
               {!loading &&
                 !error &&
-                pageItems.map((file, idx) => (
-                  <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
+                pageItems.map((product, idx) => (
+                  <TableRow key={product.id ?? `product-${startIdx + idx}`}>
                     <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
-                    <TableCell className="py-2">{file.file_name}</TableCell>
-                    <TableCell className="py-2">
-                      {file.created_at ? new Date(file.created_at).toLocaleString() : "-"}
-                    </TableCell>
-                    <TableCell className="text-right py-2">
-                      <Button size="sm" onClick={() => handleDownload(file)}>
-                        Изтегли
-                      </Button>
-                    </TableCell>
+                    <TableCell className="py-2 font-medium">{product.name}</TableCell>
+                    <TableCell className="py-2 text-center">{product.length ?? "-"}</TableCell>
+                    <TableCell className="py-2 text-center">{product.width ?? "-"}</TableCell>
+                    <TableCell className="py-2 text-center">{product.height ?? "-"}</TableCell>
+                    <TableCell className="py-2">{product.description || "-"}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>

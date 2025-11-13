@@ -5,7 +5,8 @@ import {getAccessToken} from "@/context/tokenStore";
 import {getUserRole} from "@/context/jwt";
 import NewsManagement from "./NewsManagement";
 import UserManagement from "./UserManagement";
-import FileManagement from "./FileManagement";
+import ProductsManagement from "./ProductsManagement";
+import DocumentsManagement from "./DocumentsManagement";
 import GalleryManagement from "./GalleryManagement";
 
 export default function AdminPanel() {
@@ -42,10 +43,11 @@ export default function AdminPanel() {
       <h1 className="text-3xl font-bold mb-6">Административен панел</h1>
 
       <Tabs defaultValue="news" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="news">Новини</TabsTrigger>
           <TabsTrigger value="users">Потребители</TabsTrigger>
-          <TabsTrigger value="files">Файлове</TabsTrigger>
+          <TabsTrigger value="products">Продукти</TabsTrigger>
+          <TabsTrigger value="documents">Документи</TabsTrigger>
           <TabsTrigger value="gallery">Галерия</TabsTrigger>
         </TabsList>
 
@@ -57,8 +59,12 @@ export default function AdminPanel() {
           <UserManagement />
         </TabsContent>
 
-        <TabsContent value="files" className="mt-6">
-          <FileManagement />
+        <TabsContent value="products" className="mt-6">
+          <ProductsManagement />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <DocumentsManagement />
         </TabsContent>
 
         <TabsContent value="gallery" className="mt-6">

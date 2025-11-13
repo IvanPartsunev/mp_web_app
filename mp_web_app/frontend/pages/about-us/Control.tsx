@@ -44,7 +44,6 @@ export default function Control() {
 
   return (
     <section className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Контролен съвет</h1>
 
       <Card>
         <CardHeader>
