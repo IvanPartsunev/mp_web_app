@@ -3,8 +3,8 @@ from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from auth.operations import get_current_user, role_required
-from database.repositories import MemberRepository
 from database.exceptions import DatabaseError
+from database.repositories import MemberRepository
 from members.exceptions import InvalidFileTypeError, MemberNotFoundError, ValidationError
 from members.models import Member, MemberPublic, MemberUpdate
 from members.operations import (
@@ -49,9 +49,7 @@ async def members_list(
     if user_role in privileged_roles:
       return members
     else:
-      return [
-        MemberPublic(first_name=m.first_name, last_name=m.last_name, proxy=m.proxy) for m in members
-      ]
+      return [MemberPublic(first_name=m.first_name, last_name=m.last_name, proxy=m.proxy) for m in members]
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 

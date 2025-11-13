@@ -84,5 +84,6 @@ class GalleryRepository(BaseRepository):
 
 class ProductRepository(BaseRepository):
   """Convert a DynamoDB item to a Product model."""
+
   def convert_item_to_object(self, item: dict[str, Any]):
     return Product(**item)

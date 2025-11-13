@@ -16,22 +16,22 @@ def get_product_repository() -> ProductRepository:
   """Dependency to get the member repository."""
   return ProductRepository(PRODUCTS_TABLE_NAME)
 
+
 def get_product(repo: ProductRepository, product_id: str) -> Product:
-  response = repo.table.get_item(Key={'id': product_id})
+  response = repo.table.get_item(Key={"id": product_id})
   if "Item" not in response:
     raise ProductNotFoundError
   return repo.convert_item_to_object(response["Item"])
 
 
 def create_product(product: Product, repo: ProductRepository) -> None:
-
   product_item = {
     "product_id": str(uuid4()),
     "name": product.name,
     "width": product.width,
     "height": product.height,
     "length": product.length,
-    "description": product.description
+    "description": product.description,
   }
 
   try:

@@ -9,8 +9,8 @@ from fastapi import Request
 
 from app_config import FRONTEND_BASE_URL
 from auth.operations import is_token_expired
-from database.repositories import NewsRepository, UserRepository
 from database.exceptions import DatabaseError
+from database.repositories import NewsRepository, UserRepository
 from news.models import News, NewsType, NewsUpdate
 
 NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")

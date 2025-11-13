@@ -1,15 +1,21 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from auth.operations import role_required
 from database.exceptions import DatabaseError
 from database.repositories import ProductRepository
 from products.exceptions import ProductNotFoundError
 from products.models import Product, ProductUpdate
-from products.operations import get_product_repository, create_product, delete_product, get_product, update_product, \
-  list_products
+from products.operations import (
+  create_product,
+  delete_product,
+  get_product,
+  get_product_repository,
+  list_products,
+  update_product,
+)
 from users.roles import UserRole
 
-product_router = APIRouter(tags=['product'])
+product_router = APIRouter(tags=["product"])
 
 
 @product_router.get("/list", response_model=list[Product], status_code=status.HTTP_200_OK)
@@ -26,7 +32,7 @@ async def products_list(product_repo: ProductRepository = Depends(get_product_re
 async def product_create(
   product: Product,
   product_repo: ProductRepository = Depends(get_product_repository),
-  user = Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     return create_product(product, product_repo)
@@ -41,7 +47,7 @@ async def product_update(
   product_id: str,
   product_data: ProductUpdate,
   product_repo: ProductRepository = Depends(get_product_repository),
-  user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     existing_product = get_product(product_repo, product_id)
@@ -56,7 +62,7 @@ async def product_update(
 async def product_delete(
   product_id: str,
   product_repo: ProductRepository = Depends(get_product_repository),
-  user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     existing_product = get_product(product_repo, product_id)

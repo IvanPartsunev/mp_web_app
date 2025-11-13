@@ -25,10 +25,12 @@ async def file_create(
   allowed_to: list[str] = Form([]),
   file: UploadFile = File(...),
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
-    file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
+    file_metadata = FileMetadataFull(
+      file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id
+    )
     return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
   except MissingAllowedUsersError as e:
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -44,7 +46,7 @@ async def file_create(
 async def files_list(
   file_type: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     return get_files_metadata(file_type, repo)
@@ -56,7 +58,7 @@ async def files_list(
 async def file_delete(
   file_id: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   """Delete a single file by ID (ADMIN only)."""
   try:
