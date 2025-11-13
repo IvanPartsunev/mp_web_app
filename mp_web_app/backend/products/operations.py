@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -24,9 +25,9 @@ def get_product(repo: ProductRepository, product_id: str) -> Product:
   return repo.convert_item_to_object(response["Item"])
 
 
-def create_product(product: Product, repo: ProductRepository) -> None:
+def create_product(product: Product, repo: ProductRepository) -> Product:
   product_item = {
-    "product_id": str(uuid4()),
+    "id": str(uuid4()),
     "name": product.name,
     "width": product.width,
     "height": product.height,
@@ -36,6 +37,7 @@ def create_product(product: Product, repo: ProductRepository) -> None:
 
   try:
     repo.table.put_item(Item=product_item)
+    return repo.convert_item_to_object(product_item)
   except ClientError as e:
     raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
@@ -106,7 +108,7 @@ def _get_products_from_db(repo: ProductRepository) -> list[dict[Any, Any]]:
 
   while True:
     response = table.scan(**scan_kwargs)
-    products.extend(response.get("items", []))
+    products.extend(response.get("Items", []))
 
     if "LastEvaluatedKey" not in response:
       break

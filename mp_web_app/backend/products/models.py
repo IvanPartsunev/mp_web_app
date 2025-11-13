@@ -1,18 +1,30 @@
-from pydantic import BaseModel
+from decimal import Decimal
+
+from pydantic import BaseModel, ConfigDict
 
 
 class Product(BaseModel):
-  id: str | None
+  model_config = ConfigDict(
+    json_encoders={Decimal: float},
+    from_attributes=True,
+  )
+
+  id: str | None = None
   name: str
-  width: float | None = None
-  height: float | None = None
-  length: float | None = None
+  width: Decimal | None = None
+  height: Decimal | None = None
+  length: Decimal | None = None
   description: str | None = None
 
 
 class ProductUpdate(BaseModel):
-  name: str | None
-  width: float | None
-  height: float | None
-  length: float | None
-  description: str | None
+  model_config = ConfigDict(
+    json_encoders={Decimal: float},
+    from_attributes=True,
+  )
+
+  name: str | None = None
+  width: Decimal | None = None
+  height: Decimal | None = None
+  length: Decimal | None = None
+  description: str | None = None
