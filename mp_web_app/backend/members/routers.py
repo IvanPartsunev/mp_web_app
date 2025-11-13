@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
 from auth.operations import get_current_user, role_required
 from database.repositories import MemberRepository
-from members.exceptions import DatabaseError, InvalidFileTypeError, MemberNotFoundError, ValidationError
+from database.exceptions import DatabaseError
+from members.exceptions import InvalidFileTypeError, MemberNotFoundError, ValidationError
 from members.models import Member, MemberPublic, MemberUpdate
 from members.operations import (
   convert_members_list,

@@ -25,7 +25,7 @@ async def file_create(
   allowed_to: list[str] = Form([]),
   file: UploadFile = File(...),
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.ADMIN]))
 ):
   try:
     file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
@@ -44,7 +44,7 @@ async def file_create(
 async def files_list(
   file_type: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER])),  # TODO Change to ADMIN
+  user=Depends(role_required([UserRole.ADMIN]))
 ):
   try:
     return get_files_metadata(file_type, repo)

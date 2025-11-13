@@ -9,7 +9,7 @@ from fastapi import Request
 from app_config import FRONTEND_BASE_URL
 from auth.operations import is_token_expired
 from database.repositories import NewsRepository, UserRepository
-from news.exceptions import DatabaseError
+from database.exceptions import DatabaseError
 from news.models import News, NewsType, NewsUpdate
 
 NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")
@@ -54,7 +54,6 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
       user_repo = get_user_repository()
       notify_subscribed_users(news_data, news_id, request, user_repo)
     except Exception as e:
-      # Log error but don't block news creation
       print(f"Warning: Failed to send email notifications: {e}")
 
   return repo.convert_item_to_object(news_item)

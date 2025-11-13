@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from news.exceptions import DatabaseError
+from database.exceptions import DatabaseError
 from news.models import News, NewsType, NewsUpdate
 from news.operations import (
   create_news,

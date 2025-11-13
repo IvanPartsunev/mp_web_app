@@ -4,7 +4,7 @@ from starlette.responses import HTMLResponse
 
 from auth.operations import decode_token, is_token_expired
 from database.repositories import UserRepository
-from mail.exceptions import EmailSendError, InvalidTokenError
+from mail.exceptions import EmailSendError
 from mail.operations import construct_reset_link, send_news_notification, send_reset_email
 from users.models import UserUpdate, UserUpdatePasswordEmail
 from users.operations import get_user_by_email, get_user_repository, update_user

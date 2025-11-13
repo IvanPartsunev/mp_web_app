@@ -10,7 +10,8 @@ from fastapi import Request
 from pydantic import EmailStr
 
 from database.repositories import UserRepository
-from users.exceptions import DatabaseError, ValidationError
+from database.exceptions import DatabaseError
+from users.exceptions import ValidationError
 from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 

@@ -7,7 +7,7 @@ from auth.operations import decode_token, is_token_expired, role_required
 from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
 from members.operations import get_member_repository, is_member_code_valid, update_member_code
-from users.exceptions import DatabaseError, UserAlreadyExistsError, UserNotFoundError, ValidationError
+from users.exceptions import DatabaseError, ValidationError
 from users.models import User, UserCreate, UserUpdate, UserUpdatePassword
 from users.operations import (
   create_user,

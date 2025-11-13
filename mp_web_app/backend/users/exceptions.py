@@ -22,14 +22,6 @@ class ValidationError(Exception):
     super().__init__(self.message)
 
 
-class DatabaseError(Exception):
-  """Raised when a database operation fails."""
-
-  def __init__(self, message: str):
-    self.message = message
-    super().__init__(self.message)
-
-
 class FailedToSendEmailException(Exception):
   def __init__(self, status_code: int, text: str):
     self.status_code = status_code

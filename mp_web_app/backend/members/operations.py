@@ -7,7 +7,8 @@ from botocore.exceptions import ClientError
 from starlette.datastructures import UploadFile
 
 from database.repositories import MemberRepository
-from members.exceptions import DatabaseError, InvalidFileTypeError, MemberNotFoundError, ValidationError
+from database.exceptions import DatabaseError
+from members.exceptions import InvalidFileTypeError, MemberNotFoundError, ValidationError
 from members.models import Member, MemberUpdate
 from users.operations import validate_email, validate_phone
 

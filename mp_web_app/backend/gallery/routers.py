@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 
 from auth.operations import role_required
 from database.repositories import GalleryRepository
-from gallery.exceptions import DatabaseError, ImageNotFoundError, ImageUploadError, InvalidImageFormatError, PresignedUrlError
+from gallery.exceptions import (
+  DatabaseError,
+  ImageNotFoundError,
+  ImageUploadError,
+  InvalidImageFormatError,
+  PresignedUrlError,
+)
 from gallery.models import GalleryImageMetadata
 from gallery.operations import (
   delete_gallery_image,

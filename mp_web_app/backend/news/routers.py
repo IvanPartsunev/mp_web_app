@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from auth.operations import role_required
 from database.repositories import NewsRepository
-from news.exceptions import DatabaseError
+from database.exceptions import DatabaseError
 from news.models import News, NewsUpdate
 from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
 from users.roles import UserRole
