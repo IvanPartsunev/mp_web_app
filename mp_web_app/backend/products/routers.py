@@ -1,36 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from auth.operations import role_required
+from database.exceptions import DatabaseError
 from database.repositories import ProductRepository
-from products.models import ProductModel
-from products.operations import get_product_repository
+from products.exceptions import ProductNotFoundError
+from products.models import Product, ProductUpdate
+from products.operations import get_product_repository, create_product, delete_product, get_product, update_product, \
+  list_products
 from users.roles import UserRole
 
 product_router = APIRouter(tags=['product'])
 
 
-@product_router.get("/list", response_model=list[ProductModel], status_code=status.HTTP_200_OK)
-async def product_list():
-  ...
+@product_router.get("/list", response_model=list[Product], status_code=status.HTTP_200_OK)
+async def products_list(product_repo: ProductRepository = Depends(get_product_repository)):
+  try:
+    return list_products(product_repo)
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))
 
 
 @product_router.post("/create", status_code=status.HTTP_201_CREATED)
 async def product_create(
-  product: ProductModel,
+  product: Product,
   product_repo: ProductRepository = Depends(get_product_repository),
   user = Depends(role_required([UserRole.ADMIN]))
 ):
-  ...
+  try:
+    return create_product(product, product_repo)
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))
 
 
 @product_router.put("/update/{product_id}", status_code=status.HTTP_200_OK)
 async def product_update(
   product_id: str,
-  product: ProductModel,
+  product_data: ProductUpdate,
   product_repo: ProductRepository = Depends(get_product_repository),
   user=Depends(role_required([UserRole.ADMIN]))
 ):
-  ...
+  try:
+    existing_product = get_product(product_repo, product_id)
+    update_product(product_data, existing_product, product_repo)
+  except ProductNotFoundError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))
 
 
 @product_router.delete("/delete/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -39,4 +58,10 @@ async def product_delete(
   product_repo: ProductRepository = Depends(get_product_repository),
   user=Depends(role_required([UserRole.ADMIN]))
 ):
-  ...
+  try:
+    existing_product = get_product(product_repo, product_id)
+    delete_product(existing_product, product_repo)
+  except ProductNotFoundError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))

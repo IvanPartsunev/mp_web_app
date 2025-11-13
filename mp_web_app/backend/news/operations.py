@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta
 from uuid import uuid4
@@ -54,7 +55,7 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
       user_repo = get_user_repository()
       notify_subscribed_users(news_data, news_id, request, user_repo)
     except Exception as e:
-      print(f"Warning: Failed to send email notifications: {e}")
+      logging.info(f"Warning: Failed to send email notifications: {e}")
 
   return repo.convert_item_to_object(news_item)
 

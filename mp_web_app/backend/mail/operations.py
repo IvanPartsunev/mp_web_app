@@ -124,7 +124,7 @@ def send_verification_email(
 def send_news_notification(
   request: Request,
   user_id: str,
-  email: str,
+  email: EmailStr,
   news_link: str,
 ):
   unsubscribe_link = construct_unsubscribe_link(user_id, email, request)
