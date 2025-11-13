@@ -73,7 +73,7 @@ export default function UploadFile() {
       setLoadingUsers(true);
       setUsersError("");
       try {
-        const res = await apiClient.get<User[]>(`users/list-users`, {
+        const res = await apiClient.get<User[]>(`users/list`, {
           withCredentials: true,
         });
         setUsers(Array.isArray(res.data) ? res.data : []);

@@ -52,7 +52,7 @@ export function FilesTable({fileType, title}: FilesTableProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<FileMetadata[]>(`files/get_files`, {
+      const res = await apiClient.get<FileMetadata[]>(`files/list`, {
         params: {file_type: fileType},
         withCredentials: true,
       });
