@@ -83,8 +83,9 @@ export function GalleryModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-[100vw] max-h-[100vh] w-full h-full p-0 border-0 bg-black/95 backdrop-blur-sm"
+        className="!max-w-[100vw] !w-[100vw] h-[100vh] p-0 border-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md md:!max-w-[85vw] md:!w-[85vw] md:h-[90vh]"
         onPointerDownOutside={(e) => e.preventDefault()}
+        showCloseButton={false}
       >
         <DialogTitle className="sr-only">{imageName}</DialogTitle>
 
@@ -92,24 +93,24 @@ export function GalleryModal({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 rounded-full w-12 h-12"
+          className="absolute top-2 right-2 z-50 text-foreground hover:bg-accent active:bg-accent/80 active:scale-[0.98] transition-all duration-150 rounded-full w-9 h-9 p-1.5"
           onClick={onClose}
           aria-label="Затвори"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </Button>
 
-        {/* Image counter */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-black/50 text-white px-4 py-2 rounded-full text-sm font-medium">
+        {/* Image counter - hidden on mobile */}
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-primary/90 text-white px-4 py-2 rounded-full text-sm font-medium">
           {currentIndex} / {totalImages}
         </div>
 
-        {/* Previous button */}
+        {/* Previous button - hidden on mobile, use swipe instead */}
         {hasPrevious && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-50 text-white hover:bg-white/20 rounded-full w-12 h-12"
+            className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:bg-accent rounded-full w-14 h-14"
             onClick={onPrevious}
             aria-label="Предишна снимка"
           >
@@ -117,12 +118,12 @@ export function GalleryModal({
           </Button>
         )}
 
-        {/* Next button */}
+        {/* Next button - hidden on mobile, use swipe instead */}
         {hasNext && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-50 text-white hover:bg-white/20 rounded-full w-12 h-12"
+            className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:bg-accent rounded-full w-14 h-14"
             onClick={onNext}
             aria-label="Следваща снимка"
           >
@@ -132,18 +133,20 @@ export function GalleryModal({
 
         {/* Image container with touch gestures */}
         <div
-          className="relative w-full h-full flex items-center justify-center p-4"
+          className="relative w-full h-full flex items-center justify-center overflow-hidden p-0 md:p-16"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          <img
-            ref={imageRef}
-            src={imageUrl}
-            alt={imageName}
-            className="max-w-full max-h-full w-auto h-auto object-contain select-none transition-opacity duration-300"
-            draggable={false}
-          />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt={imageName}
+              className="max-w-full max-h-full w-auto h-auto object-contain select-none transition-opacity duration-300"
+              draggable={false}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

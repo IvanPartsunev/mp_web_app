@@ -191,7 +191,9 @@ export function Navigation() {
         <span className="text-xl font-bold text-foreground">Меню</span>
         <Button
           onClick={() => setMobileMenuOpen(false)}
+          variant="ghost"
           size="icon"
+          className="text-foreground hover:bg-accent active:bg-accent/80 active:scale-[0.98] transition-all duration-150 rounded-full w-9 h-9 p-1.5"
           aria-label="Затвори менюто"
         >
           <CloseIcon className="w-5 h-5" />
@@ -524,10 +526,10 @@ export function Navigation() {
 
       {/* Hamburger Icon for Mobile */}
       {isMobile && (
-        <div className="sticky top-0 z-40 flex items-center px-2 py-2 w-full bg-background/95 backdrop-blur-md shadow-sm border-t-2 border-transparent" style={{borderImageSource: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8))', borderImageSlice: 1}}>
+        <div className="sticky top-0 z-40 flex items-center px-2 py-1.5 w-full bg-background/95 backdrop-blur-md shadow-sm border-t-2 border-transparent" style={{borderImageSource: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8))', borderImageSlice: 1}}>
           <Button
             onClick={() => setMobileMenuOpen(true)}
-            className="w-full flex items-center justify-center py-2 h-[35px]"
+            className="w-full flex items-center justify-center py-1.5 h-[30px]"
             aria-label="Отвори менюто"
             disabled={isNavigating}
           >
