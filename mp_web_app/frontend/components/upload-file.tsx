@@ -44,6 +44,7 @@ export default function UploadFile() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState<string>("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Get user role
   const [userRole, setUserRole] = useState<string>("");
@@ -145,9 +146,38 @@ export default function UploadFile() {
 
   const isPrivate = fileType === "private_documents";
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setFile(files[0]);
+    }
+  };
+
   return (
-    <div className="flex min-h-svh w-full items-start justify-center">
-      <div className="w-full max-w-lg">
+    <div className="flex min-h-svh w-full items-start justify-center p-4">
+      <div className="w-full max-w-3xl">
         <Card>
           <CardHeader>
             <CardTitle>Качи документ</CardTitle>
@@ -257,18 +287,52 @@ export default function UploadFile() {
                   disabled={submitting}
                   required
                 />
-                <div className="flex items-center gap-3">
-                  <Button asChild variant="secondary" disabled={submitting}>
-                    <label htmlFor="file">Избери файл</label>
-                  </Button>
-                </div>
-                <span
-                  className="text-sm text-muted-foreground truncate"
-                  title={file?.name || "Няма избран файл"}
-                  style={{maxWidth: "calc(100% - 140px)"}}
+                
+                {/* Drag and drop zone */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                    isDragging
+                      ? "border-primary bg-primary/5 scale-[1.02]"
+                      : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
+                  } ${submitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => !submitting && document.getElementById("file")?.click()}
                 >
-                  {file?.name || "Няма избран файл"}
-                </span>
+                  <div className="flex flex-col items-center gap-2">
+                    <svg
+                      className="w-12 h-12 text-muted-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    {file ? (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                        <p className="text-xs text-primary">Кликни или пусни файл за промяна</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">
+                          {isDragging ? "Пусни файла тук" : "Кликни или пусни файл"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Поддържат се всички типове файлове</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col gap-3">

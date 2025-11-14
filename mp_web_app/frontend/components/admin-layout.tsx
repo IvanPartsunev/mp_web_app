@@ -8,12 +8,12 @@ interface AdminLayoutProps {
 
 export function AdminLayout({title, children}: AdminLayoutProps) {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{title}</CardTitle>
         </CardHeader>
-        <CardContent>{children}</CardContent>
+        <CardContent className="px-0 [&>div]:space-y-4 [&>div>div:not(:has(table))]:px-6 [&>div>p]:px-6">{children}</CardContent>
       </Card>
     </div>
   );

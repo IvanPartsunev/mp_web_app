@@ -65,15 +65,14 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
   };
 
   return (
-    <section className="container mx-auto px-4 py-8">
+    <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
       {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <Card>
         <CardHeader>
           <CardTitle>Списък с налични продукти</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="px-0">
             <Table>
             <TableHeader>
               <TableRow>
@@ -121,7 +120,6 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
                 ))}
             </TableBody>
           </Table>
-          </div>
 
           {/* Pagination footer */}
         {totalPages > 1 && (

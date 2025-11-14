@@ -7,6 +7,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import apiClient from "@/context/apiClient";
 
 interface User {
@@ -124,12 +125,16 @@ export default function UserManagement() {
   return (
     <AdminLayout title="Управление на потребители">
       <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Списък с потребители ({users.length})</h3>
+        </div>
         {loading ? (
-          <p className="text-center text-muted-foreground">Зареждане...</p>
+          <LoadingSpinner />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[60px]">№</TableHead>
                 <TableHead>Име</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Роля</TableHead>
@@ -139,8 +144,9 @@ export default function UserManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <TableRow key={user.id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell className="font-medium">
                     {user.first_name} {user.last_name}
                   </TableCell>

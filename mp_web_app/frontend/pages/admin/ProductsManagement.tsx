@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import apiClient from "@/context/apiClient";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 
@@ -178,7 +179,7 @@ export default function ProductsManagement() {
     <AdminLayout title="Управление на продукти">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Списък с продукти</h3>
+          <h3 className="text-lg font-semibold">Списък с продукти ({products.length})</h3>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>Създай продукт</Button>
@@ -247,13 +248,14 @@ export default function ProductsManagement() {
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">Зареждане...</p>
+          <LoadingSpinner />
         ) : products.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични продукти</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[60px]">№</TableHead>
                 <TableHead>Име</TableHead>
                 <TableHead className="text-center">Дължина (см)</TableHead>
                 <TableHead className="text-center">Ширина (см)</TableHead>
@@ -263,8 +265,9 @@ export default function ProductsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <TableRow key={product.id}>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-center">{product.length ?? "-"}</TableCell>
                   <TableCell className="text-center">{product.width ?? "-"}</TableCell>

@@ -6,6 +6,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Checkbox} from "@/components/ui/checkbox";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import apiClient from "@/context/apiClient";
 
 interface FileMetadata {
@@ -151,7 +152,7 @@ export default function DocumentsManagement() {
               <SelectTrigger className="w-[280px]">
                 <SelectValue placeholder="Изберете тип документ" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent sideOffset={5}>
                 {FILE_TYPES.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
@@ -171,7 +172,7 @@ export default function DocumentsManagement() {
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground py-8">Зареждане...</p>
+          <LoadingSpinner />
         ) : filteredFiles.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
             Няма налични документи{selectedFileType !== "all" ? " от този тип" : ""}
