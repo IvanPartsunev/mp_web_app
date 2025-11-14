@@ -1,17 +1,8 @@
 // components/files/FilesTable.tsx
-import React from "react"
-import axios from "axios"
-import {API_BASE_URL} from "@/app-config";
-import {Button} from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import React from "react";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -20,7 +11,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 import apiClient from "@/context/apiClient";
 
 type FileType =
@@ -30,70 +21,64 @@ type FileType =
   | "transcripts"
   | "accounting"
   | "private_documents"
-  | "others"
+  | "others";
 
 type FileMetadata = {
-  id?: string | null
-  file_name?: string | null
-  file_type: FileType
-  uploaded_by?: string | null
-  created_at?: string | null
-}
+  id?: string | null;
+  file_name?: string | null;
+  file_type: FileType;
+  uploaded_by?: string | null;
+  created_at?: string | null;
+};
 
 type FilesTableProps = {
-  fileType: FileType
-  title?: string
-}
+  fileType: FileType;
+  title?: string;
+};
 
-const API_BASE = API_BASE_URL
-const PAGE_SIZE = 25
+const PAGE_SIZE = 25;
 
-export function FilesTable({fileType, title}: FilesTableProps) {
-  const [data, setData] = React.useState<FileMetadata[]>([])
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
-  const [page, setPage] = React.useState<number>(1)
-
-  const token = React.useMemo(() => localStorage.getItem("access_token"), [])
+export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
+  const [data, setData] = React.useState<FileMetadata[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [page, setPage] = React.useState<number>(1);
 
   const load = React.useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await apiClient.get<FileMetadata[]>(
-        `files/get_files`,
-        {
-          params: {file_type: fileType},
-          withCredentials: true,
-        }
-      )
-      setData(res.data ?? [])
-      setPage(1) // reset page on type change/fresh load
+      const res = await apiClient.get<FileMetadata[]>(`files/list`, {
+        params: {file_type: fileType},
+        withCredentials: true,
+      });
+      setData(res.data ?? []);
+      setPage(1); // reset page on type change/fresh load
     } catch (e: any) {
-      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.")
+      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [fileType])
+  }, [fileType]);
 
   React.useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   // Pagination helpers
-  const total = data.length
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const startIdx = (page - 1) * PAGE_SIZE
-  const endIdx = Math.min(startIdx + PAGE_SIZE, total)
-  const pageItems = data.slice(startIdx, endIdx)
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const startIdx = (page - 1) * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, total);
+  const pageItems = data.slice(startIdx, endIdx);
 
   const goToPage = (p: number) => {
-    if (p < 1 || p > totalPages) return
-    setPage(p)
-  }
+    if (p < 1 || p > totalPages) return;
+    setPage(p);
+  };
 
   const handleDownload = async (file: FileMetadata) => {
-    if (!file.id || !file.file_name) return
+    if (!file.id || !file.file_name) return;
     try {
       const res = await apiClient.post(
         `files/download`,
@@ -108,40 +93,42 @@ export function FilesTable({fileType, title}: FilesTableProps) {
           responseType: "blob",
           withCredentials: true,
         }
-      )
+      );
 
-      const blob = new Blob([res.data], {type: res.headers["content-type"] || "application/octet-stream"})
-      const contentDisposition = res.headers["content-disposition"] as string | undefined
+      const blob = new Blob([res.data], {type: res.headers["content-type"] || "application/octet-stream"});
+      const contentDisposition = res.headers["content-disposition"] as string | undefined;
       const suggestedName = (() => {
         if (contentDisposition) {
-          const match = /filename\*?=(?:UTF-8'')?"?([^"]+)"?/i.exec(contentDisposition)
-          if (match && match[1]) return decodeURIComponent(match[1])
+          const match = /filename\*?=(?:UTF-8'')?"?([^"]+)"?/i.exec(contentDisposition);
+          if (match && match[1]) return decodeURIComponent(match[1]);
         }
-        return file.file_name || "download"
-      })()
+        return file.file_name || "download";
+      })();
 
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = suggestedName
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.URL.revokeObjectURL(url)
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = suggestedName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     } catch (e: any) {
-      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.")
+      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.");
     }
-  }
+  };
 
-  // Simple compact Card styling with small paddings and subtle shadow
   return (
-    <section className="space-y-3 p-3">
-      {title ? <h1 className="text-2xl font-bold py-3">{title}</h1> : null}
+    <section className="container mx-auto px-4 py-8">
+      {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
-      <div className="rounded-lg border bg-card shadow-sm p-2">
-        <div className="rounded-md overflow-hidden">
-          <Table>
-            <TableCaption className="py-1">Списък с налични файлове.</TableCaption>
+      <Card>
+        <CardHeader>
+          <CardTitle>Списък с налични файлове</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px] py-2">№</TableHead>
@@ -153,37 +140,46 @@ export function FilesTable({fileType, title}: FilesTableProps) {
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">Зареждане...</TableCell>
+                  <TableCell colSpan={4} className="py-2">
+                    Зареждане...
+                  </TableCell>
                 </TableRow>
               )}
               {error && !loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-red-600 py-2">{error}</TableCell>
+                  <TableCell colSpan={4} className="text-red-600 py-2">
+                    {error}
+                  </TableCell>
                 </TableRow>
               )}
               {!loading && !error && pageItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">Няма налични записи.</TableCell>
-                </TableRow>
-              )}
-              {!loading && !error && pageItems.map((file, idx) => (
-                <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
-                  <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
-                  <TableCell className="py-2">{file.file_name}</TableCell>
-                  <TableCell
-                    className="py-2">{file.created_at ? new Date(file.created_at).toLocaleString() : "-"}</TableCell>
-                  <TableCell className="text-right py-2">
-                    <Button size="sm" onClick={() => handleDownload(file)}>
-                      Изтегли
-                    </Button>
+                  <TableCell colSpan={4} className="py-2">
+                    Няма налични записи.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
+              {!loading &&
+                !error &&
+                pageItems.map((file, idx) => (
+                  <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
+                    <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
+                    <TableCell className="py-2">{file.file_name}</TableCell>
+                    <TableCell className="py-2">
+                      {file.created_at ? new Date(file.created_at).toLocaleString() : "-"}
+                    </TableCell>
+                    <TableCell className="text-right py-2">
+                      <Button size="sm" onClick={() => handleDownload(file)}>
+                        Изтегли
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
-        </div>
+          </div>
 
-        {/* Pagination footer */}
+          {/* Pagination footer */}
         {totalPages > 1 && (
           <div className="mt-2">
             <Pagination>
@@ -193,7 +189,7 @@ export function FilesTable({fileType, title}: FilesTableProps) {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page - 1)
+                      goToPage(page - 1);
                     }}
                   />
                 </PaginationItem>
@@ -202,16 +198,19 @@ export function FilesTable({fileType, title}: FilesTableProps) {
                 {page > 2 && (
                   <>
                     <PaginationItem>
-                      <PaginationLink href="#" onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(1)
-                      }}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          goToPage(1);
+                        }}
+                      >
                         1
                       </PaginationLink>
                     </PaginationItem>
                     {page > 3 && (
                       <PaginationItem>
-                        <PaginationEllipsis/>
+                        <PaginationEllipsis />
                       </PaginationItem>
                     )}
                   </>
@@ -219,10 +218,13 @@ export function FilesTable({fileType, title}: FilesTableProps) {
 
                 {page > 1 && (
                   <PaginationItem>
-                    <PaginationLink href="#" onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page - 1)
-                    }}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(page - 1);
+                      }}
+                    >
                       {page - 1}
                     </PaginationLink>
                   </PaginationItem>
@@ -236,10 +238,13 @@ export function FilesTable({fileType, title}: FilesTableProps) {
 
                 {page < totalPages && (
                   <PaginationItem>
-                    <PaginationLink href="#" onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page + 1)
-                    }}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(page + 1);
+                      }}
+                    >
                       {page + 1}
                     </PaginationLink>
                   </PaginationItem>
@@ -249,14 +254,17 @@ export function FilesTable({fileType, title}: FilesTableProps) {
                   <>
                     {page < totalPages - 2 && (
                       <PaginationItem>
-                        <PaginationEllipsis/>
+                        <PaginationEllipsis />
                       </PaginationItem>
                     )}
                     <PaginationItem>
-                      <PaginationLink href="#" onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(totalPages)
-                      }}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          goToPage(totalPages);
+                        }}
+                      >
                         {totalPages}
                       </PaginationLink>
                     </PaginationItem>
@@ -268,7 +276,7 @@ export function FilesTable({fileType, title}: FilesTableProps) {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page + 1)
+                      goToPage(page + 1);
                     }}
                   />
                 </PaginationItem>
@@ -279,7 +287,8 @@ export function FilesTable({fileType, title}: FilesTableProps) {
             </div>
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     </section>
-  )
+  );
 }

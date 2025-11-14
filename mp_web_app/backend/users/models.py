@@ -1,18 +1,18 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import List
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
   first_name: str
   last_name: str
-  email: EmailStr
-  phone: str
+  email: EmailStr | None
+  phone: str | None
 
 
 class UserCreate(UserBase):
   password: str
-  user_code: str
+  member_code: str
 
 
 class UserUpdate(BaseModel):
@@ -35,6 +35,7 @@ class UserUpdatePassword(BaseModel):
 class User(UserBase):
   id: str
   role: str
+  active: bool
   created_at: datetime
   updated_at: datetime
   subscribed: bool
@@ -43,16 +44,7 @@ class User(UserBase):
 class UserSecret(BaseModel):
   id: str
   email: EmailStr
-  user_code: str
+  member_code: str
   role: str
   salt: str
   password_hash: str
-
-
-class UserCode(BaseModel):
-  user_code: str
-  is_valid: bool
-
-
-class UserCodes(BaseModel):
-  codes: List[str]

@@ -1,18 +1,26 @@
-from fastapi import APIRouter, HTTPException, Response, Depends, Cookie
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
 from app_config import COOKIE_DOMAIN
+from auth.exceptions import (
+  ForbiddenError,
+  InvalidTokenError,
+  MissingRefreshTokenError,
+  RefreshTokenNotFoundError,
+  UnauthorizedError,
+)
 from auth.models import Token, TokenPayload
 from auth.operations import (
-  verify_refresh_token,
+  authenticate_user,
+  decode_token,
   generate_access_token,
   generate_refresh_token,
   get_auth_repository,
   invalidate_token,
-  authenticate_user, decode_token,
+  verify_refresh_token,
 )
-from database.operations import AuthRepository, UserRepository
+from database.repositories import AuthRepository, UserRepository
 from users.operations import get_user_repository
 
 auth_router = APIRouter(tags=["auth"])
@@ -27,20 +35,23 @@ async def login(
 ):
   user = authenticate_user(form_data.username, form_data.password, user_repo)
   if not user:
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
   access_token = generate_access_token({"sub": user.id, "role": user.role})
   refresh_token = generate_refresh_token({"sub": user.id, "role": user.role}, auth_repo)
 
-  response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    max_age=7 * 24 * 60 * 60,
-    domain=COOKIE_DOMAIN
-  )
+  cookie_params = {
+    "key": "refresh_token",
+    "value": refresh_token,
+    "httponly": True,
+    "secure": True,
+    "samesite": "none",
+    "max_age": 7 * 24 * 60 * 60,
+  }
+  if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+    cookie_params["domain"] = COOKIE_DOMAIN
+
+  response.set_cookie(**cookie_params)
   return Token(access_token=access_token, refresh_token=refresh_token)
 
 
@@ -50,31 +61,46 @@ async def refresh(
   refresh_token: str = Cookie(None),  # Prefer HTTP-only cookie
   auth_repo: AuthRepository = Depends(get_auth_repository),
 ):
-  if not refresh_token:
-    raise HTTPException(status_code=401, detail="Missing refresh token")
+  try:
+    if not refresh_token:
+      raise MissingRefreshTokenError()
 
-  payload = verify_refresh_token(refresh_token, auth_repo)
-  if not payload:
-    raise HTTPException(status_code=401, detail="Invalid refresh token")
+    payload = verify_refresh_token(refresh_token, auth_repo)
+    if not payload:
+      raise InvalidTokenError("Invalid refresh token")
 
-  invalidate_token(payload, auth_repo)
+    invalidate_token(payload, auth_repo)
 
-  new_access_token = generate_access_token({"sub": payload.sub, "role": payload.role})
-  new_refresh_token = generate_refresh_token({"sub": payload.sub, "role": payload.role}, auth_repo)
+    new_access_token = generate_access_token({"sub": payload.sub, "role": payload.role})
+    new_refresh_token = generate_refresh_token({"sub": payload.sub, "role": payload.role}, auth_repo)
 
-  response.set_cookie(
-    key="refresh_token",
-    value=new_refresh_token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    max_age=7 * 24 * 60 * 60,
-    domain=COOKIE_DOMAIN
-  )
-  return Token(
-    access_token=new_access_token,
-    refresh_token=new_refresh_token,
-  )
+    # Only set domain if it's not localhost (for production)
+    cookie_params = {
+      "key": "refresh_token",
+      "value": new_refresh_token,
+      "httponly": True,
+      "secure": True,
+      "samesite": "none",
+      "max_age": 7 * 24 * 60 * 60,
+    }
+    if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+      cookie_params["domain"] = COOKIE_DOMAIN
+
+    response.set_cookie(**cookie_params)
+    return Token(
+      access_token=new_access_token,
+      refresh_token=new_refresh_token,
+    )
+  except MissingRefreshTokenError as e:
+    raise HTTPException(status_code=401, detail=str(e))
+  except InvalidTokenError as e:
+    raise HTTPException(status_code=401, detail=str(e))
+  except UnauthorizedError as e:
+    raise HTTPException(status_code=401, detail=str(e))
+  except RefreshTokenNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except ForbiddenError as e:
+    raise HTTPException(status_code=403, detail=str(e))
 
 
 @auth_router.post("/logout", status_code=status.HTTP_200_OK)
@@ -83,15 +109,23 @@ def logout(
   refresh_token: str = Cookie(None),
   auth_repo: AuthRepository = Depends(get_auth_repository),
 ):
-  payload = decode_token(refresh_token)
-  if payload:
-    token_payload = TokenPayload(**payload)
-    invalidate_token(token_payload, auth_repo)
+  try:
+    payload = decode_token(refresh_token)
+    if payload:
+      token_payload = TokenPayload(**payload)
+      invalidate_token(token_payload, auth_repo)
+  except (RefreshTokenNotFoundError, ForbiddenError):
+    # Ignore errors during logout - just clear the cookie
+    pass
 
-  response.delete_cookie(
-    "refresh_token",
-    httponly=True,
-    samesite="none",
-    domain=COOKIE_DOMAIN
-  )
+  # Only set domain if it's not localhost (for production)
+  cookie_params = {
+    "key": "refresh_token",
+    "httponly": True,
+    "samesite": "none",
+  }
+  if COOKIE_DOMAIN and COOKIE_DOMAIN != "localhost":
+    cookie_params["domain"] = COOKIE_DOMAIN
+
+  response.delete_cookie(**cookie_params)
   return {"msg": "Logged out"}

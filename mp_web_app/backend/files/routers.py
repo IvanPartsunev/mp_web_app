@@ -1,53 +1,89 @@
-from typing import List
-
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
-from database.operations import UploadsRepository
-from files.models import FileMetadata, FileType, FileMetadataFull
-from files.operations import upload_file, get_uploads_repository, delete_file, get_files_metadata, download_file
+from database.repositories import FileMetadataRepository
+from files.exceptions import (
+  FileAccessDeniedError,
+  FileNotFoundError,
+  FileUploadError,
+  InvalidFileExtensionError,
+  InvalidMetadataError,
+  MetadataError,
+  MissingAllowedUsersError,
+)
+from files.models import FileMetadata, FileMetadataFull, FileType
+from files.operations import delete_file, download_file, get_files_metadata, get_uploads_repository, upload_file
 from users.roles import UserRole
 
 file_router = APIRouter(tags=["files"])
 
 
-@file_router.post("/upload", response_model=FileMetadata, status_code=status.HTTP_201_CREATED)
-async def upload_files(
+@file_router.post("/create", response_model=FileMetadata, status_code=status.HTTP_201_CREATED)
+async def file_create(
   file_name: str = Form(...),
   file_type: FileType = Form(...),
-  allowed_to: List[str] = Form([]),
+  allowed_to: list[str] = Form([]),
   file: UploadFile = File(...),
-  repo: UploadsRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
-  file_metadata = FileMetadataFull(file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
-  return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+  try:
+    file_metadata = FileMetadataFull(
+      file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id
+    )
+    return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+  except MissingAllowedUsersError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except InvalidFileExtensionError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except FileUploadError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
-@file_router.get("/get_files", status_code=status.HTTP_200_OK)
-async def get_files(
+@file_router.get("/list", status_code=status.HTTP_200_OK)
+async def files_list(
   file_type: str,
-  repo: UploadsRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
-  return get_files_metadata(file_type, repo)
+  try:
+    return get_files_metadata(file_type, repo)
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
-@file_router.post("/delete_files", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_files(
-  files_metadata: List[FileMetadata],
-  repo: UploadsRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO Change to ADMIN
+@file_router.delete("/delete/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def file_delete(
+  file_id: str,
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
-  delete_file(files_metadata, repo)
-  file_names = [file.file_name for file in files_metadata]
-  return f"Deleted file names: {', '.join(file_names)}"
+  """Delete a single file by ID (ADMIN only)."""
+  try:
+    delete_file(file_id, repo)
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except FileUploadError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @file_router.post("/download", status_code=status.HTTP_200_OK)
 async def download_files(
-  file_metadata: FileMetadata | List[FileMetadata],
-  repo: UploadsRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER]))
+  file_metadata: FileMetadata | list[FileMetadata],
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.REGULAR_USER])),
 ):
-  return download_file(file_metadata=file_metadata, repo=repo, user=user)
+  try:
+    return download_file(file_metadata=file_metadata, repo=repo, user=user)
+  except FileAccessDeniedError as e:
+    raise HTTPException(status_code=403, detail=str(e))
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+  except InvalidMetadataError as e:
+    raise HTTPException(status_code=400, detail=str(e))

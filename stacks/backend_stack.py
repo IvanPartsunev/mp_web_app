@@ -17,8 +17,20 @@ import os
 
 
 class BackendStack(Stack):
-  def __init__(self, scope: Construct, id: str, frontend_base_url: str, cookie_domain: str, domain_name: str,
-               api_subdomain: str, hosted_zone: route53.IHostedZone, certificate: acm.ICertificate, **kwargs):
+  def __init__(
+    self,
+    scope: Construct,
+    id: str,
+    frontend_base_url: str,
+    cookie_domain: str,
+    domain_name: str,
+    api_subdomain: str,
+    hosted_zone: route53.IHostedZone,
+    certificate: acm.ICertificate,
+    uploads_cloudfront_domain: str = None,  # CloudFront domain from UploadsStack
+    uploads_distribution_id: str = None,  # Distribution ID for cache invalidation
+    **kwargs
+  ):
     super().__init__(scope, id, **kwargs)
 
     # Create a randomly generated JWT secret
@@ -50,9 +62,9 @@ class BackendStack(Stack):
     )
 
     self.table2 = dynamodb.TableV2(
-      self, "user_codes_table",
-      table_name="user_codes_table",
-      partition_key=dynamodb.Attribute(name="user_code", type=dynamodb.AttributeType.STRING),
+      self, "members_table",
+      table_name="members_table",
+      partition_key=dynamodb.Attribute(name="member_code", type=dynamodb.AttributeType.STRING),
       billing=dynamodb.Billing.provisioned(
         read_capacity=dynamodb.Capacity.fixed(2),
         write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
@@ -105,6 +117,35 @@ class BackendStack(Stack):
       projection_type=dynamodb.ProjectionType.ALL,
     )
 
+    self.table6 = dynamodb.TableV2(
+      self, "gallery_table",
+      table_name="gallery_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN,
+    )
+
+    self.table6.add_global_secondary_index(
+      index_name="gallery_created_at_index",
+      partition_key=dynamodb.Attribute(name="gallery", type=dynamodb.AttributeType.STRING),
+      sort_key=dynamodb.Attribute(name="created_at", type=dynamodb.AttributeType.STRING),
+      projection_type=dynamodb.ProjectionType.ALL,
+    )
+
+    self.table7 = dynamodb.TableV2(
+      self, "products_table",
+      table_name="products_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(max_capacity=2)
+      ),
+      removal_policy=RemovalPolicy.RETAIN
+    )
+
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",
@@ -129,7 +170,7 @@ class BackendStack(Stack):
         "FRONTEND_BASE_URL": frontend_base_url,
         "COOKIE_DOMAIN": cookie_domain,
         "USERS_TABLE_NAME": self.table1.table_name,
-        "USER_CODES_TABLE_NAME": self.table2.table_name,
+        "MEMBERS_TABLE_NAME": self.table2.table_name,
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
         "NEWS_TABLE_NAME": self.table5.table_name,
@@ -137,6 +178,12 @@ class BackendStack(Stack):
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
+        "GALLERY_TABLE_NAME": self.table6.table_name,
+        "PRODUCTS_TABLE_NAME": self.table7.table_name,
+        # CloudFront configuration
+        "USE_CLOUDFRONT": "true" if uploads_cloudfront_domain else "false",
+        "CLOUDFRONT_DOMAIN": uploads_cloudfront_domain or "",
+        "CLOUDFRONT_DISTRIBUTION_ID": uploads_distribution_id or "",
       }
     )
 
@@ -177,6 +224,8 @@ class BackendStack(Stack):
     self.table3.grant_read_write_data(self.backend_lambda)
     self.table4.grant_read_write_data(self.backend_lambda)
     self.table5.grant_read_write_data(self.backend_lambda)
+    self.table6.grant_read_write_data(self.backend_lambda)
+    self.table7.grant_read_write_data(self.backend_lambda)
 
     # Explicitly grant permission to query the Global Secondary Index on the news table
     self.backend_lambda.add_to_role_policy(
@@ -208,6 +257,19 @@ class BackendStack(Stack):
         ]
       )
     )
+
+    # Grant Lambda permission to invalidate CloudFront cache (if CloudFront is configured)
+    if uploads_distribution_id:
+      self.backend_lambda.add_to_role_policy(
+        iam.PolicyStatement(
+          actions=[
+            "cloudfront:CreateInvalidation",
+            "cloudfront:GetInvalidation",
+            "cloudfront:ListInvalidations"
+          ],
+          resources=[f"arn:aws:cloudfront::{self.account}:distribution/{uploads_distribution_id}"]
+        )
+      )
 
     # Outputs
     CfnOutput(self, "ApiUrl", value=self.api.url)

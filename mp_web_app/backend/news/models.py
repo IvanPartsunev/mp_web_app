@@ -7,6 +7,7 @@ class NewsType(str, Enum):
   private = "private"
   regular = "regular"
 
+
 class News(BaseModel):
   title: str
   content: str

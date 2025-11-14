@@ -1,22 +1,13 @@
 import React, {useState, useEffect} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import {API_BASE_URL} from "@/app-config";
 
-export function ForgotPasswordForm({
-                                     className,
-                                     ...props
-                                   }: React.ComponentProps<"div">) {
+export function ForgotPasswordForm({className, ...props}: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +21,7 @@ export function ForgotPasswordForm({
     try {
       // Send JSON body as required by FastAPI Pydantic model
       const body = JSON.stringify({
-        email: email
+        email: email,
       });
 
       const response = await fetch(`${API_BASE_URL}mail/forgot-password`, {
@@ -75,17 +66,13 @@ export function ForgotPasswordForm({
       <Card>
         <CardHeader>
           <CardTitle>Забравена парола</CardTitle>
-          <CardDescription>
-            Въведете вашия имейл за възстановяване на парола.
-          </CardDescription>
+          <CardDescription>Въведете вашия имейл за възстановяване на парола.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
               )}
               {isSuccess && (
                 <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">

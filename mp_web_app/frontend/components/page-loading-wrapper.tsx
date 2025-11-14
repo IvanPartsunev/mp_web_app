@@ -8,21 +8,17 @@ interface PageLoadingWrapperProps {
 }
 
 export const PageLoadingWrapper: React.FC<PageLoadingWrapperProps> = ({
-                                                                        children,
-                                                                        loadingText = "Зареждане на страницата...",
-                                                                        fallback
-                                                                      }) => {
+  children,
+  loadingText = "Зареждане на страницата...",
+  fallback,
+}) => {
   const defaultFallback = (
     <div className="min-h-screen flex items-center justify-center">
-      <LoadingSpinner size="lg" text={loadingText}/>
+      <LoadingSpinner size="lg" text={loadingText} />
     </div>
   );
 
-  return (
-    <Suspense fallback={fallback || defaultFallback}>
-      {children}
-    </Suspense>
-  );
+  return <Suspense fallback={fallback || defaultFallback}>{children}</Suspense>;
 };
 
 export default PageLoadingWrapper;

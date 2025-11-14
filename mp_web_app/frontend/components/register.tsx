@@ -1,13 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {X as XIcon, Check as CheckIcon} from "lucide-react";
@@ -24,10 +18,7 @@ function getPhoneError(phone: string): string | null {
   return null;
 }
 
-export function RegisterForm({
-                               className,
-                               ...props
-                             }: React.ComponentProps<"div">) {
+export function RegisterForm({className, ...props}: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({
     email: "",
     first_name: "",
@@ -35,7 +26,7 @@ export function RegisterForm({
     password: "",
     phone: "",
     confirmPassword: "",
-    user_code: "",
+    member_code: "",
   });
 
   const [errors, setErrors] = useState({
@@ -49,8 +40,7 @@ export function RegisterForm({
 
   // Real-time validation states
   const phoneError = formData.phone ? getPhoneError(formData.phone) : null;
-  const passwordsMatch =
-    formData.password === formData.confirmPassword && formData.password.length > 0;
+  const passwordsMatch = formData.password === formData.confirmPassword && formData.password.length > 0;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -74,12 +64,7 @@ export function RegisterForm({
     }
   };
 
-  const registerUser = async (userData: {
-    email: string;
-    password: string;
-    phone: string;
-    user_code: string;
-  }) => {
+  const registerUser = async (userData: {email: string; password: string; phone: string; member_code: string}) => {
     return apiPost("users/register", userData);
   };
 
@@ -116,10 +101,10 @@ export function RegisterForm({
         last_name: formData.last_name,
         password: formData.password,
         phone: formData.phone,
-        user_code: formData.user_code,
+        member_code: formData.member_code,
       };
 
-      const result = await registerUser(userData);
+      await registerUser(userData);
 
       setIsSuccess(true);
 
@@ -131,7 +116,7 @@ export function RegisterForm({
         password: "",
         phone: "",
         confirmPassword: "",
-        user_code: "",
+        member_code: "",
       });
     } catch (error) {
       setErrors((prev) => ({
@@ -143,7 +128,7 @@ export function RegisterForm({
     }
   };
 
-  // Redirect to login after success message
+  // Redirect to log in after a success message
   useEffect(() => {
     if (isSuccess) {
       const timeout = setTimeout(() => {
@@ -153,7 +138,7 @@ export function RegisterForm({
     }
   }, [isSuccess]);
 
-  // Show success message if registration was successful
+  // Show a success message if registration was successful
   if (isSuccess) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -163,9 +148,7 @@ export function RegisterForm({
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <p className="text-green-600 mb-4">
-                Вашият акаунт беше създаден успешно.
-              </p>
+              <p className="text-green-600 mb-4">Вашият акаунт беше създаден успешно.</p>
               <p className="text-sm text-gray-500">Ще бъдете пренасочени ...</p>
             </div>
           </CardContent>
@@ -184,9 +167,7 @@ export function RegisterForm({
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="flex flex-col gap-6">
               {errors.api && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {errors.api}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{errors.api}</div>
               )}
 
               <div className="grid gap-3">
@@ -255,28 +236,26 @@ export function RegisterForm({
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                  className={cn(
-                    errors.passwordMatch && "border-red-500 focus-visible:ring-red-500/20"
-                  )}
+                  className={cn(errors.passwordMatch && "border-red-500 focus-visible:ring-red-500/20")}
                   disabled={isLoading}
                   required
                   autoComplete="new-password"
                 />
                 {formData.confirmPassword.length > 0 && !passwordsMatch && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
-                    <XIcon size={14}/>
+                    <XIcon size={14} />
                     Паролите не съвпадат
                   </p>
                 )}
                 {formData.confirmPassword.length > 0 && passwordsMatch && (
                   <p className="text-sm text-green-600 flex items-center gap-1">
-                    <CheckIcon size={14}/>
+                    <CheckIcon size={14} />
                     Паролите съвпадат
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква,
-                  една цифра и един специален символ: !@#$%^&?
+                  Паролата трябва да е между 8 и 30 символа и да съдържа поне една главна буква, една малка буква, една
+                  цифра и един специален символ: !@#$%^&?
                 </p>
               </div>
 
@@ -294,13 +273,13 @@ export function RegisterForm({
                 />
                 {formData.phone && phoneError && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
-                    <XIcon size={14}/>
+                    <XIcon size={14} />
                     {phoneError}
                   </p>
                 )}
                 {formData.phone && !phoneError && (
                   <p className="text-sm text-green-600 flex items-center gap-1">
-                    <CheckIcon size={14}/>
+                    <CheckIcon size={14} />
                     Телефонният номер е валиден
                   </p>
                 )}
@@ -313,29 +292,26 @@ export function RegisterForm({
                 <Input
                   id="id-number"
                   type="text"
-                  value={formData.user_code}
-                  onChange={(e) => handleInputChange("user_code", e.target.value)}
+                  value={formData.member_code}
+                  onChange={(e) => handleInputChange("member_code", e.target.value)}
                   disabled={isLoading}
                   required
                 />
               </div>
 
               <CardDescription>
-                За да заявите индивидуален код можете да използвате имейл или телефон, които можете да
-                намерите в секция контакти.
+                За да заявите индивидуален код можете да използвате имейл или телефон, които можете да намерите в секция
+                контакти.
               </CardDescription>
 
               <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && (
                     <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
-                      <LoadingSpinner size="lg" text="Регистриране..."/>
+                      <LoadingSpinner size="lg" text="Регистриране..." />
                     </div>
-                  )} Регистрация
+                  )}{" "}
+                  Регистрация
                 </Button>
               </div>
             </div>

@@ -1,54 +1,75 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
 from auth.operations import role_required
-from database.operations import NewsRepository
+from database.exceptions import DatabaseError
+from database.repositories import NewsRepository
+from news.exceptions import NewsNotFoundError
 from news.models import News, NewsUpdate
-from news.operations import create_news, get_news_repository, update_news, delete_news, get_news
+from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
 from users.roles import UserRole
 
 news_router = APIRouter(tags=["news"])
 
 
-@news_router.get("/get", status_code=status.HTTP_200_OK)
-async def news_get(
-    token: str | None = None,
-    news_repo: NewsRepository = Depends(get_news_repository),
+@news_router.get("/list", status_code=status.HTTP_200_OK)
+async def news_list(
+  news_repo: NewsRepository = Depends(get_news_repository),
+  token: Optional[str] = None,  # Query param (legacy support)
+  authorization: Optional[str] = Header(None),  # Authorization header (standard)
 ):
-  if not token:
-    return get_news(repo=news_repo)
-  return get_news(repo=news_repo, token=token)
+  # Prefer Authorization header (standard), fallback to query param (legacy)
+  auth_token = None
+  if authorization and authorization.startswith("Bearer "):
+    auth_token = authorization.replace("Bearer ", "")
+  elif token:
+    auth_token = token
+
+  return get_news(repo=news_repo, token=auth_token)
 
 
-@news_router.post("/upload", status_code=status.HTTP_201_CREATED)
-async def news_upload(
-    news_data: News,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
-
+@news_router.post("/create", status_code=status.HTTP_201_CREATED)
+async def news_create(
+  request: Request,
+  news_data: News,
+  news_repo: NewsRepository = Depends(get_news_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
-    return create_news(news_data=news_data, repo=news_repo, user_id=user.id)
+    return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
+    raise HTTPException(status_code=400, detail=str(e))
 
 
-@news_router.post("/update", status_code=status.HTTP_200_OK)
+@news_router.put("/update/{news_id}", status_code=status.HTTP_200_OK)
 async def news_update(
-    update: NewsUpdate,
-    news_id: str,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
+  news_id: str,
+  update: NewsUpdate,
+  news_repo: NewsRepository = Depends(get_news_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     return update_news(news_update=update, repo=news_repo, user_id=user.id, news_id=news_id)
+  except NewsNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Exception raised during the News upload: {e}")
+    raise HTTPException(status_code=400, detail=str(e))
 
 
-@news_router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+@news_router.delete("/delete/{news_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def news_delete(
-    news_id: str,
-    news_repo: NewsRepository = Depends(get_news_repository),
-    user=Depends(role_required([UserRole.REGULAR_USER]))  # TODO change to ADMIN
+  news_id: str, news_repo: NewsRepository = Depends(get_news_repository), user=Depends(role_required([UserRole.ADMIN]))
 ):
-  return delete_news(news_id=news_id, repo=news_repo)
+  try:
+    return delete_news(news_id=news_id, repo=news_repo)
+  except NewsNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))

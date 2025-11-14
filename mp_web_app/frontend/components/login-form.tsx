@@ -1,13 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
@@ -79,17 +73,13 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
       <Card>
         <CardHeader>
           <CardTitle>Влез в своя акаунт</CardTitle>
-          <CardDescription>
-            Въведете своите имейл и парола
-          </CardDescription>
+          <CardDescription>Въведете своите имейл и парола</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
               )}
               {isSuccess && (
                 <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">
@@ -133,9 +123,10 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
                 <Button type="submit" className="w-full" disabled={isLoading || isSuccess}>
                   {isLoading && (
                     <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
-                      <LoadingSpinner size="lg" text="Влизане..."/>
+                      <LoadingSpinner size="lg" text="Влизане..." />
                     </div>
-                  )} Вход
+                  )}{" "}
+                  Вход
                 </Button>
               </div>
             </div>

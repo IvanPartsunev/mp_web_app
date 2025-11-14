@@ -1,4 +1,3 @@
-import * as React from "react";
 import {useState, useEffect} from "react";
 import {Link} from "react-router-dom";
 import {Outlet} from "react-router-dom";
@@ -22,7 +21,7 @@ const NAV_LINKS = [
   {label: "Контакти", to: "/contacts"},
   {label: "Галерия", to: "/gallery"},
   {
-    label: "За нас",
+    label: "Списъци",
     dropdown: [
       {
         label: "Управителен съвет",
@@ -34,11 +33,6 @@ const NAV_LINKS = [
         to: "/control",
         description: "Списък на членовете на КС към ГПК.",
       },
-    ],
-  },
-  {
-    label: "Списъци",
-    dropdown: [
       {
         label: "Пълномощници",
         to: "/proxies",
@@ -120,8 +114,7 @@ export function Navigation() {
   const isMobile = windowWidth < 980;
 
   // Helper to filter dropdown items based on auth
-  const filterDropdown = (dropdown: any[]) =>
-    dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
+  const filterDropdown = (dropdown: any[]) => dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
   // Decode role from access token to check role
   const getUserRole = (): "admin" | "board" | "control" | "regular" | null => {
@@ -129,7 +122,10 @@ export function Navigation() {
       const token = localStorage.getItem("access_token");
       if (!token) return null;
       const base64Url = token.split(".")[1] || "";
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+      const base64 = base64Url
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+        .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role || "").toLowerCase();
       if (role === "admin" || role === "board" || role === "control" || role === "regular") return role as any;
@@ -142,7 +138,6 @@ export function Navigation() {
   const role = getUserRole();
   const isAdmin = role === "admin";
   const isBoardOrControl = role === "board" || role === "control";
-  const isRegular = role === "regular";
 
   // Handle animation for mobile menu
   useEffect(() => {
@@ -162,10 +157,11 @@ export function Navigation() {
       className={`
         fixed inset-0 z-50 bg-background flex flex-col p-6
         transition-all duration-300 overflow-y-auto
-        ${menuAnimating
-        ? "opacity-100 translate-x-0 pointer-events-auto"
-        : "opacity-0 -translate-x-full pointer-events-none"
-      }
+        ${
+          menuAnimating
+            ? "opacity-100 translate-x-0 pointer-events-auto"
+            : "opacity-0 -translate-x-full pointer-events-none"
+        }
       `}
     >
       <div className="flex justify-between items-center mb-8">
@@ -175,7 +171,7 @@ export function Navigation() {
           className="p-2 rounded hover:bg-accent menu-button bg-primary"
           aria-label="Затвори менюто"
         >
-          <CloseIcon size={28}/>
+          <CloseIcon size={28} />
         </Button>
       </div>
       <nav className="flex flex-col gap-4">
@@ -207,12 +203,9 @@ export function Navigation() {
 
           // Role-based filtering for Documents
           const documentsItems = isDocuments
-            ? (isAdmin || isBoardOrControl
+            ? isAdmin || isBoardOrControl
               ? link.dropdown
-              : link.dropdown.filter(
-                (item: any) =>
-                  item.to === "/governing-documents" || item.to === "/forms"
-              ))
+              : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
             : filterDropdown(link.dropdown);
 
           const itemsToRender = isDocuments ? documentsItems : link.dropdown;
@@ -240,15 +233,26 @@ export function Navigation() {
         })}
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
-          <Button
-            className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              window.location.assign("/upload");
-            }}
-          >
-            Качи документ
-          </Button>
+          <>
+            <Button
+              className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.location.assign("/upload");
+              }}
+            >
+              Качи документ
+            </Button>
+            <Button
+              className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                window.location.assign("/admin");
+              }}
+            >
+              Админ панел
+            </Button>
+          </>
         )}
         {/* Auth section for mobile */}
         {!isLoggedIn ? (
@@ -290,7 +294,7 @@ export function Navigation() {
     <div>
       {/* Desktop Navigation */}
       {!isMobile && (
-        <div className="flex p-2 border-t-2 border-b-2 border-primary w-full items-center justify-center">
+        <div className="sticky top-0 z-40 flex p-3 border-t-2 border-b-2 border-primary w-full items-center justify-center bg-background/80 backdrop-blur-md shadow-sm transition-all duration-300">
           <NavigationMenu viewport={false}>
             <NavigationMenuList>
               {NAV_LINKS.map((link) => {
@@ -318,12 +322,9 @@ export function Navigation() {
 
                 // Role-based filtering for Documents
                 const documentsItems = isDocuments
-                  ? (isAdmin || isBoardOrControl
+                  ? isAdmin || isBoardOrControl
                     ? link.dropdown
-                    : link.dropdown.filter(
-                      (item: any) =>
-                        item.to === "/governing-documents" || item.to === "/forms"
-                    ))
+                    : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
                   : filterDropdown(link.dropdown);
 
                 const itemsToRender = isDocuments ? documentsItems : link.dropdown;
@@ -342,9 +343,7 @@ export function Navigation() {
                             <NavigationMenuLink asChild key={item.label}>
                               <Link to={item.to}>
                                 <div className="font-medium">{item.label}</div>
-                                <div className="text-muted-foreground text-xs">
-                                  {item.description}
-                                </div>
+                                <div className="text-muted-foreground text-xs">{item.description}</div>
                               </Link>
                             </NavigationMenuLink>
                           ))}
@@ -356,11 +355,18 @@ export function Navigation() {
               })}
               {/* Admin upload action for desktop */}
               {isLoggedIn && isAdmin && (
-                <NavigationMenuItem>
-                  <Button asChild className="ml-2">
-                    <Link to="/upload">Качи документ</Link>
-                  </Button>
-                </NavigationMenuItem>
+                <>
+                  <NavigationMenuItem>
+                    <Button asChild className="ml-2">
+                      <Link to="/upload">Качи документ</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Button asChild className="ml-2">
+                      <Link to="/admin">Админ панел</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                </>
               )}
               {/* Auth section for desktop */}
               {!isLoggedIn ? (
@@ -372,17 +378,13 @@ export function Navigation() {
                         <NavigationMenuLink asChild>
                           <Link to="/login">
                             <div className="font-medium">Влез</div>
-                            <div className="text-muted-foreground text-xs">
-                              Влезе в своя акаунт
-                            </div>
+                            <div className="text-muted-foreground text-xs">Влезе в своя акаунт</div>
                           </Link>
                         </NavigationMenuLink>
                         <NavigationMenuLink asChild>
                           <Link to="/register">
                             <div className="font-medium">Създай</div>
-                            <div className="text-muted-foreground text-xs">
-                              Създай акаунт ако си член на ГПК
-                            </div>
+                            <div className="text-muted-foreground text-xs">Създай акаунт ако си член на ГПК</div>
                           </Link>
                         </NavigationMenuLink>
                       </li>
@@ -391,10 +393,7 @@ export function Navigation() {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem>
-                  <Button
-                    className="ml-2"
-                    onClick={logout}
-                  >
+                  <Button className="ml-2" onClick={logout}>
                     Изход
                   </Button>
                 </NavigationMenuItem>
@@ -406,13 +405,13 @@ export function Navigation() {
 
       {/* Hamburger Icon for Mobile */}
       {isMobile && (
-        <div className="flex items-center p-2 border-t-2 border-b-2 border-primary w-full">
+        <div className="sticky top-0 z-40 flex items-center p-3 border-t-2 border-b-2 border-primary w-full bg-background/80 backdrop-blur-md shadow-sm">
           <Button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex items-center gap-2 w-36 h-10 bg-primary text-white rounded-lg shadow"
+            className="flex items-center gap-3 px-5 py-3 bg-primary text-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all"
             aria-label="Отвори менюто"
           >
-            <MenuIcon className="w-7 h-7"/>
+            <MenuIcon className="w-6 h-6" />
             <span className="text-lg font-semibold">Меню</span>
           </Button>
         </div>
@@ -422,7 +421,7 @@ export function Navigation() {
       {showMobileMenu && mobileMenu}
 
       <div>
-        <Outlet/>
+        <Outlet />
       </div>
     </div>
   );

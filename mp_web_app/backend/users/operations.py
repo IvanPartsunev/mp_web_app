@@ -1,73 +1,25 @@
 import os
 import re
 from datetime import datetime
-
-from boto3.dynamodb.conditions import Key
-
-from typing import Optional, List
+from typing import Optional
 from uuid import uuid4
 
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, Request
+from fastapi import Request
 from pydantic import EmailStr
 
-from database.operations import UserRepository, UserCodeRepository
-from users.models import UserCreate, User, UserUpdate, UserSecret, UserUpdatePassword, UserCode
+from database.repositories import UserRepository
+from users.exceptions import DatabaseError, UserNotFoundError, ValidationError
+from users.models import User, UserCreate, UserSecret, UserUpdate, UserUpdatePassword
 from users.roles import UserRole
 
-USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
-USER_CODES_TABLE_NAME = os.environ.get('USER_CODES_TABLE_NAME')
-
-
-def get_user_repository() -> UserRepository:
-  """Dependency to get the user repository."""
-  return UserRepository(USERS_TABLE_NAME)
-
-
-def get_user_codes() -> UserCodeRepository:
-  """Dependency to get the user repository."""
-  return UserCodeRepository(USER_CODES_TABLE_NAME)
-
-
-def user_code_valid(user_code: str, repo: UserCodeRepository) -> UserCode | None:
-  response = repo.table.get_item(Key={"user_code": user_code})
-
-  if 'Item' not in response or not response['Item'].get('is_valid', None):
-    return None
-  return repo.convert_item_to_object(response['Item'])
-
-
-def create_user_code(user_code: str, repo: UserCodeRepository):
-  try:
-    repo.table.put_item(
-      Item={
-        'user_code': user_code,
-        'is_valid': True
-      }
-    )
-
-  except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
-
-
-def update_user_code(user_code: str, repo: UserCodeRepository) -> None:
-  response = repo.table.get_item(Key={"user_code": user_code})
-  user_code_obj = repo.convert_item_to_object(response["Item"])
-  response = repo.table.update_item(
-    Key={'user_code': user_code_obj.user_code},
-    UpdateExpression='SET #is_valid = :is_valid',
-    ExpressionAttributeNames={'#is_valid': 'is_valid'},
-    ExpressionAttributeValues={':is_valid': not user_code_obj.is_valid},
-    ReturnValues="ALL_NEW"
-  )
-  return repo.convert_item_to_object(response["Attributes"])
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
 
 def hash_password(password: str, salt: str) -> str:
   from argon2 import PasswordHasher
+
   ph = PasswordHasher()
   password_with_salt = password + str(salt)
   hashed_password = ph.hash(password_with_salt)
@@ -75,7 +27,7 @@ def hash_password(password: str, salt: str) -> str:
 
 
 def verify_password(password_hash: str, password: str, salt: str) -> bool:
-  from argon2 import exceptions, PasswordHasher
+  from argon2 import PasswordHasher, exceptions
 
   ph = PasswordHasher()
   password_with_salt = password + str(salt)
@@ -100,16 +52,30 @@ def validate_password(password: str) -> str:
     raise ValueError("Password must be at less than 30 characters long")
   if len(password) < 8:
     raise ValueError("Password must be at least 8 characters long")
-  if not re.search(r'[A-Z]', password):
+  if not re.search(r"[A-Z]", password):
     raise ValueError("Password must contain at least one uppercase letter")
-  if not re.search(r'[a-z]', password):
+  if not re.search(r"[a-z]", password):
     raise ValueError("Password must contain at least one lowercase letter")
-  if not re.search(r'[0-9]', password):
+  if not re.search(r"[0-9]", password):
     raise ValueError("Password must contain at least one digit")
-  if not re.search(r'[!@#$%^&?]', password):
+  if not re.search(r"[!@#$%^&?]", password):
     raise ValueError("Password must contain at least one special symbol: !@#$%^&?")
 
   return password
+
+
+def validate_email(email: EmailStr) -> EmailStr:
+  """Check if the given email has a valid structure."""
+  pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+
+  if not re.match(pattern, str(email)):
+    raise ValueError("Email address structure is not valid")
+  return email
+
+
+def get_user_repository() -> UserRepository:
+  """Dependency to get the user repository."""
+  return UserRepository(USERS_TABLE_NAME)
 
 
 def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -> User:
@@ -127,10 +93,7 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     hashed_password = hash_password(password, salt)
     phone = validate_phone(user_data.phone)
   except ValueError as e:
-    raise HTTPException(
-      status_code=400,
-      detail=f"Error when creating {user_data.email}: {e}"
-    )
+    raise ValidationError(f"Error when creating {user_data.email}: {e}")
 
   user_item = {
     "id": user_id,
@@ -139,37 +102,31 @@ def create_user(user_data: UserCreate, request: Request, repo: UserRepository) -
     "last_name": user_data.last_name,
     "phone": phone,
     "role": user_role,
-    "user_code": user_data.user_code,
+    "member_code": user_data.member_code,
     "active": active,
     "created_at": created_at,
     "updated_at": updated_at,
     "salt": salt,
     "password_hash": hashed_password,
-    "subscribed": True
+    "subscribed": True,
   }
 
   try:
     repo.table.put_item(Item=user_item)
   except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
   except Exception as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"An unexpected error occurred while creating the user. {e}"
-    )
+    raise DatabaseError(f"An unexpected error occurred while creating the user. {e}")
 
   return repo.convert_item_to_object(user_item)
 
 
-def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
-  """Get a user by ID from DynamoDB."""
+def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> User | UserSecret:
+  """Get a user by ID from DynamoDB. Raises UserNotFoundError if not found."""
   response = repo.table.get_item(Key={"id": user_id})
 
   if "Item" not in response:
-    return None
+    raise UserNotFoundError(user_id)
 
   if secret:
     return repo.convert_item_to_object_secret(response["Item"])
@@ -178,10 +135,7 @@ def get_user_by_id(user_id: str, repo: UserRepository, secret: bool = False) -> 
 
 def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool = False) -> Optional[User | UserSecret]:
   """Get a user by email from DynamoDB using the GSI."""
-  response = repo.table.query(
-    IndexName="email_index",
-    KeyConditionExpression=Key("email").eq(email)
-  )
+  response = repo.table.query(IndexName="email_index", KeyConditionExpression=Key("email").eq(email))
 
   if not response["Items"]:
     return None
@@ -191,20 +145,21 @@ def get_user_by_email(email: EmailStr | str, repo: UserRepository, secret: bool 
   return repo.convert_item_to_object(response["Items"][0])
 
 
-def list_users(repo: UserRepository) -> List[User]:
+def list_users(repo: UserRepository) -> list[User]:
   """List all users from DynamoDB."""
   response = repo.table.scan()
 
   return [repo.convert_item_to_object(item) for item in response["Items"]]
 
 
-def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> Optional[
-  User]:
-  """Update a user in DynamoDB."""
+def update_user(
+  user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository
+) -> User:
+  """Update a user in DynamoDB. Raises UserNotFoundError if not found."""
 
   existing_user = get_user_by_email(user_email, repo)
   if not existing_user:
-    return None
+    raise UserNotFoundError(user_email)
 
   # Build update expression
   update_expression_parts = []
@@ -226,10 +181,7 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
     try:
       phone = validate_phone(user_data.phone)
     except ValueError as e:
-      raise HTTPException(
-        status_code=400,
-        detail=f"Error when creating {user_data.email}: {e}"
-      )
+      raise ValidationError(f"Error when creating {user_data.email}: {e}")
     update_expression_parts.append("#phone = :phone")
     expression_attribute_values[":phone"] = phone
     expression_attribute_names["#phone"] = "phone"
@@ -264,22 +216,20 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def update_user_password(user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword,
-                         repo: UserRepository) -> Optional[User]:
-  """Update the user's password in DynamoDB."""
+def update_user_password(
+  user_id: str, user_email: EmailStr | str, user_data: UserUpdatePassword, repo: UserRepository
+) -> User:
+  """Update the user's password in DynamoDB. Raises UserNotFoundError if not found."""
 
   existing_user = get_user_by_email(user_email, repo, secret=True)
   if not existing_user:
-    return None
+    raise UserNotFoundError(user_email)
 
   try:
     password = validate_password(user_data.password)
     hashed_password = hash_password(password, existing_user.salt)
   except ValueError as e:
-    raise HTTPException(
-      status_code=400,
-      detail=f"Error when updating password for {user_data.email}: {e}"
-    )
+    raise ValidationError(f"Error when updating password for {user_data.email}: {e}")
 
   update_expression_parts = []
   expression_attribute_values = {}
@@ -300,17 +250,34 @@ def update_user_password(user_id: str, user_email: EmailStr | str, user_data: Us
     UpdateExpression=update_expression,
     ExpressionAttributeValues=expression_attribute_values,
     ExpressionAttributeNames=expression_attribute_names,
-    ReturnValues="ALL_NEW"
+    ReturnValues="ALL_NEW",
   )
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def delete_user(email: EmailStr, repo: UserRepository) -> bool:
-  """Delete a user from DynamoDB."""
+def delete_user(email: EmailStr, repo: UserRepository) -> None:
+  """Delete a user from DynamoDB. Raises UserNotFoundError if not found."""
   # First, check if the user exists
   existing_user = get_user_by_email(email, repo)
   if not existing_user:
-    return False
+    raise UserNotFoundError(email)
 
   repo.table.delete_item(Key={"id": existing_user.id})
-  return True
+
+
+def get_subscribed_users(repo: UserRepository) -> list[User]:
+  """Get all users where subscribed=True."""
+  try:
+    response = repo.table.scan(FilterExpression=Key("subscribed").eq(True))
+    users = [repo.convert_item_to_object(item) for item in response["Items"]]
+
+    # Handle pagination
+    while "LastEvaluatedKey" in response:
+      response = repo.table.scan(
+        FilterExpression=Key("subscribed").eq(True), ExclusiveStartKey=response["LastEvaluatedKey"]
+      )
+      users.extend([repo.convert_item_to_object(item) for item in response["Items"]])
+
+    return users
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")

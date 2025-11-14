@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
 
 from pydantic import BaseModel
 
@@ -23,8 +22,7 @@ class FileMetadata(BaseModel):
   created_at: str = datetime.now().isoformat()
 
 
-
 class FileMetadataFull(FileMetadata):
   bucket: str | None = None
   key: str | None = None
-  allowed_to: List[str] | None = None
+  allowed_to: list[str] | None = None

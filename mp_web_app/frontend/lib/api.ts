@@ -47,3 +47,9 @@ export async function apiPost<T>(endpoint: string, data: any): Promise<T> {
   if (isJson) return responseBody as T;
   return responseBody as T;
 }
+
+// Note: Gallery API functions are handled by apiClient in components
+
+// Note: User management API functions are handled by apiClient in components
+
+// Note: News API functions are handled by apiClient in components

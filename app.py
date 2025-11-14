@@ -17,11 +17,11 @@ FRONTEND_SUBDOMAIN = "www"
 API_SUBDOMAIN = "api"
 
 # 3. The Hosted Zone ID for your domain from AWS Route 53.
-HOSTED_ZONE_ID = ""
+HOSTED_ZONE_ID = "Z04684445P1BPRRLOCFS"
 
 # 4. The ARN of your ACM Certificate.
 # IMPORTANT: This certificate must be in the us-east-1 region for CloudFront and API Gateway.
-CERTIFICATE_ARN = ""
+CERTIFICATE_ARN = "arn:aws:acm:us-east-1:920373018400:certificate/ad3f9a87-f6bd-4ece-b26f-4d7ade6449b1"
 
 
 class DomainLookupStack(Stack):
@@ -58,10 +58,10 @@ frontend_stack = FrontendStack(
   certificate=domain_stack.certificate
 )
 
-# The uploads stack (no changes needed here)
+# Create the uploads stack
 uploads_stack = UploadsStack(app, "UploadsStack", env=env)
 
-# Create the backend stack, passing in the domain resources
+# Create the backend stack, passing in the domain resources AND uploads CloudFront domain
 backend_stack = BackendStack(
   app, "BackendStack",
   env=env,
@@ -70,7 +70,9 @@ backend_stack = BackendStack(
   domain_name=DOMAIN_NAME,
   api_subdomain=API_SUBDOMAIN,
   hosted_zone=domain_stack.hosted_zone,
-  certificate=domain_stack.certificate
+  certificate=domain_stack.certificate,
+  uploads_cloudfront_domain=uploads_stack.uploads_distribution.distribution_domain_name,  # Pass CloudFront domain
+  uploads_distribution_id=uploads_stack.uploads_distribution.distribution_id,  # Pass distribution ID
 )
 
 app.synth()

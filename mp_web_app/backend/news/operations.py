@@ -1,16 +1,20 @@
+import logging
 import os
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-from fastapi import HTTPException
+from fastapi import Request
 
+from app_config import FRONTEND_BASE_URL
 from auth.operations import is_token_expired
-from database.operations import NewsRepository
-from news.models import News, NewsUpdate, NewsType
+from database.exceptions import DatabaseError
+from database.repositories import NewsRepository, UserRepository
+from news.exceptions import NewsNotFoundError
+from news.models import News, NewsType, NewsUpdate
 
-NEWS_TABLE_NAME = os.environ.get('NEWS_TABLE_NAME')
+NEWS_TABLE_NAME = os.environ.get("NEWS_TABLE_NAME")
 
 
 def get_news_repository() -> NewsRepository:
@@ -18,7 +22,7 @@ def get_news_repository() -> NewsRepository:
   return NewsRepository(NEWS_TABLE_NAME)
 
 
-def create_news(news_data: News, repo: NewsRepository, user_id: str):
+def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Request = None):
   news_id = str(uuid4())
   title = news_data.title
   content = news_data.content
@@ -42,27 +46,29 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str):
   try:
     repo.table.put_item(Item=news_item)
   except ClientError as e:
-    raise HTTPException(
-      status_code=500,
-      detail=f"Database error: {e.response['Error']['Message']}"
-    )
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+  # Send email notifications to subscribed users (non-blocking)
+  if request:
+    try:
+      from users.operations import get_user_repository
+
+      user_repo = get_user_repository()
+      notify_subscribed_users(news_data, news_id, request, user_repo)
+    except Exception as e:
+      logging.info(f"Warning: Failed to send email notifications: {e}")
+
   return repo.convert_item_to_object(news_item)
 
 
 def delete_news(news_id: str, repo: NewsRepository):
-  existing_news = get_news(repo, news_id)
-  if not existing_news:
-    return False
-
+  existing_news = get_news_by_id(repo, news_id)
   repo.table.delete_item(Key={"id": news_id})
   return True
 
 
 def update_news(news_update: NewsUpdate, news_id: str, user_id: str, repo: NewsRepository):
-  existing_news = get_news(repo, news_id)
-
-  if not existing_news:
-    return None
+  existing_news = get_news_by_id(repo, news_id)
 
   # Build update expression
   update_expression_parts = []
@@ -109,32 +115,58 @@ def update_news(news_update: NewsUpdate, news_id: str, user_id: str, repo: NewsR
   return repo.convert_item_to_object(response["Attributes"])
 
 
-def get_news(repo: NewsRepository, news_id: str | None = None, token: str | None = None):
-  if news_id:
-    response = repo.table.get_item(Key={"id": news_id})
-    if "Item" not in response:
-      return None
-    return repo.convert_item_to_object(response["Item"])
+def get_news_by_id(repo: NewsRepository, news_id: str):
+  """Get a single news item by ID. Raises NewsNotFoundError if not found."""
+  response = repo.table.get_item(Key={"id": news_id})
+  if "Item" not in response:
+    raise NewsNotFoundError(news_id)
+  return repo.convert_item_to_object(response["Item"])
+
+
+def get_news(repo: NewsRepository, token: str | None = None):
+  """Get list of news items, filtered by token permissions."""
 
   one_year_ago = datetime.now() - timedelta(days=365)
   one_year_ago_iso = one_year_ago.isoformat()
 
   query_kwargs = {
-    "IndexName": 'news_created_at_index',
-    "KeyConditionExpression": Key("news").eq('news') & Key('created_at').gte(one_year_ago_iso),
+    "IndexName": "news_created_at_index",
+    "KeyConditionExpression": Key("news").eq("news") & Key("created_at").gte(one_year_ago_iso),
     "ScanIndexForward": False,
   }
 
   if not token or is_token_expired(token):
-    query_kwargs['FilterExpression'] = Attr('news_type').eq(NewsType.regular)
+    query_kwargs["FilterExpression"] = Attr("news_type").eq(NewsType.regular)
 
   response = repo.table.query(**query_kwargs)
-  items = response['Items']
+  items = response["Items"]
 
-  while 'LastEvaluatedKey' in response:
+  while "LastEvaluatedKey" in response:
     response = repo.table.query(**query_kwargs)
-    items.extend(response['Items'])
+    items.extend(response["Items"])
   return items
 
 
+def notify_subscribed_users(news_data: News, news_id: str, request: Request, user_repo: UserRepository):
+  """Send email notifications to subscribed users about new news."""
+  from mail.operations import send_news_notification
+  from users.operations import get_subscribed_users
 
+  try:
+    # Get all subscribed users
+    subscribed_users = get_subscribed_users(user_repo)
+
+    # Construct news link
+    news_link = f"{FRONTEND_BASE_URL}/?news_id={news_id}"
+
+    # Send email to each subscribed user
+    for user in subscribed_users:
+      try:
+        send_news_notification(request=request, user_id=user.id, email=user.email, news_link=news_link)
+      except Exception as e:
+        # Log individual email failures but continue
+        print(f"Failed to send email to {user.email}: {e}")
+        continue
+  except Exception as e:
+    # Log error but don't raise exception
+    print(f"Error in notify_subscribed_users: {e}")

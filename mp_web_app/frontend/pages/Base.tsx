@@ -6,12 +6,12 @@ export default function Base() {
     <div className="min-h-screen flex flex-col">
       {/* Example: header or logo can go here */}
       <header>
-        <Logo/>
+        <Logo />
       </header>
 
       {/* This is where child routes render */}
       <main className="flex-grow">
-        <Outlet/>
+        <Outlet />
       </main>
 
       <footer>
