@@ -2,7 +2,6 @@ import {useEffect, useState, useRef} from "react";
 import {GalleryModal} from "@/components/gallery-modal";
 import {API_BASE_URL} from "@/app-config";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {ImageIcon} from "lucide-react";
 
 interface GalleryImage {
   id: string;
