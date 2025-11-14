@@ -45,7 +45,10 @@ export default function UploadFile() {
   const [usersError, setUsersError] = useState<string>("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  // Frontend guard: only allow admins to access this page (keep your current logic if you prefer)
+  // Get user role
+  const [userRole, setUserRole] = useState<string>("");
+  
+  // Frontend guard: only allow admins and accountants to access this page
   useEffect(() => {
     try {
       const token = localStorage.getItem("access_token");
@@ -59,8 +62,16 @@ export default function UploadFile() {
         .replace(/_/g, "/")
         .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
-      if (String(payload?.role ?? "").toUpperCase() !== "ADMIN") {
+      const role = String(payload?.role ?? "").toLowerCase();
+      setUserRole(role);
+      
+      if (role !== "admin" && role !== "accountant") {
         navigate("/");
+      }
+      
+      // If accountant, set default file type to accounting
+      if (role === "accountant") {
+        setFileType("accounting");
       }
     } catch {
       navigate("/login");
@@ -175,16 +186,22 @@ export default function UploadFile() {
                   value={fileType}
                   onChange={(e) => setFileType(e.target.value)}
                   className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={submitting}
+                  disabled={submitting || userRole === "accountant"}
                   required
                 >
-                  {fileTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  {fileTypeOptions
+                    .filter((opt) => userRole !== "accountant" || opt.value === "accounting")
+                    .map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                 </select>
-                <p className="text-xs text-muted-foreground">Използвайте валидна стойност според FileType в бекенда.</p>
+                <p className="text-xs text-muted-foreground">
+                  {userRole === "accountant" 
+                    ? "Счетоводителите могат да качват само счетоводни документи."
+                    : "Използвайте валидна стойност според FileType в бекенда."}
+                </p>
               </div>
 
               <div className="grid gap-3">

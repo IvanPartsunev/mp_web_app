@@ -137,7 +137,7 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
   file_meta_object = get_db_metadata(file_metadata, repo)
 
   user_id = None
-  if user.role != UserRole.REGULAR_USER.value:
+  if user.role != UserRole.REGULAR_USER.value and user.role != UserRole.ACCOUNTANT.value:
     user_id = user.id
 
   is_allowed = _check_file_allowed_to_user(file_meta_object, user_id)
@@ -190,6 +190,7 @@ def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str | None
     FileType.private_documents.value,
     FileType.others.value,
   ]
+  
   is_allowed_to_user = True
   if user_id:
     is_allowed_type = file_metadata.file_type.value in private_allowed_types

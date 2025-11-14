@@ -117,7 +117,7 @@ export function Navigation() {
   const filterDropdown = (dropdown: any[]) => dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
   // Decode role from access token to check role
-  const getUserRole = (): "admin" | "board" | "control" | "regular" | null => {
+  const getUserRole = (): "admin" | "board" | "control" | "accountant" | "regular" | null => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) return null;
@@ -128,7 +128,7 @@ export function Navigation() {
         .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role || "").toLowerCase();
-      if (role === "admin" || role === "board" || role === "control" || role === "regular") return role as any;
+      if (role === "admin" || role === "board" || role === "control" || role === "accountant" || role === "regular") return role as any;
       return null;
     } catch {
       return null;
@@ -137,6 +137,7 @@ export function Navigation() {
 
   const role = getUserRole();
   const isAdmin = role === "admin";
+  const isAccountant = role === "accountant";
   const isBoardOrControl = role === "board" || role === "control";
 
   // Handle animation for mobile menu
@@ -202,11 +203,30 @@ export function Navigation() {
           }
 
           // Role-based filtering for Documents
-          const documentsItems = isDocuments
-            ? isAdmin || isBoardOrControl
-              ? link.dropdown
-              : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
-            : filterDropdown(link.dropdown);
+          let documentsItems = link.dropdown;
+          if (isDocuments) {
+            if (isAdmin || isBoardOrControl) {
+              // Admin, Board, Control: see all documents
+              documentsItems = link.dropdown;
+            } else if (isAccountant) {
+              // Accountant: see ONLY accounting documents
+              documentsItems = link.dropdown.filter((item: any) => 
+                item.to === "/accounting-documents"
+              );
+            } else {
+              // Regular users: see all except "Счетоводни документи" (accounting)
+              documentsItems = link.dropdown.filter((item: any) => 
+                item.to === "/governing-documents" || 
+                item.to === "/forms" || 
+                item.to === "/minutes" || 
+                item.to === "/transcripts" || 
+                item.to === "/mydocuments" ||
+                item.to === "/others"
+              );
+            }
+          } else {
+            documentsItems = filterDropdown(link.dropdown);
+          }
 
           const itemsToRender = isDocuments ? documentsItems : link.dropdown;
 
@@ -253,6 +273,18 @@ export function Navigation() {
               Админ панел
             </Button>
           </>
+        )}
+        {/* Accountant upload action for mobile */}
+        {isLoggedIn && isAccountant && (
+          <Button
+            className="mt-2 w-full rounded-lg shadow-md active:opacity-75 transition-opacity"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              window.location.assign("/upload");
+            }}
+          >
+            Качи документ
+          </Button>
         )}
         {/* Auth section for mobile */}
         {!isLoggedIn ? (
@@ -321,11 +353,30 @@ export function Navigation() {
                 }
 
                 // Role-based filtering for Documents
-                const documentsItems = isDocuments
-                  ? isAdmin || isBoardOrControl
-                    ? link.dropdown
-                    : link.dropdown.filter((item: any) => item.to === "/governing-documents" || item.to === "/forms")
-                  : filterDropdown(link.dropdown);
+                let documentsItems = link.dropdown;
+                if (isDocuments) {
+                  if (isAdmin || isBoardOrControl) {
+                    // Admin, Board, Control: see all documents
+                    documentsItems = link.dropdown;
+                  } else if (isAccountant) {
+                    // Accountant: see ONLY accounting documents
+                    documentsItems = link.dropdown.filter((item: any) => 
+                      item.to === "/accounting-documents"
+                    );
+                  } else {
+                    // Regular users: see all except "Счетоводні документи" (accounting)
+                    documentsItems = link.dropdown.filter((item: any) => 
+                      item.to === "/governing-documents" || 
+                      item.to === "/forms" || 
+                      item.to === "/minutes" || 
+                      item.to === "/transcripts" || 
+                      item.to === "/mydocuments" ||
+                      item.to === "/others"
+                    );
+                  }
+                } else {
+                  documentsItems = filterDropdown(link.dropdown);
+                }
 
                 const itemsToRender = isDocuments ? documentsItems : link.dropdown;
 
@@ -367,6 +418,14 @@ export function Navigation() {
                     </Button>
                   </NavigationMenuItem>
                 </>
+              )}
+              {/* Accountant upload action for desktop */}
+              {isLoggedIn && isAccountant && (
+                <NavigationMenuItem>
+                  <Button asChild className="ml-2">
+                    <Link to="/upload">Качи документ</Link>
+                  </Button>
+                </NavigationMenuItem>
               )}
               {/* Auth section for desktop */}
               {!isLoggedIn ? (

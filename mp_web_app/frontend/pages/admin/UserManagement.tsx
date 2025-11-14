@@ -25,6 +25,7 @@ const roleTranslations: Record<string, string> = {
   regular: "Обикновен",
   board: "УС",
   control: "КС",
+  accountant: "Счетоводител",
   admin: "Админ",
 };
 
@@ -191,6 +192,7 @@ export default function UserManagement() {
                       <SelectItem value="regular">Обикновен</SelectItem>
                       <SelectItem value="board">УС</SelectItem>
                       <SelectItem value="control">КС</SelectItem>
+                      <SelectItem value="accountant">Счетоводител</SelectItem>
                       <SelectItem value="admin">Администратор</SelectItem>
                     </SelectContent>
                   </Select>
