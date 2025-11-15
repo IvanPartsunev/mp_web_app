@@ -84,7 +84,6 @@ export function GalleryModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className="!max-w-[100vw] !w-[100vw] h-[100vh] p-0 border-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md md:!max-w-[85vw] md:!w-[85vw] md:h-[90vh]"
-        onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">{imageName}</DialogTitle>
@@ -93,7 +92,7 @@ export function GalleryModal({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 z-50 text-foreground hover:bg-accent active:bg-accent/80 active:scale-[0.98] transition-all duration-150 rounded-full w-9 h-9 p-1.5"
+          className="absolute top-2 right-2 z-50 text-foreground hover:shadow-lg active:shadow-xl active:scale-[0.98] transition-all duration-150 rounded-full w-9 h-9 p-1.5 flex items-center justify-center focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 !outline-none !ring-0"
           onClick={onClose}
           aria-label="Затвори"
         >
@@ -101,7 +100,7 @@ export function GalleryModal({
         </Button>
 
         {/* Image counter - hidden on mobile */}
-        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-primary/90 text-white px-4 py-2 rounded-full text-sm font-medium">
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-white/70 text-foreground px-4 py-2 rounded-full text-sm font-medium shadow-lg">
           {currentIndex} / {totalImages}
         </div>
 
@@ -110,7 +109,7 @@ export function GalleryModal({
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:bg-accent rounded-full w-14 h-14"
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:shadow-lg active:shadow-xl active:scale-[0.98] transition-all duration-150 rounded-full w-14 h-14 items-center justify-center"
             onClick={onPrevious}
             aria-label="Предишна снимка"
           >
@@ -123,7 +122,7 @@ export function GalleryModal({
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:bg-accent rounded-full w-14 h-14"
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-50 text-foreground hover:shadow-lg active:shadow-xl active:scale-[0.98] transition-all duration-150 rounded-full w-14 h-14 items-center justify-center"
             onClick={onNext}
             aria-label="Следваща снимка"
           >
@@ -133,7 +132,7 @@ export function GalleryModal({
 
         {/* Image container with touch gestures */}
         <div
-          className="relative w-full h-full flex items-center justify-center overflow-hidden p-0 md:p-16"
+          className="relative w-full h-full flex items-center justify-center overflow-hidden p-0 md:px-24 md:py-16"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
