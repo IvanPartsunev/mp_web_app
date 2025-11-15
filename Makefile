@@ -178,17 +178,7 @@ frontend-deploy: frontend-build ## Build and deploy frontend to S3
 	aws s3 sync mp_web_app/frontend/dist/ s3://frontendstack-frontendsitebucket127f9fa2-zjnv4evaddvi/ --delete
 	@echo "$(GREEN)✓ Frontend deployed to S3$(NC)"
 
-frontend-invalidate: ## Invalidate CloudFront cache
-	@echo "$(BLUE)Invalidating CloudFront cache...$(NC)"
-	@DISTRIBUTION_ID=$$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?DomainName=='frontendstack-frontendsitebucket127f9fa2-zjnv4evaddit.s3.amazonaws.com']].Id" --output text); \
-	if [ -z "$$DISTRIBUTION_ID" ]; then \
-		echo "$(RED)✗ CloudFront distribution not found$(NC)"; \
-		exit 1; \
-	fi; \
-	aws cloudfront create-invalidation --distribution-id $$DISTRIBUTION_ID --paths "/*"; \
-	echo "$(GREEN)✓ CloudFront cache invalidated (Distribution: $$DISTRIBUTION_ID)$(NC)"
-
-frontend-deploy-all: frontend-deploy frontend-invalidate ## Build, deploy to S3, and invalidate CloudFront
+frontend-deploy-all: frontend-deploy ## Build, deploy to S3
 	@echo "$(GREEN)✓ Frontend fully deployed and cache invalidated$(NC)"
 
 ##@ Utilities

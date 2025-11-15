@@ -48,7 +48,7 @@ export default function UploadFile() {
 
   // Get user role
   const [userRole, setUserRole] = useState<string>("");
-  
+
   // Frontend guard: only allow admins and accountants to access this page
   useEffect(() => {
     try {
@@ -65,11 +65,11 @@ export default function UploadFile() {
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role ?? "").toLowerCase();
       setUserRole(role);
-      
+
       if (role !== "admin" && role !== "accountant") {
         navigate("/");
       }
-      
+
       // If accountant, set default file type to accounting
       if (role === "accountant") {
         setFileType("accounting");
@@ -228,7 +228,7 @@ export default function UploadFile() {
                     ))}
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  {userRole === "accountant" 
+                  {userRole === "accountant"
                     ? "Счетоводителите могат да качват само счетоводни документи."
                     : "Използвайте валидна стойност според FileType в бекенда."}
                 </p>
@@ -287,7 +287,7 @@ export default function UploadFile() {
                   disabled={submitting}
                   required
                 />
-                
+
                 {/* Drag and drop zone */}
                 <div
                   className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
@@ -328,7 +328,6 @@ export default function UploadFile() {
                         <p className="text-sm font-medium text-foreground">
                           {isDragging ? "Пусни файла тук" : "Кликни или пусни файл"}
                         </p>
-                        <p className="text-xs text-muted-foreground">Поддържат се всички типове файлове</p>
                       </div>
                     )}
                   </div>
