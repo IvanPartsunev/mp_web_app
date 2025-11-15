@@ -320,7 +320,9 @@ export default function UploadFile() {
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">{file.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                          {file.size >= 1024 * 1024
+                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+                            : `${(file.size / 1024).toFixed(2)} KB`}
                         </p>
                         <p className="text-xs text-primary">Кликни или пусни файл за промяна</p>
                       </div>

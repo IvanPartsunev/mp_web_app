@@ -237,7 +237,9 @@ export default function GalleryManagement() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">{selectedFile.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      {selectedFile.size >= 1024 * 1024
+                        ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+                        : `${(selectedFile.size / 1024).toFixed(2)} KB`}
                     </p>
                     <p className="text-xs text-primary">Кликни или пусни снимка за промяна</p>
                   </div>

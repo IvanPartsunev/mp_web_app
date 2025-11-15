@@ -101,7 +101,7 @@ async def member_delete(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.post("/sync_members_list", status_code=status.HTTP_200_OK)
+@member_router.post("/sync_members", status_code=status.HTTP_200_OK)
 async def members_upload(
   file: UploadFile,
   member_repo: MemberRepository = Depends(get_member_repository),

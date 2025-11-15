@@ -9,7 +9,8 @@ export interface Member {
   email?: string;
   phone?: string;
   role?: string;
-  is_proxy?: boolean;
+  proxy?: boolean;
+  member_code_valid?: boolean;
 }
 
 // Query key factory

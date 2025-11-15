@@ -106,33 +106,40 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
           <CardTitle>Списък с налични файлове</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
-            <Table>
+          <div className="overflow-x-auto">
+            <Table className="w-full table-auto">
+            <colgroup>
+              <col style={{width: '5%'}} />
+              <col style={{width: '60%'}} />
+              <col style={{width: '20%'}} />
+              <col style={{width: '15%'}} />
+            </colgroup>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] py-2">№</TableHead>
-                <TableHead className="py-2">Име на файл</TableHead>
-                <TableHead className="py-2">Дата на създаване</TableHead>
-                <TableHead className="text-right py-2">Действия</TableHead>
+                <TableHead className="whitespace-nowrap py-2">№</TableHead>
+                <TableHead className="whitespace-nowrap py-2">Име на файл</TableHead>
+                <TableHead className="whitespace-nowrap py-2">Дата на създаване</TableHead>
+                <TableHead className="whitespace-nowrap text-right py-2">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
+                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
                     Зареждане...
                   </TableCell>
                 </TableRow>
               )}
               {error && !loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-red-600 py-2">
+                  <TableCell colSpan={4} className="text-red-600 py-2 whitespace-nowrap">
                     {error}
                   </TableCell>
                 </TableRow>
               )}
               {!loading && !error && pageItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
+                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
                     Няма налични записи.
                   </TableCell>
                 </TableRow>
@@ -141,12 +148,16 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
                 !error &&
                 pageItems.map((file: FileMetadata, idx: number) => (
                   <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
-                    <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
-                    <TableCell className="py-2">{file.file_name}</TableCell>
-                    <TableCell className="py-2">
-                      {file.created_at ? new Date(file.created_at).toLocaleString() : "-"}
+                    <TableCell className="font-medium py-2 whitespace-nowrap">{startIdx + idx + 1}</TableCell>
+                    <TableCell className="py-2 whitespace-nowrap">{file.file_name}</TableCell>
+                    <TableCell className="py-2 whitespace-nowrap">
+                      {file.created_at ? new Date(file.created_at).toLocaleDateString('bg-BG', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      }) : "-"}
                     </TableCell>
-                    <TableCell className="text-right py-2">
+                    <TableCell className="text-right py-2 whitespace-nowrap">
                       <Button size="sm" onClick={() => handleDownload(file)}>
                         Изтегли
                       </Button>
@@ -155,6 +166,7 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
                 ))}
             </TableBody>
           </Table>
+          </div>
 
           {/* Pagination footer */}
         {totalPages > 1 && (

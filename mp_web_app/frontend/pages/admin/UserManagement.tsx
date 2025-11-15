@@ -131,29 +131,32 @@ export default function UserManagement() {
         {loading ? (
           <LoadingSpinner />
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60px]">№</TableHead>
-                <TableHead>Име</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Роля</TableHead>
-                <TableHead>Активен</TableHead>
-                <TableHead>Абониран</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="whitespace-nowrap">№</TableHead>
+                <TableHead className="whitespace-nowrap">Име</TableHead>
+                <TableHead className="whitespace-nowrap">Email</TableHead>
+                <TableHead className="whitespace-nowrap">Телефон</TableHead>
+                <TableHead className="whitespace-nowrap">Роля</TableHead>
+                <TableHead className="whitespace-nowrap">Активен</TableHead>
+                <TableHead className="whitespace-nowrap">Абониран</TableHead>
+                <TableHead className="whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">
                     {user.first_name} {user.last_name}
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{roleTranslations[user.role] || user.role}</TableCell>
-                  <TableCell>{user.active ? "Да" : "Не"}</TableCell>
-                  <TableCell>{user.subscribed ? "Да" : "Не"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.email}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.phone || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{roleTranslations[user.role] || user.role}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.active ? "Да" : "Не"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.subscribed ? "Да" : "Не"}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
@@ -168,6 +171,7 @@ export default function UserManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}

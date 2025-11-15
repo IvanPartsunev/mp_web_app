@@ -152,26 +152,38 @@ export default function DocumentsManagement() {
             Няма налични документи{selectedFileType !== "all" ? " от този тип" : ""}
           </p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full table-auto">
+            <colgroup>
+              <col style={{width: '35%'}} />
+              <col style={{width: '20%'}} />
+              <col style={{width: '20%'}} />
+              <col style={{width: '12%'}} />
+              <col style={{width: '13%'}} />
+            </colgroup>
             <TableHeader>
               <TableRow>
-                <TableHead>Име на файл</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead>Качен от</TableHead>
-                <TableHead>Дата</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
+                <TableHead className="whitespace-nowrap">Име на файл</TableHead>
+                <TableHead className="whitespace-nowrap">Тип</TableHead>
+                <TableHead className="whitespace-nowrap">Качен от</TableHead>
+                <TableHead className="whitespace-nowrap">Дата</TableHead>
+                <TableHead className="whitespace-nowrap text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredFiles.map((file) => (
                 <TableRow key={file.id}>
-                  <TableCell className="font-medium">{file.file_name}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{file.file_name}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
                   </TableCell>
-                  <TableCell>{file.uploaded_by}</TableCell>
-                  <TableCell>{new Date(file.created_at).toLocaleDateString("bg-BG")}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="whitespace-nowrap">{file.uploaded_by}</TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(file.created_at).toLocaleDateString("bg-BG", {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">
                     <Button
                       variant="destructive"
                       size="sm"
@@ -184,6 +196,7 @@ export default function DocumentsManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Delete Confirmation */}

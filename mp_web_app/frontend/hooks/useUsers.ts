@@ -10,6 +10,8 @@ export interface User {
   phone?: string;
   role?: string;
   is_active?: boolean;
+  user_code?: string;
+  is_code_valid?: boolean;
 }
 
 // Query key factory
