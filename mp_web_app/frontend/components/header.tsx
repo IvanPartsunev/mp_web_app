@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
+import Navigation from "@/pages/Navigation";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -30,6 +31,8 @@ export function Header() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
         <Logo />
       </div>
+      {/* Navigation bar */}
+      <Navigation />
     </header>
   );
 }

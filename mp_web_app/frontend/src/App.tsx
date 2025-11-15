@@ -1,6 +1,5 @@
 import {lazy} from "react";
 import {AuthProvider} from "@/context/AuthContext";
-import Navigation from "@/pages/Navigation";
 import Base from "@/pages/Base";
 import {Route, Routes} from "react-router-dom";
 import PageLoadingWrapper from "@/components/page-loading-wrapper";
@@ -41,7 +40,6 @@ function App() {
         <Toaster />
         <Routes>
         <Route path="/" element={<Base />}>
-          <Route element={<Navigation />}>
             <Route index element={<Home />} />
             <Route path="home" element={<Home />} />
             <Route path="products" element={<Products />} />
@@ -154,7 +152,6 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="new-password" element={<NewPassword />} />
             <Route path="unsubscribe" element={<Unsubscribe />} />
-          </Route>
         </Route>
       </Routes>
       </AuthProvider>
