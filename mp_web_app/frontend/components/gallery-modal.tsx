@@ -83,7 +83,7 @@ export function GalleryModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="!max-w-[100vw] !w-[100vw] h-[100vh] p-0 border-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md md:!max-w-[85vw] md:!w-[85vw] md:h-[90vh]"
+        className="!max-w-[100vw] !w-[100vw] h-[90vh] p-0 border-0 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md md:!max-w-[85vw] md:!w-[85vw] md:h-[90vh]"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">{imageName}</DialogTitle>

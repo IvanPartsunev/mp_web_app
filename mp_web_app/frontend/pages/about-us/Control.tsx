@@ -1,38 +1,12 @@
-import {useEffect, useState} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Mail, Phone, User as UserIcon} from "lucide-react";
-import apiClient from "@/context/apiClient";
 import {useAuth} from "@/context/AuthContext";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  role: string;
-}
+import {useControlMembers} from "@/hooks/useUsers";
 
 export default function Control() {
-  const [members, setMembers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: members = [], isLoading: loading} = useControlMembers();
   const {isLoggedIn} = useAuth();
-
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const response = await apiClient.get("users/control");
-        setMembers(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch control members:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMembers();
-  }, []);
 
   if (loading) {
     return (

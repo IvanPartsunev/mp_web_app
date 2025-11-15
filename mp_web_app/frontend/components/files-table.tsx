@@ -13,23 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import apiClient from "@/context/apiClient";
-
-type FileType =
-  | "governing_documents"
-  | "forms"
-  | "minutes"
-  | "transcripts"
-  | "accounting"
-  | "private_documents"
-  | "others";
-
-type FileMetadata = {
-  id?: string | null;
-  file_name?: string | null;
-  file_type: FileType;
-  uploaded_by?: string | null;
-  created_at?: string | null;
-};
+import {useFiles, type FileType, type FileMetadata} from "@/hooks/useFiles";
 
 type FilesTableProps = {
   fileType: FileType;
@@ -39,31 +23,12 @@ type FilesTableProps = {
 const PAGE_SIZE = 25;
 
 export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
-  const [data, setData] = React.useState<FileMetadata[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
+  // Use React Query hook for caching (1 hour)
+  const {data = [], isLoading: loading, error: queryError} = useFiles(fileType);
   const [page, setPage] = React.useState<number>(1);
-
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiClient.get<FileMetadata[]>(`files/list`, {
-        params: {file_type: fileType},
-        withCredentials: true,
-      });
-      setData(res.data ?? []);
-      setPage(1); // reset page on type change/fresh load
-    } catch (e: any) {
-      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.");
-    } finally {
-      setLoading(false);
-    }
-  }, [fileType]);
-
-  React.useEffect(() => {
-    load();
-  }, [load]);
+  
+  // Convert error to string for display
+  const error = queryError ? "Възникна грешка при зареждане." : null;
 
   // Pagination helpers
   const total = data.length;
@@ -174,7 +139,7 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
               )}
               {!loading &&
                 !error &&
-                pageItems.map((file, idx) => (
+                pageItems.map((file: FileMetadata, idx: number) => (
                   <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
                     <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
                     <TableCell className="py-2">{file.file_name}</TableCell>

@@ -1,9 +1,6 @@
-import {useEffect, useState} from "react";
-import {useLocation} from "react-router-dom";
+import {useState} from "react";
 import {NewsCard} from "@/components/news-card";
-import apiClient from "@/context/apiClient";
-import {getAccessToken, setAccessToken} from "@/context/tokenStore";
-import {isJwtExpired} from "@/context/jwt";
+import {useNews} from "@/hooks/useNews";
 import {
   Pagination,
   PaginationContent,
@@ -26,49 +23,12 @@ interface News {
 const PAGE_SIZE = 6;
 
 export default function Home() {
-  const location = useLocation();
-  const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hook for caching
+  const {data: news = [], isLoading: loading, error: queryError} = useNews();
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Check if token exists and is expired
-        const token = getAccessToken();
-        if (token && isJwtExpired(token)) {
-          // Token is expired, explicitly refresh it first
-          try {
-            const refreshResponse = await apiClient.post("auth/refresh");
-            // Update token in localStorage with the new one from response
-            if (refreshResponse.data?.access_token) {
-              setAccessToken(refreshResponse.data.access_token);
-            }
-          } catch (refreshError) {
-            // Refresh failed, user will be logged out by apiClient
-            // Just fetch public news
-          }
-        }
-
-        // Now fetch news with fresh token (or no token if refresh failed)
-        const response = await apiClient.get("news/list");
-        setNews(response.data || []);
-      } catch (err: any) {
-        if (err.response?.status !== 401) {
-          setError("Неуспешно зареждане на новините");
-        }
-        setNews([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNews();
-  }, [location.key]); // Refetch when navigation occurs (including browser refresh)
+  
+  // Convert error to string for display
+  const error = queryError ? "Неуспешно зареждане на новините" : null;
 
   // Pagination helpers
   const total = news.length;
@@ -122,20 +82,7 @@ export default function Home() {
               </div>
               <p className="text-red-800 dark:text-red-200 font-semibold">{error}</p>
               <button
-                onClick={() => {
-                  setError(null);
-                  setLoading(true);
-                  apiClient
-                    .get("news/get")
-                    .then((response) => setNews(response.data || []))
-                    .catch((err) => {
-                      if (err.response?.status !== 401) {
-                        setError("Неуспешно зареждане на новините");
-                      }
-                      setNews([]);
-                    })
-                    .finally(() => setLoading(false));
-                }}
+                onClick={() => window.location.reload()}
                 className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Опитай отново

@@ -12,10 +12,14 @@ from members.routers import member_router
 from news.routers import news_router
 from products.routers import product_router
 from users.routers import user_router
+from middleware.cache_headers import CacheControlMiddleware
 
 FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc", openapi_url="/api/openapi.json")
+
+# Add cache control middleware (before CORS)
+app.add_middleware(CacheControlMiddleware)
 
 app.add_middleware(
   CORSMiddleware,

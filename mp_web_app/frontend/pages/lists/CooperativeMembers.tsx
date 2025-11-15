@@ -1,36 +1,11 @@
-import {useEffect, useState} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {User as UserIcon} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import apiClient from "@/context/apiClient";
-
-interface Member {
-  first_name: string;
-  last_name: string;
-  proxy: boolean;
-}
+import {useMembers} from "@/hooks/useMembers";
 
 export default function CooperativeMembers() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const response = await apiClient.get("members/list", {
-          params: {proxy_only: false},
-        });
-        setMembers(response.data || []);
-      } catch (error) {
-        console.error("Failed to fetch cooperative members:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMembers();
-  }, []);
+  const {data: members = [], isLoading: loading} = useMembers({ proxy_only: false });
 
   if (loading) {
     return (

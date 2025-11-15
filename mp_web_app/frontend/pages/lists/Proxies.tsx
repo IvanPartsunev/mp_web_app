@@ -1,39 +1,12 @@
-import {useEffect, useState} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {User as UserIcon} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import apiClient from "@/context/apiClient";
-
-interface Member {
-  first_name: string;
-  last_name: string;
-  proxy: boolean;
-}
+import {useMembers} from "@/hooks/useMembers";
 
 export default function Proxies() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProxies = async () => {
-      try {
-        setLoading(true);
-        // Fetch members with proxy_only=true filter
-        const response = await apiClient.get("members/list", {
-          params: {proxy_only: true},
-        });
-        setMembers(response.data || []);
-      } catch (err: any) {
-        setError(err.response?.data?.detail || "Неуспешно зареждане на пълномощниците");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProxies();
-  }, []);
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers({ proxy_only: true });
+  const error = queryError ? "Неуспешно зареждане на пълномощниците" : null;
 
   if (loading) {
     return (
