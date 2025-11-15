@@ -249,7 +249,8 @@ class BackendStack(Stack):
           "s3:PutObject",
           "s3:GetObject",
           "s3:AbortMultipartUpload",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:DeleteObject"
         ],
         resources=[
           "arn:aws:s3:::uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
