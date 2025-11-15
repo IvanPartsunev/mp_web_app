@@ -42,7 +42,7 @@ function NavigationMenuItem({className, ...props}: React.ComponentProps<typeof N
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-10 w-max items-center justify-center rounded-xl bg-transparent hover:bg-white/50 hover:dark:bg-gray-900/50 backdrop-blur-sm px-4 py-2 text-[0.9625rem] font-medium disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-white/80 data-[state=open]:dark:bg-gray-900/80 focus-visible:ring-2 focus-visible:ring-ring/50 outline-none transition-all duration-300"
+  "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
 );
 
 function NavigationMenuTrigger({
@@ -99,7 +99,7 @@ function NavigationMenuLink({className, ...props}: React.ComponentProps<typeof N
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "data-[active=true]:bg-white/80 data-[active=true]:dark:bg-gray-900/80 hover:bg-white/60 hover:dark:bg-gray-900/60 hover:shadow-md focus:bg-white/80 focus:dark:bg-gray-900/80 focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-muted-foreground flex flex-col gap-1 rounded-lg p-3 text-sm transition-all duration-300 outline-none [&_svg:not([class*='size-'])]:size-4",
+        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
         className
       )}
       {...props}

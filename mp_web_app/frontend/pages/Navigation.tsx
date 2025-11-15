@@ -358,7 +358,7 @@ export function Navigation() {
     <>
       {/* Desktop Navigation */}
       {!isMobile && (
-        <div className="flex p-3 w-full items-center justify-center bg-background/95 backdrop-blur-md shadow-sm transition-all duration-300 border-t-2 border-b-2 border-transparent" style={{borderImage: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8)) 1'}}>
+        <div className="flex p-3 w-full items-center justify-center bg-background border-t-2 border-b-2 border-transparent" style={{borderImage: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8)) 1'}}>
           <NavigationMenu viewport={false}>
             <NavigationMenuList className="gap-2">
               {NAV_LINKS.map((link) => {
@@ -525,7 +525,7 @@ export function Navigation() {
 
       {/* Hamburger Icon for Mobile */}
       {isMobile && (
-        <div className="flex items-center px-2 py-1.5 w-full bg-background/95 backdrop-blur-md shadow-sm border-t-2 border-transparent" style={{borderImageSource: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8))', borderImageSlice: 1}}>
+        <div className="flex items-center px-2 py-1.5 w-full bg-background shadow-sm">
           <Button
             onClick={() => setMobileMenuOpen(true)}
             className="w-full flex items-center justify-center py-1.5 h-[30px]"
