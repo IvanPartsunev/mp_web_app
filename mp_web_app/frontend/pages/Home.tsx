@@ -11,15 +11,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-interface News {
-  id: string;
-  title: string;
-  content: string;
-  author_id: string;
-  created_at: string;
-  news_type: "regular" | "private";
-}
-
 const PAGE_SIZE = 6;
 
 export default function Home() {
@@ -116,8 +107,8 @@ export default function Home() {
                   <NewsCard
                     title={item.title}
                     content={item.content}
-                    created_at={item.created_at}
-                    news_type={item.news_type}
+                    created_at={item.created_at || ""}
+                    news_type={item.is_public === false ? "private" : "regular"}
                   />
                 </div>
               ))}

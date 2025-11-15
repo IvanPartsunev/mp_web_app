@@ -179,7 +179,7 @@ frontend-deploy: frontend-build ## Build and deploy frontend to S3
 	@echo "$(GREEN)✓ Frontend deployed to S3$(NC)"
 
 frontend-deploy-all: frontend-deploy ## Build, deploy to S3
-	@echo "$(GREEN)✓ Frontend fully deployed and cache invalidated$(NC)"
+	@echo "$(GREEN)✓ Frontend fully deployed$(NC)"
 
 ##@ Utilities
 

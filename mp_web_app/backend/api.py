@@ -18,9 +18,6 @@ FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc", openapi_url="/api/openapi.json")
 
-# Add cache control middleware (before CORS)
-app.add_middleware(CacheControlMiddleware)
-
 app.add_middleware(
   CORSMiddleware,
   allow_origins=[FRONTEND_URL],
@@ -28,6 +25,9 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
+
+# Add cache control middleware
+app.add_middleware(CacheControlMiddleware)
 
 app.include_router(user_router, prefix="/api/users")
 app.include_router(auth_router, prefix="/api/auth")
