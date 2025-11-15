@@ -37,7 +37,7 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 60 * 1000, // 1 minute
   });
 }
 

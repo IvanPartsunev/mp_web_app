@@ -5,6 +5,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useNavigate} from "react-router-dom";
+import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 
 type User = {
@@ -32,19 +33,18 @@ export default function UploadFile() {
     []
   );
 
+  const {toast} = useToast();
   const [fileName, setFileName] = useState("");
   const [fileType, setFileType] = useState(fileTypeOptions[0]?.value ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
 
   // Users state
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState<string>("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
 
   // Get user role
   const [userRole, setUserRole] = useState<string>("");
@@ -101,16 +101,22 @@ export default function UploadFile() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     const isPrivate = fileType === "private_documents";
     if (!file || !fileName || !fileType) {
-      setError("Моля, попълнете всички задължителни полета и изберете файл.");
+      toast({
+        title: "Грешка",
+        description: "Моля, попълнете всички задължителни полета и изберете файл.",
+        variant: "destructive",
+      });
       return;
     }
     if (isPrivate && selectedUserIds.length === 0) {
-      setError("При частни документи трябва да изберете поне един потребител.");
+      toast({
+        title: "Грешка",
+        description: "При частни документи трябва да изберете поне един потребител.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -127,18 +133,22 @@ export default function UploadFile() {
         withCredentials: true,
       });
 
-      setSuccess("Файлът беше качен успешно.");
+      toast({
+        title: "Успех",
+        description: "Файлът беше качен успешно",
+      });
+
       setFile(null);
       setFileName("");
       setFileType(fileTypeOptions[0]?.value ?? "");
       setSelectedUserIds([]);
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/upload", {replace: true});
-      }, 1200);
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Неуспех при качване.";
-      setError(msg);
+      toast({
+        title: "Грешка",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -188,15 +198,6 @@ export default function UploadFile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
-              {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
-              )}
-              {success && (
-                <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">
-                  {success}
-                </div>
-              )}
-
               <div className="grid gap-3">
                 <Label htmlFor="file_name">Име на файл</Label>
                 <Input

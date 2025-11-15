@@ -126,10 +126,12 @@ def _create_file_name(file_name: str, original_name: str):
   extension = original_name.split(".")[-1]
   if extension not in allowed:
     raise InvalidFileExtensionError(extension, allowed)
-  cleaned_file_name = re.sub(r"[^A-Za-z0-9.\-_\s]", "", file_name).strip()
-  file_name_parts = re.split(r"[.\s\-_]", cleaned_file_name)
+  # Keep Cyrillic and other Unicode characters, only remove special chars that break S3
+  cleaned_file_name = re.sub(r'[<>:"/\\|?*]', "", file_name).strip()
+  # Replace spaces with underscores for cleaner URLs
+  cleaned_file_name = cleaned_file_name.replace(" ", "_")
   date_tag = f"{now.year!s}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
-  file_name = f"{date_tag}_{'_'.join([p.lower() for p in file_name_parts if p != ''])}_{str(uuid4())[:8]}.{extension}"
+  file_name = f"{date_tag}_{cleaned_file_name}_{str(uuid4())[:8]}.{extension}"
   return file_name
 
 
@@ -148,10 +150,17 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
   try:
     s3_object = s3.get_object(Bucket=file_meta_object.bucket, Key=file_meta_object.key)
     file_stream = s3_object["Body"]
+    
+    # Properly encode filename for Cyrillic and other Unicode characters
+    from urllib.parse import quote
+    encoded_filename = quote(file_meta_object.file_name)
+    
     return StreamingResponse(
       file_stream,
       media_type="application/octet-stream",
-      headers={"Content-Disposition": f'attachment; filename="{file_meta_object.key}"'},
+      headers={
+        "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
+      },
     )
   except s3.exceptions.NoSuchKey:
     raise FileNotFoundError("File not found")
