@@ -20,7 +20,7 @@ from users.operations import get_user_by_email, get_user_by_id, get_user_reposit
 from users.roles import ROLE_HIERARCHY, UserRole
 
 REFRESH_TABLE_NAME = os.environ.get("REFRESH_TABLE_NAME")
-ACCESS_TOKEN_EXPIRE_MINUTES = 1
+ACCESS_TOKEN_EXPIRE_MINUTES = 5
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
