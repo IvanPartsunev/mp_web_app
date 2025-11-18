@@ -2,9 +2,11 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Mail, Phone, User as UserIcon} from "lucide-react";
 import {useBoardMembers} from "@/hooks/useUsers";
+import {useAuth} from "@/context/AuthContext";
 
 export default function Board() {
   const {data: members = [], isLoading: loading} = useBoardMembers();
+  const {isLoggedIn} = useAuth();
 
   if (loading) {
     return (
@@ -48,18 +50,22 @@ export default function Board() {
                         Име
                       </div>
                     </TableHead>
-                    <TableHead className="whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Имейл
-                      </div>
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        Телефон
-                      </div>
-                    </TableHead>
+                    {isLoggedIn && (
+                      <>
+                        <TableHead className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            Имейл
+                          </div>
+                        </TableHead>
+                        <TableHead className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            Телефон
+                          </div>
+                        </TableHead>
+                      </>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -69,16 +75,20 @@ export default function Board() {
                       <TableCell className="font-medium whitespace-nowrap">
                         {member.first_name} {member.last_name}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <a href={`mailto:${member.email}`} className="text-primary hover:underline">
-                          {member.email}
-                        </a>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <a href={`tel:${member.phone}`} className="text-primary hover:underline">
-                          {member.phone || "-"}
-                        </a>
-                      </TableCell>
+                      {isLoggedIn && (
+                        <>
+                          <TableCell className="whitespace-nowrap">
+                            <a href={`mailto:${member.email}`} className="text-primary hover:underline">
+                              {member.email}
+                            </a>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <a href={`tel:${member.phone}`} className="text-primary hover:underline">
+                              {member.phone || "-"}
+                            </a>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

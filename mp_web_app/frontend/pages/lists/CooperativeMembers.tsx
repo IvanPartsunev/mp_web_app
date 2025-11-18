@@ -7,8 +7,10 @@ import {useAuth} from "@/context/AuthContext";
 
 export default function CooperativeMembers() {
   const {data: members = [], isLoading: loading} = useMembers({ proxy_only: false });
-  const {isLoggedIn, user} = useAuth();
+  const {user} = useAuth();
   const isAdmin = user?.role === "admin";
+  const isBoardOrControl = user?.role === "board" || user?.role === "control";
+  const canSeeContactInfo = isAdmin || isBoardOrControl;
 
   if (loading) {
     return (
@@ -53,22 +55,24 @@ export default function CooperativeMembers() {
                       </div>
                     </TableHead>
                     <TableHead className="whitespace-nowrap">Фамилия</TableHead>
-                    {isLoggedIn && (
-                      <TableHead className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          Имейл
-                        </div>
-                      </TableHead>
-                    )}
-                    {isAdmin && (
+                    {canSeeContactInfo && (
                       <>
+                        <TableHead className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            Имейл
+                          </div>
+                        </TableHead>
                         <TableHead className="whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4" />
                             Телефон
                           </div>
                         </TableHead>
+                      </>
+                    )}
+                    {isAdmin && (
+                      <>
                         <TableHead className="whitespace-nowrap text-center">Код</TableHead>
                         <TableHead className="whitespace-nowrap text-center">Използван</TableHead>
                       </>
@@ -81,12 +85,14 @@ export default function CooperativeMembers() {
                       <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
                       <TableCell className="whitespace-nowrap">{member.first_name}</TableCell>
                       <TableCell className="whitespace-nowrap">{member.last_name}</TableCell>
-                      {isLoggedIn && (
-                        <TableCell className="whitespace-nowrap">{member.email || "-"}</TableCell>
+                      {canSeeContactInfo && (
+                        <>
+                          <TableCell className="whitespace-nowrap">{member.email || "-"}</TableCell>
+                          <TableCell className="whitespace-nowrap">{member.phone || "-"}</TableCell>
+                        </>
                       )}
                       {isAdmin && (
                         <>
-                          <TableCell className="whitespace-nowrap">{member.phone || "-"}</TableCell>
                           <TableCell className="text-center">
                             {member.member_code ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm bg-muted border border-border">

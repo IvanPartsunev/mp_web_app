@@ -10,6 +10,8 @@ export default function Proxies() {
   const error = queryError ? "Неуспешно зареждане на пълномощниците" : null;
   const {isLoggedIn, user} = useAuth();
   const isAdmin = user?.role === "admin";
+  const isBoardOrControl = user?.role === "board" || user?.role === "control";
+  const canSeePhone = isAdmin || isBoardOrControl;
 
   if (loading) {
     return (
@@ -48,32 +50,34 @@ export default function Proxies() {
               <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[5%]">№</TableHead>
-                    <TableHead className="w-[12%]">
+                    <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
+                    <TableHead className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <UserIcon className="w-4 h-4" />
                         Име
                       </div>
                     </TableHead>
-                    <TableHead className="w-[12%]">Фамилия</TableHead>
+                    <TableHead className="whitespace-nowrap">Фамилия</TableHead>
                     {isLoggedIn && (
-                      <TableHead className={isAdmin ? "w-[25%]" : "w-[71%]"}>
+                      <TableHead className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4" />
                           Имейл
                         </div>
                       </TableHead>
                     )}
+                    {canSeePhone && (
+                      <TableHead className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          Телефон
+                        </div>
+                      </TableHead>
+                    )}
                     {isAdmin && (
                       <>
-                        <TableHead className="w-[18%]">
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4" />
-                            Телефон
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[16%] text-center">Код</TableHead>
-                        <TableHead className="w-[12%] text-center">Използван</TableHead>
+                        <TableHead className="whitespace-nowrap text-center">Код</TableHead>
+                        <TableHead className="whitespace-nowrap text-center">Използван</TableHead>
                       </>
                     )}
                   </TableRow>
@@ -87,9 +91,11 @@ export default function Proxies() {
                       {isLoggedIn && (
                         <TableCell className="whitespace-nowrap">{member.email || "-"}</TableCell>
                       )}
+                      {canSeePhone && (
+                        <TableCell className="whitespace-nowrap">{member.phone || "-"}</TableCell>
+                      )}
                       {isAdmin && (
                         <>
-                          <TableCell className="whitespace-nowrap">{member.phone || "-"}</TableCell>
                           <TableCell className="text-center">
                             {member.member_code ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm bg-muted border border-border">
