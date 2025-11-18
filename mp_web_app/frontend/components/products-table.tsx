@@ -51,12 +51,12 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
             <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] py-2">№</TableHead>
-                <TableHead className="py-2">Име</TableHead>
-                <TableHead className="py-2 text-center">Дължина (см)</TableHead>
-                <TableHead className="py-2 text-center">Ширина (см)</TableHead>
-                <TableHead className="py-2 text-center">Височина (см)</TableHead>
-                <TableHead className="py-2">Описание</TableHead>
+                <TableHead className="py-2 w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="py-2 w-[20%] whitespace-nowrap">Име</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
+                <TableHead className="py-2 w-[45%] pl-8 whitespace-nowrap">Описание</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -90,7 +90,7 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
                     <TableCell className="py-2 text-center">{product.length ?? "-"}</TableCell>
                     <TableCell className="py-2 text-center">{product.width ?? "-"}</TableCell>
                     <TableCell className="py-2 text-center">{product.height ?? "-"}</TableCell>
-                    <TableCell className="py-2">{product.description || "-"}</TableCell>
+                    <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>

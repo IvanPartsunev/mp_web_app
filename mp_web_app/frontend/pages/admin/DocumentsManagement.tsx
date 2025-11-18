@@ -154,15 +154,9 @@ export default function DocumentsManagement() {
         ) : (
           <div className="overflow-x-auto">
           <Table className="w-full table-auto">
-            <colgroup>
-              <col style={{width: '35%'}} />
-              <col style={{width: '20%'}} />
-              <col style={{width: '20%'}} />
-              <col style={{width: '12%'}} />
-              <col style={{width: '13%'}} />
-            </colgroup>
             <TableHeader>
               <TableRow>
+                <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
                 <TableHead className="whitespace-nowrap">Име на файл</TableHead>
                 <TableHead className="whitespace-nowrap">Тип</TableHead>
                 <TableHead className="whitespace-nowrap">Качен от</TableHead>
@@ -171,8 +165,9 @@ export default function DocumentsManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredFiles.map((file) => (
+              {filteredFiles.map((file, index) => (
                 <TableRow key={file.id}>
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
                   <TableCell className="font-medium whitespace-nowrap">{file.file_name}</TableCell>
                   <TableCell className="whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>

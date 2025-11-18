@@ -36,7 +36,7 @@ export default function Proxies() {
       <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
         <Card>
         <CardHeader>
-          <CardTitle>Списък на пълномощниците</CardTitle>
+          <CardTitle>Списък на пълномощниците ({members.length})</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           {error ? (

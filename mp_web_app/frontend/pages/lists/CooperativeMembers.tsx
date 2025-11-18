@@ -35,7 +35,7 @@ export default function CooperativeMembers() {
       <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
         <Card>
         <CardHeader>
-          <CardTitle>Списък на член кооператорите</CardTitle>
+          <CardTitle>Списък на член кооператорите ({members.length})</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           {members.length === 0 ? (
@@ -45,7 +45,7 @@ export default function CooperativeMembers() {
               <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">№</TableHead>
+                    <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
                     <TableHead className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <UserIcon className="w-4 h-4" />

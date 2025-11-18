@@ -206,7 +206,7 @@ export default function NewsManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60px]">№</TableHead>
+                <TableHead className="w-[5%]">№</TableHead>
                 <TableHead>Заглавие</TableHead>
                 <TableHead>Тип</TableHead>
                 <TableHead>Дата</TableHead>

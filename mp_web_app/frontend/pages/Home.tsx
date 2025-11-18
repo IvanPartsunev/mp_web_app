@@ -108,7 +108,7 @@ export default function Home() {
                     title={item.title}
                     content={item.content}
                     created_at={item.created_at || ""}
-                    news_type={item.is_public === false ? "private" : "regular"}
+                    news_type={item.news_type || "regular"}
                   />
                 </div>
               ))}

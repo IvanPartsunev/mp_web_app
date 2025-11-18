@@ -7,28 +7,28 @@ export interface NewsItem {
   id?: string | null;
   title: string;
   content: string;
-  author?: string | null;
+  author_id?: string | null;
   created_at?: string | null;
-  is_public?: boolean;
+  news_type?: "regular" | "private";
 }
 
 // Query key factory
 export const newsKeys = {
   all: ['news'] as const,
   lists: () => [...newsKeys.all, 'list'] as const,
-  list: (token?: string) => [...newsKeys.lists(), { token }] as const,
+  list: () => [...newsKeys.lists()] as const,
 };
 
 // Fetch news list
 export function useNews() {
   const token = getAccessToken();
+  const isLoggedIn = !!token;
   
   return useQuery({
-    queryKey: newsKeys.list(token || undefined),
+    queryKey: [...newsKeys.list(), { isLoggedIn }],
     queryFn: async () => {
-      const response = await apiClient.get<NewsItem[]>('news/list', {
-        params: token ? { token } : {},
-      });
+      // Token is automatically sent via Authorization header by apiClient
+      const response = await apiClient.get<NewsItem[]>('news/list');
       return response.data ?? [];
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

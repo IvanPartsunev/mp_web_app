@@ -108,15 +108,9 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
         <CardContent className="px-0">
           <div className="overflow-x-auto">
             <Table className="w-full table-auto">
-            <colgroup>
-              <col style={{width: '5%'}} />
-              <col style={{width: '60%'}} />
-              <col style={{width: '20%'}} />
-              <col style={{width: '15%'}} />
-            </colgroup>
             <TableHeader>
               <TableRow>
-                <TableHead className="whitespace-nowrap py-2">№</TableHead>
+                <TableHead className="whitespace-nowrap py-2 w-[5%]">№</TableHead>
                 <TableHead className="whitespace-nowrap py-2">Име на файл</TableHead>
                 <TableHead className="whitespace-nowrap py-2">Дата на създаване</TableHead>
                 <TableHead className="whitespace-nowrap text-right py-2">Действия</TableHead>

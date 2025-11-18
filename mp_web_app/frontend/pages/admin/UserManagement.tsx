@@ -135,14 +135,14 @@ export default function UserManagement() {
           <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="whitespace-nowrap">№</TableHead>
+                <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
                 <TableHead className="whitespace-nowrap">Име</TableHead>
                 <TableHead className="whitespace-nowrap">Email</TableHead>
                 <TableHead className="whitespace-nowrap">Телефон</TableHead>
-                <TableHead className="whitespace-nowrap">Роля</TableHead>
-                <TableHead className="whitespace-nowrap">Активен</TableHead>
-                <TableHead className="whitespace-nowrap">Абониран</TableHead>
-                <TableHead className="whitespace-nowrap">Действия</TableHead>
+                <TableHead className="whitespace-nowrap w-[10%]">Роля</TableHead>
+                <TableHead className="whitespace-nowrap w-[8%]">Активен</TableHead>
+                <TableHead className="whitespace-nowrap w-[8%]">Абониран</TableHead>
+                <TableHead className="whitespace-nowrap w-[15%]">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

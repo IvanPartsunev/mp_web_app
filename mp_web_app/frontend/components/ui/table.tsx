@@ -6,7 +6,7 @@ import {Button} from "./button";
 
 function Table({className, ...props}: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-[95%] mx-auto overflow-x-auto rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+    <div data-slot="table-container" className="relative w-[97%] mx-auto overflow-x-auto rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
       <table data-slot="table" className={cn("w-full caption-bottom text-sm min-w-[600px] xl:table-fixed", className)} {...props} />
     </div>
   );

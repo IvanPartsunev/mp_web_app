@@ -107,14 +107,35 @@ export default function ProductsManagement() {
 
   const handleEdit = async () => {
     if (!selectedProduct) return;
+    
+    // Validate name is not empty
+    if (!formData.name || formData.name.trim() === "") {
+      toast({
+        title: "Грешка",
+        description: "Името на продукта е задължително",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const payload = {
-        name: formData.name || null,
-        width: formData.width ? parseFloat(formData.width) : null,
-        height: formData.height ? parseFloat(formData.height) : null,
-        length: formData.length ? parseFloat(formData.length) : null,
-        description: formData.description || null,
+      const payload: any = {
+        name: formData.name.trim(),
       };
+      
+      // Only include dimensions if they have values
+      if (formData.width && formData.width.trim() !== "") {
+        payload.width = parseFloat(formData.width);
+      }
+      if (formData.height && formData.height.trim() !== "") {
+        payload.height = parseFloat(formData.height);
+      }
+      if (formData.length && formData.length.trim() !== "") {
+        payload.length = parseFloat(formData.length);
+      }
+      if (formData.description && formData.description.trim() !== "") {
+        payload.description = formData.description.trim();
+      }
 
       await apiClient.put(`products/update/${selectedProduct.id}`, payload);
       toast({
@@ -255,13 +276,13 @@ export default function ProductsManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60px]">№</TableHead>
-                <TableHead>Име</TableHead>
-                <TableHead className="text-center">Дължина (см)</TableHead>
-                <TableHead className="text-center">Ширина (см)</TableHead>
-                <TableHead className="text-center">Височина (см)</TableHead>
-                <TableHead>Описание</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="w-[20%] whitespace-nowrap">Име</TableHead>
+                <TableHead className="text-center w-[8%] whitespace-nowrap">Дължина (см)</TableHead>
+                <TableHead className="text-center w-[8%] whitespace-nowrap">Ширина (см)</TableHead>
+                <TableHead className="text-center w-[8%] whitespace-nowrap">Височина (см)</TableHead>
+                <TableHead className="w-[30%] pl-8 whitespace-nowrap">Описание</TableHead>
+                <TableHead className="w-[21%] whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -272,7 +293,7 @@ export default function ProductsManagement() {
                   <TableCell className="text-center">{product.length ?? "-"}</TableCell>
                   <TableCell className="text-center">{product.width ?? "-"}</TableCell>
                   <TableCell className="text-center">{product.height ?? "-"}</TableCell>
-                  <TableCell className="max-w-xs truncate">{product.description || "-"}</TableCell>
+                  <TableCell className="pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>

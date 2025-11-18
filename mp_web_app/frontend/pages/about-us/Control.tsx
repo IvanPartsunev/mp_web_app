@@ -31,7 +31,7 @@ export default function Control() {
       <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
         <Card>
         <CardHeader>
-          <CardTitle>Членове на контролния съвет</CardTitle>
+          <CardTitle>Членове на контролния съвет ({members.length})</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           {members.length === 0 ? (
@@ -41,6 +41,7 @@ export default function Control() {
               <Table className="w-full">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
                     <TableHead className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <UserIcon className="w-4 h-4" />
@@ -62,8 +63,9 @@ export default function Control() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {members.map((member) => (
+                  {members.map((member, index) => (
                     <TableRow key={member.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">
                         {member.first_name} {member.last_name}
                       </TableCell>
