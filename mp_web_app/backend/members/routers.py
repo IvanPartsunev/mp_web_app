@@ -34,8 +34,10 @@ async def members_list(
 
   Access:
   - All authenticated users can access this endpoint
-  - ADMIN, BOARD, CONTROL: See full details (name, email, phone)
-  - REGULAR_USER: See only names (first_name, last_name, proxy)
+  - ADMIN, BOARD, CONTROL: See full details (name, email, phone, member_code)
+  - REGULAR_USER, ACCOUNTANT: 
+    - For cooperative members: See only names (first_name, last_name)
+    - For proxies: See names + email
 
   Query Parameters:
   - proxy_only: If True, returns only members with proxy=True. Default is False (returns all members).
@@ -47,8 +49,23 @@ async def members_list(
     user_role = current_user.role if isinstance(current_user.role, UserRole) else UserRole(current_user.role)
 
     if user_role in privileged_roles:
+      # Admin, Board, Control see everything
       return members
+    elif proxy_only:
+      # For proxies list: all logged users see email (but not phone/member_code)
+      return [
+        Member(
+          first_name=m.first_name,
+          last_name=m.last_name,
+          email=m.email,
+          phone=None,  # Hide phone for regular users
+          member_code="",  # Hide member code
+          member_code_valid=False,
+          proxy=m.proxy
+        ) for m in members
+      ]
     else:
+      # For cooperative members: regular users see only names
       return [MemberPublic(first_name=m.first_name, last_name=m.last_name, proxy=m.proxy) for m in members]
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))

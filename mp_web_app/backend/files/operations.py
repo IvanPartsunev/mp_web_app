@@ -138,11 +138,11 @@ def _create_file_name(file_name: str, original_name: str):
 def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, repo: FileMetadataRepository):
   file_meta_object = get_db_metadata(file_metadata, repo)
 
-  user_id = None
-  if user.role != UserRole.REGULAR_USER.value and user.role != UserRole.ACCOUNTANT.value:
-    user_id = user.id
+  # All logged-in users should have access to their allowed files
+  user_id = user.id
+  user_role = user.role
 
-  is_allowed = _check_file_allowed_to_user(file_meta_object, user_id)
+  is_allowed = _check_file_allowed_to_user(file_meta_object, user_id, user_role)
   if not is_allowed:
     raise FileAccessDeniedError(file_meta_object.file_name)
 
@@ -184,27 +184,47 @@ def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadata
   return file_metadata.model_dump() == db_meta_object.model_dump(include=fields)
 
 
-def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str | None = None) -> bool:
-  public_allowed_types = [
+def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_role: str) -> bool:
+  # Public documents - accessible to everyone (logged in or not)
+  public_types = [
     FileType.governing_documents.value,
     FileType.forms.value,
   ]
-
-  private_allowed_types = [
+  
+  # Documents accessible to all logged-in users
+  logged_in_types = [
     FileType.minutes.value,
-    FileType.governing_documents.value,
-    FileType.forms.value,
     FileType.transcripts.value,
-    FileType.accounting.value,
-    FileType.private_documents.value,
     FileType.others.value,
   ]
   
-  is_allowed_to_user = True
-  if user_id:
-    is_allowed_type = file_metadata.file_type.value in private_allowed_types
+  # Accounting documents - only for admin, board, control, accountant
+  accounting_allowed_roles = [
+    UserRole.ADMIN.value,
+    UserRole.BOARD.value,
+    UserRole.CONTROL.value,
+    UserRole.ACCOUNTANT.value,
+  ]
+  
+  file_type = file_metadata.file_type.value
+  
+  # Public documents - always allowed
+  if file_type in public_types:
+    return True
+  
+  # Documents for all logged-in users
+  if file_type in logged_in_types:
+    return True
+  
+  # Accounting documents - role-based access
+  if file_type == FileType.accounting.value:
+    return user_role in accounting_allowed_roles
+  
+  # Private documents - only for specified users
+  if file_type == FileType.private_documents.value:
     if file_metadata.allowed_to:
-      is_allowed_to_user = user_id in file_metadata.allowed_to
-  else:
-    is_allowed_type = file_metadata.file_type.value in public_allowed_types
-  return is_allowed_type and is_allowed_to_user
+      return user_id in file_metadata.allowed_to
+    return False
+  
+  # Default deny
+  return False

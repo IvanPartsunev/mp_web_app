@@ -157,6 +157,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository =
     user = get_user_by_id(user_id, repo)
     if not user:
       raise UserNotFoundError("User not found")
+    # Check if user account is active
+    if not user.active:
+      raise UnauthorizedError("Account is not active")
     return user
   except UnauthorizedError as e:
     raise HTTPException(status_code=401, detail=str(e))
@@ -168,6 +171,10 @@ def authenticate_user(email: str, password: str, repo: UserRepository) -> Option
   user = get_user_by_email(email, repo, secret=True)
 
   if not user:
+    return None
+
+  # Check if user account is active
+  if not user.active:
     return None
 
   if verify_password(password_hash=user.password_hash, password=password, salt=user.salt):
