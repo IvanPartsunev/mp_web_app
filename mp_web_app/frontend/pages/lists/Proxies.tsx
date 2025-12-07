@@ -107,7 +107,7 @@ export default function Proxies() {
                           </TableCell>
                           <TableCell className="text-center">
                             {member.member_code ? (
-                              member.member_code_valid ? (
+                              !member.member_code_valid ? (
                                 <CheckCircle className="h-4 w-4 text-green-600 mx-auto" />
                               ) : (
                                 <XCircle className="h-4 w-4 text-red-600 mx-auto" />
