@@ -38,6 +38,7 @@ apiClient.interceptors.response.use(
       !original.url?.includes("/auth/refresh")
     ) {
       (original as any)._retry = true;
+      (error as any).isAuthRefresh = true; // Mark as auto-handled auth error
 
       // If already refreshing, wait for that refresh to complete
       if (isRefreshing && refreshPromise) {
@@ -50,6 +51,8 @@ apiClient.interceptors.response.use(
           }
         } catch {
           setAccessToken(null);
+          // Mark final error as auth-related
+          (error as any).isAuthRefresh = true;
           return Promise.reject(error);
         }
       }
@@ -63,11 +66,13 @@ apiClient.interceptors.response.use(
             const newToken = res.data?.access_token;
             if (newToken) {
               setAccessToken(newToken);
+              // Dispatch event to invalidate cached queries
+              window.dispatchEvent(new Event("token-refreshed"));
               return newToken;
             }
             return null;
           } catch (e) {
-            // Silently handle refresh failures - don't log to console
+            // Silently handle refresh failures
             setAccessToken(null);
             window.dispatchEvent(tokenClearedEvent);
             return null;

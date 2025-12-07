@@ -1,7 +1,7 @@
 // hooks/useNews.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/context/apiClient';
-import { getAccessToken } from '@/context/tokenStore';
+import { useAuth } from '@/context/AuthContext';
 
 export interface NewsItem {
   id?: string | null;
@@ -21,17 +21,16 @@ export const newsKeys = {
 
 // Fetch news list
 export function useNews() {
-  const token = getAccessToken();
-  const isLoggedIn = !!token;
+  const { isLoggedIn, user } = useAuth();
   
   return useQuery({
-    queryKey: [...newsKeys.list(), { isLoggedIn }],
+    queryKey: [...newsKeys.list(), { isLoggedIn, userId: user?.id }],
     queryFn: async () => {
       // Token is automatically sent via Authorization header by apiClient
       const response = await apiClient.get<NewsItem[]>('news/list');
       return response.data ?? [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes (reduced from 10 to be more responsive)
   });
 }
 

@@ -51,12 +51,15 @@ export default function UserManagement() {
       const response = await apiClient.get("users/list");
       // Force a new array reference to trigger React re-render
       setUsers([...(response.data || [])]);
-    } catch (err) {
-      toast({
-        title: "Грешка",
-        description: "Неуспешно зареждане на потребителите",
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      // Don't show error toast for auth refresh errors (they're handled automatically)
+      if (!(err as any)?.isAuthRefresh) {
+        toast({
+          title: "Грешка",
+          description: "Неуспешно зареждане на потребителите",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

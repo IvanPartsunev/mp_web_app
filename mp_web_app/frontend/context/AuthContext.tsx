@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {API_BASE_URL} from "@/app-config";
 import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 import apiClient from "@/context/apiClient";
+import {useQueryClient} from "@tanstack/react-query";
 
 interface User {
   id: string;
@@ -31,6 +32,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Function to check and update auth state (only checks token existence, no API calls)
   const checkAuth = () => {
@@ -80,16 +82,34 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     const handleTokenCleared = () => {
       setIsLoggedIn(false);
       setUser(null);
+      // Invalidate all queries when logged out
+      queryClient.invalidateQueries();
+    };
+
+    // Listen for token refreshed event to invalidate cached queries
+    const handleTokenRefreshed = async () => {
+      // Fetch updated user info
+      try {
+        const response = await apiClient.get("users/me");
+        setUser(response.data);
+        setIsLoggedIn(true);
+      } catch {
+        // If fetching user fails, keep current state
+      }
+      // Invalidate all queries to refetch with new token
+      queryClient.invalidateQueries();
     };
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener("token-cleared", handleTokenCleared);
+    window.addEventListener("token-refreshed", handleTokenRefreshed);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("token-cleared", handleTokenCleared);
+      window.removeEventListener("token-refreshed", handleTokenRefreshed);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, queryClient]);
 
   const login = (accessToken: string) => {
     setAccessToken(accessToken);
