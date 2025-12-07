@@ -32,8 +32,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 @user_router.get("/list", response_model=list[User], status_code=status.HTTP_200_OK)
 async def users_list(
-  user_repo: UserRepository = Depends(get_user_repository), 
-  user=Depends(role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT]))
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT])),
 ):
   try:
     return list_users(user_repo)
@@ -157,11 +157,8 @@ async def user_update(
     if user_data.role is not None:
       valid_roles = [role.value for role in UserRole]
       if user_data.role not in valid_roles:
-        raise HTTPException(
-          status_code=400, 
-          detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}"
-        )
-    
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+
     # Get user by ID to get their email
     existing_user = get_user_by_id(user_id, user_repo)
     return update_user(user_id, existing_user.email, user_data, user_repo)

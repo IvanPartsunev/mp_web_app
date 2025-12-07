@@ -120,7 +120,7 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
         "email": member["email"] if member["email"] else None,
         "member_code": member["member_code"],
         "member_code_valid": True,
-        "proxy": True if member["proxy"] in ["1", "yes", "true"] else False
+        "proxy": member["proxy"] in ["1", "yes", "true"],
       }
     )
   return normalized_members_list

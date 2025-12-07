@@ -40,16 +40,16 @@ def _enrich_with_user_names(files_metadata: list[FileMetadata]):
   """Enrich file metadata with uploader names."""
   if not files_metadata:
     return
-  
+
   # Collect unique user IDs
   user_ids = {fm.uploaded_by for fm in files_metadata if fm.uploaded_by}
   if not user_ids:
     return
-  
+
   # Fetch users and create a map
   user_repo = UserRepository(USERS_TABLE_NAME)
   users_map = {}
-  
+
   for user_id in user_ids:
     try:
       response = user_repo.table.get_item(Key={"id": user_id})
@@ -59,7 +59,7 @@ def _enrich_with_user_names(files_metadata: list[FileMetadata]):
     except Exception:
       # If fetch fails, continue without this user's name
       continue
-  
+
   # Enrich file metadata with user names
   for fm in files_metadata:
     if fm.uploaded_by:
@@ -123,10 +123,10 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository):
       items.extend(response["Items"])
 
     files_metadata = [repo.convert_item_to_object(item) for item in items]
-    
+
     # Enrich with user names
     _enrich_with_user_names(files_metadata)
-    
+
     return files_metadata
 
   except Exception as e:
@@ -185,17 +185,16 @@ def download_file(file_metadata: FileMetadata | list[FileMetadata], user: User, 
   try:
     s3_object = s3.get_object(Bucket=file_meta_object.bucket, Key=file_meta_object.key)
     file_stream = s3_object["Body"]
-    
+
     # Properly encode filename for Cyrillic and other Unicode characters
     from urllib.parse import quote
+
     encoded_filename = quote(file_meta_object.file_name)
-    
+
     return StreamingResponse(
       file_stream,
       media_type="application/octet-stream",
-      headers={
-        "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
-      },
+      headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"},
     )
   except s3.exceptions.NoSuchKey:
     raise FileNotFoundError("File not found")
@@ -225,14 +224,14 @@ def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_
     FileType.governing_documents.value,
     FileType.forms.value,
   ]
-  
+
   # Documents accessible to all logged-in users
   logged_in_types = [
     FileType.minutes.value,
     FileType.transcripts.value,
     FileType.others.value,
   ]
-  
+
   # Accounting documents - only for admin, board, control, accountant
   accounting_allowed_roles = [
     UserRole.ADMIN.value,
@@ -240,26 +239,26 @@ def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_
     UserRole.CONTROL.value,
     UserRole.ACCOUNTANT.value,
   ]
-  
+
   file_type = file_metadata.file_type.value
-  
+
   # Public documents - always allowed
   if file_type in public_types:
     return True
-  
+
   # Documents for all logged-in users
   if file_type in logged_in_types:
     return True
-  
+
   # Accounting documents - role-based access
   if file_type == FileType.accounting.value:
     return user_role in accounting_allowed_roles
-  
+
   # Private documents - only for specified users
   if file_type == FileType.private_documents.value:
     if file_metadata.allowed_to:
       return user_id in file_metadata.allowed_to
     return False
-  
+
   # Default deny
   return False

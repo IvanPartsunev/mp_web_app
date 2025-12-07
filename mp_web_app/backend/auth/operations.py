@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Literal, Optional
 from uuid import uuid4
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import EmailStr, ValidationError

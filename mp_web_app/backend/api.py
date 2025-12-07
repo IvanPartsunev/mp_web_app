@@ -9,10 +9,10 @@ from files.routers import file_router
 from gallery.routers import gallery_router
 from mail.routers import mail_router
 from members.routers import member_router
+from middleware.cache_headers import CacheControlMiddleware
 from news.routers import news_router
 from products.routers import product_router
 from users.routers import user_router
-from middleware.cache_headers import CacheControlMiddleware
 
 FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 

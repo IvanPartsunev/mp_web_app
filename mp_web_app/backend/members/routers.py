@@ -35,7 +35,7 @@ async def members_list(
   Access:
   - All authenticated users can access this endpoint
   - ADMIN, BOARD, CONTROL: See full details (name, email, phone, member_code)
-  - REGULAR_USER, ACCOUNTANT: 
+  - REGULAR_USER, ACCOUNTANT:
     - For cooperative members: See only names (first_name, last_name)
     - For proxies: See names + email
 
@@ -61,8 +61,9 @@ async def members_list(
           phone=None,  # Hide phone for regular users
           member_code="",  # Hide member code
           member_code_valid=False,
-          proxy=m.proxy
-        ) for m in members
+          proxy=m.proxy,
+        )
+        for m in members
       ]
     else:
       # For cooperative members: regular users see only names

@@ -30,10 +30,8 @@ async def file_create(
   try:
     # Accountants can only upload accounting documents
     if user.role == UserRole.ACCOUNTANT.value and file_type != FileType.accounting:
-      raise HTTPException(
-        status_code=403, detail="Accountants can only upload accounting documents"
-      )
-    
+      raise HTTPException(status_code=403, detail="Accountants can only upload accounting documents")
+
     file_metadata = FileMetadataFull(
       file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id
     )
@@ -52,21 +50,19 @@ async def file_create(
 async def files_list(
   file_type: str,
   repo: FileMetadataRepository = Depends(get_uploads_repository),
-  user=Depends(role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT, UserRole.BOARD, UserRole.CONTROL, UserRole.ADMIN])),
+  user=Depends(
+    role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT, UserRole.BOARD, UserRole.CONTROL, UserRole.ADMIN])
+  ),
 ):
   try:
     # Accountants can only list accounting documents
     if user.role == UserRole.ACCOUNTANT.value and file_type != "accounting":
-      raise HTTPException(
-        status_code=403, detail="Accountants can only access accounting documents"
-      )
-    
+      raise HTTPException(status_code=403, detail="Accountants can only access accounting documents")
+
     # Regular users cannot list accounting documents
     if user.role == UserRole.REGULAR_USER.value and file_type == "accounting":
-      raise HTTPException(
-        status_code=403, detail="You don't have access to this document type"
-      )
-    
+      raise HTTPException(status_code=403, detail="You don't have access to this document type")
+
     return get_files_metadata(file_type, repo)
   except MetadataError as e:
     raise HTTPException(status_code=500, detail=str(e))
@@ -85,13 +81,11 @@ async def file_delete(
       response = repo.table.get_item(Key={"id": file_id})
       if "Item" not in response:
         raise HTTPException(status_code=404, detail="File not found")
-      
+
       file_metadata = repo.convert_item_to_object_full(response["Item"])
       if file_metadata.file_type != FileType.accounting:
-        raise HTTPException(
-          status_code=403, detail="Accountants can only delete accounting documents"
-        )
-    
+        raise HTTPException(status_code=403, detail="Accountants can only delete accounting documents")
+
     delete_file(file_id, repo)
   except FileNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
