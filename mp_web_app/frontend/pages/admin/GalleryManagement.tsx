@@ -7,6 +7,7 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 import {Trash2} from "lucide-react";
+import {extractApiErrorDetails} from "@/lib/errorUtils";
 
 interface GalleryImage {
   id: string;
@@ -47,9 +48,10 @@ export default function GalleryManagement() {
       });
       setImageUrls(urls);
     } catch (err: any) {
+      const errorMessage = extractApiErrorDetails(err.response?.data || err);
       toast({
         title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно зареждане на галерията",
+        description: errorMessage || "Неуспешно зареждане на галерията",
         variant: "destructive",
       });
     } finally {
@@ -64,6 +66,30 @@ export default function GalleryManagement() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Грешка",
+          description: "Невалиден формат. Разрешени формати: JPG, PNG, GIF, WEBP",
+          variant: "destructive",
+        });
+        e.target.value = ""; // Reset input
+        return;
+      }
+      
+      // Check file size
+      const maxSize = 15 * 1024 * 1024; // 15MB
+      if (file.size > maxSize) {
+        toast({
+          title: "Грешка",
+          description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+          variant: "destructive",
+        });
+        e.target.value = ""; // Reset input
+        return;
+      }
+      
       setSelectedFile(file);
       setImageName(file.name.split(".")[0]);
     }
@@ -95,13 +121,26 @@ export default function GalleryManagement() {
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const file = files[0];
-      if (file.type.startsWith('image/')) {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      
+      if (file.type.startsWith('image/') && allowedTypes.includes(file.type)) {
+        // Check file size
+        const maxSize = 15 * 1024 * 1024; // 15MB
+        if (file.size > maxSize) {
+          toast({
+            title: "Грешка",
+            description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+            variant: "destructive",
+          });
+          return;
+        }
+        
         setSelectedFile(file);
         setImageName(file.name.split(".")[0]);
       } else {
         toast({
           title: "Грешка",
-          description: "Моля изберете файл със снимка",
+          description: "Невалиден формат. Разрешени формати: JPG, PNG, GIF, WEBP",
           variant: "destructive",
         });
       }
@@ -113,6 +152,28 @@ export default function GalleryManagement() {
       toast({
         title: "Грешка",
         description: "Моля изберете файл",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size on frontend (15MB limit)
+    const maxSize = 15 * 1024 * 1024; // 15MB in bytes
+    if (selectedFile.size > maxSize) {
+      toast({
+        title: "Грешка",
+        description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(selectedFile.size / 1024 / 1024).toFixed(2)}MB`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      toast({
+        title: "Грешка",
+        description: "Невалиден формат на снимката. Разрешени формати: JPG, PNG, GIF, WEBP",
         variant: "destructive",
       });
       return;
@@ -145,13 +206,16 @@ export default function GalleryManagement() {
         fileInputRef.current.value = "";
       }
 
-      fetchGallery();
+      // Refresh gallery
+      await fetchGallery();
     } catch (err: any) {
+      const errorMessage = extractApiErrorDetails(err.response?.data || err);
       toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно качване на снимката",
+        title: "Грешка при качване",
+        description: errorMessage || "Неуспешно качване на снимката",
         variant: "destructive",
       });
+      console.error("Upload error:", err);
     } finally {
       setUploading(false);
     }
@@ -175,9 +239,10 @@ export default function GalleryManagement() {
       setSelectedImage(null);
       fetchGallery();
     } catch (err: any) {
+      const errorMessage = extractApiErrorDetails(err.response?.data || err);
       toast({
         title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно изтриване на снимката",
+        description: errorMessage || "Неуспешно изтриване на снимката",
         variant: "destructive",
       });
     }
@@ -248,7 +313,7 @@ export default function GalleryManagement() {
                     <p className="text-sm font-medium text-foreground">
                       {isDragging ? "Пусни снимката тук" : "Кликни или пусни снимка"}
                     </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF до 10MB</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF до 15MB</p>
                   </div>
                 )}
               </div>

@@ -21,23 +21,24 @@ export default function Gallery() {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}gallery/list`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch gallery");
-        }
-        const galleryImages = await response.json();
-        setImages(galleryImages || []);
-      } catch (err: any) {
-        setError("Неуспешно зареждане на галерията");
-      } finally {
-        setLoading(false);
+  const fetchGallery = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}gallery/list`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch gallery");
       }
-    };
+      const galleryImages = await response.json();
+      setImages(galleryImages || []);
+      setError(null);
+    } catch (err: any) {
+      setError("Неуспешно зареждане на галерията");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchGallery();
   }, []);
 

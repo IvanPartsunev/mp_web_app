@@ -23,6 +23,8 @@ CLOUDFRONT_DOMAIN = os.environ.get("CLOUDFRONT_DOMAIN")  # e.g., d123.cloudfront
 USE_CLOUDFRONT = os.environ.get("USE_CLOUDFRONT", "false").lower() == "true"
 
 ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
+MAX_IMAGE_SIZE_MB = 15  # Maximum image size in MB
+MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 
 
 def get_gallery_repository() -> GalleryRepository:
@@ -35,9 +37,20 @@ def upload_gallery_image(
 ) -> GalleryImageMetadata:
   """Upload gallery image to S3 and store metadata in DynamoDB."""
   # Validate file extension
+  if not file.filename or "." not in file.filename:
+    raise InvalidImageFormatError(ALLOWED_IMAGE_EXTENSIONS)
+  
   file_extension = file.filename.split(".")[-1].lower()
   if file_extension not in ALLOWED_IMAGE_EXTENSIONS:
     raise InvalidImageFormatError(ALLOWED_IMAGE_EXTENSIONS)
+  
+  # Validate file size
+  file.file.seek(0, 2)  # Seek to end of file
+  file_size = file.file.tell()  # Get current position (file size)
+  file.file.seek(0)  # Reset to beginning
+  
+  if file_size > MAX_IMAGE_SIZE_BYTES:
+    raise ImageUploadError(f"File too large. Maximum size: {MAX_IMAGE_SIZE_MB}MB. Your file: {file_size / 1024 / 1024:.2f}MB")
 
   # Generate unique S3 key
   image_id = str(uuid4())
