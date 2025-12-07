@@ -13,23 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import apiClient from "@/context/apiClient";
-
-type FileType =
-  | "governing_documents"
-  | "forms"
-  | "minutes"
-  | "transcripts"
-  | "accounting"
-  | "private_documents"
-  | "others";
-
-type FileMetadata = {
-  id?: string | null;
-  file_name?: string | null;
-  file_type: FileType;
-  uploaded_by?: string | null;
-  created_at?: string | null;
-};
+import {useFiles, type FileType, type FileMetadata} from "@/hooks/useFiles";
 
 type FilesTableProps = {
   fileType: FileType;
@@ -39,31 +23,12 @@ type FilesTableProps = {
 const PAGE_SIZE = 25;
 
 export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
-  const [data, setData] = React.useState<FileMetadata[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
+  // Use React Query hook for caching (1 hour)
+  const {data = [], isLoading: loading, error: queryError} = useFiles(fileType);
   const [page, setPage] = React.useState<number>(1);
-
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiClient.get<FileMetadata[]>(`files/list`, {
-        params: {file_type: fileType},
-        withCredentials: true,
-      });
-      setData(res.data ?? []);
-      setPage(1); // reset page on type change/fresh load
-    } catch (e: any) {
-      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.");
-    } finally {
-      setLoading(false);
-    }
-  }, [fileType]);
-
-  React.useEffect(() => {
-    load();
-  }, [load]);
+  
+  // Convert error to string for display
+  const error = queryError ? "Възникна грешка при зареждане." : null;
 
   // Pagination helpers
   const total = data.length;
@@ -119,56 +84,74 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
   };
 
   return (
-    <section className="container mx-auto px-4 py-8">
-      {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      {title && (
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-white to-primary/10 dark:from-gray-900 dark:via-gray-800 dark:to-primary/5 border-b border-gray-200/50">
+          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+          <div className="container mx-auto px-4 py-12 md:py-16 relative">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-primary to-gray-900 dark:from-white dark:via-primary dark:to-white bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                {title}
+              </h1>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
 
       <Card>
         <CardHeader>
           <CardTitle>Списък с налични файлове</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="w-full table-auto">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] py-2">№</TableHead>
-                <TableHead className="py-2">Име на файл</TableHead>
-                <TableHead className="py-2">Дата на създаване</TableHead>
-                <TableHead className="text-right py-2">Действия</TableHead>
+                <TableHead className="whitespace-nowrap py-2 w-[5%]">№</TableHead>
+                <TableHead className="whitespace-nowrap py-2">Име на файл</TableHead>
+                <TableHead className="whitespace-nowrap py-2">Дата на създаване</TableHead>
+                <TableHead className="whitespace-nowrap text-right py-2">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
+                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
                     Зареждане...
                   </TableCell>
                 </TableRow>
               )}
               {error && !loading && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-red-600 py-2">
+                  <TableCell colSpan={4} className="text-red-600 py-2 whitespace-nowrap">
                     {error}
                   </TableCell>
                 </TableRow>
               )}
               {!loading && !error && pageItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-2">
+                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
                     Няма налични записи.
                   </TableCell>
                 </TableRow>
               )}
               {!loading &&
                 !error &&
-                pageItems.map((file, idx) => (
+                pageItems.map((file: FileMetadata, idx: number) => (
                   <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
-                    <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
-                    <TableCell className="py-2">{file.file_name}</TableCell>
-                    <TableCell className="py-2">
-                      {file.created_at ? new Date(file.created_at).toLocaleString() : "-"}
+                    <TableCell className="font-medium py-2 whitespace-nowrap">{startIdx + idx + 1}</TableCell>
+                    <TableCell className="py-2 whitespace-nowrap">{file.file_name}</TableCell>
+                    <TableCell className="py-2 whitespace-nowrap">
+                      {file.created_at ? new Date(file.created_at).toLocaleDateString('bg-BG', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      }) : "-"}
                     </TableCell>
-                    <TableCell className="text-right py-2">
+                    <TableCell className="text-right py-2 whitespace-nowrap">
                       <Button size="sm" onClick={() => handleDownload(file)}>
                         Изтегли
                       </Button>
@@ -289,6 +272,7 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
         )}
         </CardContent>
       </Card>
-    </section>
+      </section>
+    </div>
   );
 }

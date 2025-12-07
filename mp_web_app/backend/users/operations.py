@@ -152,9 +152,7 @@ def list_users(repo: UserRepository) -> list[User]:
   return [repo.convert_item_to_object(item) for item in response["Items"]]
 
 
-def update_user(
-  user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository
-) -> User:
+def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> User:
   """Update a user in DynamoDB. Raises UserNotFoundError if not found."""
 
   existing_user = get_user_by_email(user_email, repo)

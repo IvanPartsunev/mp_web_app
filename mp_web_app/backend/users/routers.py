@@ -3,7 +3,7 @@ from pydantic import EmailStr
 from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
-from auth.operations import decode_token, is_token_expired, role_required
+from auth.operations import decode_token, get_current_user, is_token_expired, role_required
 from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
 from members.operations import get_member_repository, is_member_code_valid, update_member_code
@@ -24,9 +24,16 @@ from users.roles import UserRole
 user_router = APIRouter(tags=["users"])
 
 
+@user_router.get("/me", response_model=User, status_code=status.HTTP_200_OK)
+async def get_me(current_user: User = Depends(get_current_user)):
+  """Get current authenticated user information."""
+  return current_user
+
+
 @user_router.get("/list", response_model=list[User], status_code=status.HTTP_200_OK)
 async def users_list(
-  user_repo: UserRepository = Depends(get_user_repository), user=Depends(role_required([UserRole.REGULAR_USER]))
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT])),
 ):
   try:
     return list_users(user_repo)
@@ -146,6 +153,12 @@ async def user_update(
 ):
   """Update a user (ADMIN only)."""
   try:
+    # Validate role if provided
+    if user_data.role is not None:
+      valid_roles = [role.value for role in UserRole]
+      if user_data.role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+
     # Get user by ID to get their email
     existing_user = get_user_by_id(user_id, user_repo)
     return update_user(user_id, existing_user.email, user_data, user_repo)

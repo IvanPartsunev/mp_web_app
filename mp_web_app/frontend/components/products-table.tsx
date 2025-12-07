@@ -11,16 +11,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import apiClient from "@/context/apiClient";
-
-type Product = {
-  id?: string | null;
-  name: string;
-  width?: number | null;
-  height?: number | null;
-  length?: number | null;
-  description?: string | null;
-};
+import {useProducts, type Product} from "@/hooks/useProducts";
 
 type ProductsTableProps = {
   title?: string;
@@ -29,28 +20,12 @@ type ProductsTableProps = {
 const PAGE_SIZE = 25;
 
 export function ProductsTable({title = "Продукти"}: ProductsTableProps) {
-  const [data, setData] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
+  // Use React Query hook for caching (1 hour)
+  const {data = [], isLoading: loading, error: queryError} = useProducts();
   const [page, setPage] = React.useState<number>(1);
-
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiClient.get<Product[]>(`products/list`);
-      setData(res.data ?? []);
-      setPage(1);
-    } catch (e: any) {
-      setError(e?.response?.data?.detail ?? "Възникна грешка при зареждане.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    load();
-  }, [load]);
+  
+  // Convert error to string for display
+  const error = queryError ? "Възникна грешка при зареждане." : null;
 
   // Pagination helpers
   const total = data.length;
@@ -65,24 +40,23 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
   };
 
   return (
-    <section className="container mx-auto px-4 py-8">
+    <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
       {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <Card>
         <CardHeader>
           <CardTitle>Списък с налични продукти</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="px-0">
             <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] py-2">№</TableHead>
-                <TableHead className="py-2">Име</TableHead>
-                <TableHead className="py-2 text-center">Дължина (см)</TableHead>
-                <TableHead className="py-2 text-center">Ширина (см)</TableHead>
-                <TableHead className="py-2 text-center">Височина (см)</TableHead>
-                <TableHead className="py-2">Описание</TableHead>
+                <TableHead className="py-2 w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="py-2 w-[20%] whitespace-nowrap">Име</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
+                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
+                <TableHead className="py-2 w-[45%] pl-8 whitespace-nowrap">Описание</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,19 +83,18 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
               )}
               {!loading &&
                 !error &&
-                pageItems.map((product, idx) => (
+                pageItems.map((product: Product, idx: number) => (
                   <TableRow key={product.id ?? `product-${startIdx + idx}`}>
                     <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
                     <TableCell className="py-2 font-medium">{product.name}</TableCell>
                     <TableCell className="py-2 text-center">{product.length ?? "-"}</TableCell>
                     <TableCell className="py-2 text-center">{product.width ?? "-"}</TableCell>
                     <TableCell className="py-2 text-center">{product.height ?? "-"}</TableCell>
-                    <TableCell className="py-2">{product.description || "-"}</TableCell>
+                    <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
                   </TableRow>
                 ))}
             </TableBody>
           </Table>
-          </div>
 
           {/* Pagination footer */}
         {totalPages > 1 && (

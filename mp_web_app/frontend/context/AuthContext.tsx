@@ -3,9 +3,19 @@ import {useNavigate} from "react-router-dom";
 import {API_BASE_URL} from "@/app-config";
 import {getAccessToken, setAccessToken} from "@/context/tokenStore";
 import apiClient from "@/context/apiClient";
+import {useQueryClient} from "@tanstack/react-query";
+
+interface User {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+}
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  user: User | null;
   login: (accessToken: string) => void;
   logout: () => Promise<void>;
   checkAuth: () => void;
@@ -20,7 +30,9 @@ function getInitialAuthState(): boolean {
 
 export const AuthProvider = ({children}: {children: ReactNode}) => {
   const [isLoggedIn, setIsLoggedIn] = useState(getInitialAuthState);
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Function to check and update auth state (only checks token existence, no API calls)
   const checkAuth = () => {
@@ -37,21 +49,21 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
       const token = getAccessToken();
       if (!token) {
         setIsLoggedIn(false);
+        setUser(null);
         return;
       }
 
       try {
-        // Make a lightweight request to validate token
-        // If token is expired, apiClient interceptor will automatically refresh it
-        // Using news/get as a lightweight endpoint (returns quickly)
-        await apiClient.get("news/list");
-        // If we get here, token is valid or was refreshed successfully
+        // Fetch current user info
+        const response = await apiClient.get("users/me");
+        setUser(response.data);
         setIsLoggedIn(true);
       } catch (error: any) {
         // If it's a 401 after refresh attempt, token is invalid
         if (error.response?.status === 401) {
           setAccessToken(null);
           setIsLoggedIn(false);
+          setUser(null);
         }
         // For other errors (network, etc), keep logged in state
       }
@@ -69,16 +81,35 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     // Listen for token cleared event from apiClient (when refresh fails)
     const handleTokenCleared = () => {
       setIsLoggedIn(false);
+      setUser(null);
+      // Invalidate all queries when logged out
+      queryClient.invalidateQueries();
+    };
+
+    // Listen for token refreshed event to invalidate cached queries
+    const handleTokenRefreshed = async () => {
+      // Fetch updated user info
+      try {
+        const response = await apiClient.get("users/me");
+        setUser(response.data);
+        setIsLoggedIn(true);
+      } catch {
+        // If fetching user fails, keep current state
+      }
+      // Invalidate all queries to refetch with new token
+      queryClient.invalidateQueries();
     };
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener("token-cleared", handleTokenCleared);
+    window.addEventListener("token-refreshed", handleTokenRefreshed);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("token-cleared", handleTokenCleared);
+      window.removeEventListener("token-refreshed", handleTokenRefreshed);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, queryClient]);
 
   const login = (accessToken: string) => {
     setAccessToken(accessToken);
@@ -89,6 +120,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     // Clear access token first
     setAccessToken(null);
     setIsLoggedIn(false);
+    setUser(null);
 
     try {
       await fetch(`${API_BASE_URL}auth/logout`, {
@@ -102,7 +134,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     navigate("/");
   };
 
-  return <AuthContext.Provider value={{isLoggedIn, login, logout, checkAuth}}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{isLoggedIn, user, login, logout, checkAuth}}>{children}</AuthContext.Provider>;
 };
 
 export function useAuth() {

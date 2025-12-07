@@ -13,9 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {Badge} from "@/components/ui/badge";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
+import {Lock, Globe} from "lucide-react";
 import apiClient from "@/context/apiClient";
 import {getAccessToken} from "@/context/tokenStore";
 
@@ -146,7 +147,7 @@ export default function NewsManagement() {
     <AdminLayout title="Управление на новини">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Списък с новини</h3>
+          <h3 className="text-lg font-semibold">Списък с новини ({news.length})</h3>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>Създай новина</Button>
@@ -198,30 +199,41 @@ export default function NewsManagement() {
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">Зареждане...</p>
+          <LoadingSpinner />
         ) : news.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични новини</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Заглавие</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead>Дата</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="w-[35%] whitespace-nowrap">Заглавие</TableHead>
+                <TableHead className="w-[20%] whitespace-nowrap">Тип</TableHead>
+                <TableHead className="w-[15%] whitespace-nowrap">Дата</TableHead>
+                <TableHead className="w-[25%] whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {news.map((item) => (
+              {news.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell>
-                    <Badge variant={item.news_type === "private" ? "default" : "secondary"}>
-                      {item.news_type === "private" ? "За членове" : "Обществена"}
-                    </Badge>
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{item.title}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {item.news_type === "private" ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
+                        <Lock className="w-3 h-3" />
+                        За членове
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                        <Globe className="w-3 h-3" />
+                        Обществена
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell>{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         Редактирай
@@ -235,6 +247,7 @@ export default function NewsManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}

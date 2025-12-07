@@ -1,5 +1,4 @@
 import os
-from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -51,7 +50,7 @@ def update_product(product_update: ProductUpdate, product: Product, repo: Produc
   if product_update.name is not None:
     update_expression_parts.append("#name = :name")
     expression_attribute_values[":name"] = product_update.name
-    expression_attribute_names[":name"] = "name"
+    expression_attribute_names["#name"] = "name"
 
   if product_update.length is not None:
     update_expression_parts.append("#length = :length")

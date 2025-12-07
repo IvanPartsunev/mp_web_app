@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
-from database.repositories import GalleryRepository
 from database.exceptions import DatabaseError
+from database.repositories import GalleryRepository
 from gallery.exceptions import (
   ImageNotFoundError,
   ImageUploadError,
@@ -35,11 +35,11 @@ async def gallery_create(
   except InvalidImageFormatError as e:
     raise HTTPException(status_code=400, detail=str(e))
   except ImageUploadError as e:
-    raise HTTPException(status_code=500, detail=str(e))
-  except DatabaseError as e:
-    raise HTTPException(status_code=500, detail=str(e))
-  except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=f"Database error: {e!s}")
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=f"Image upload failed: {e!s}")
 
 
 @gallery_router.get("/list", status_code=status.HTTP_200_OK)

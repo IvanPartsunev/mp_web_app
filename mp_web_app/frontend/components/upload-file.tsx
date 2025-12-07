@@ -5,6 +5,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useNavigate} from "react-router-dom";
+import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 
 type User = {
@@ -32,12 +33,12 @@ export default function UploadFile() {
     []
   );
 
+  const {toast} = useToast();
   const [fileName, setFileName] = useState("");
   const [fileType, setFileType] = useState(fileTypeOptions[0]?.value ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
 
   // Users state
   const [users, setUsers] = useState<User[]>([]);
@@ -45,7 +46,10 @@ export default function UploadFile() {
   const [usersError, setUsersError] = useState<string>("");
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
-  // Frontend guard: only allow admins to access this page (keep your current logic if you prefer)
+  // Get user role
+  const [userRole, setUserRole] = useState<string>("");
+
+  // Frontend guard: only allow admins and accountants to access this page
   useEffect(() => {
     try {
       const token = localStorage.getItem("access_token");
@@ -59,8 +63,16 @@ export default function UploadFile() {
         .replace(/_/g, "/")
         .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
-      if (String(payload?.role ?? "").toUpperCase() !== "ADMIN") {
+      const role = String(payload?.role ?? "").toLowerCase();
+      setUserRole(role);
+
+      if (role !== "admin" && role !== "accountant") {
         navigate("/");
+      }
+
+      // If accountant, set default file type to accounting
+      if (role === "accountant") {
+        setFileType("accounting");
       }
     } catch {
       navigate("/login");
@@ -89,16 +101,22 @@ export default function UploadFile() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     const isPrivate = fileType === "private_documents";
     if (!file || !fileName || !fileType) {
-      setError("Моля, попълнете всички задължителни полета и изберете файл.");
+      toast({
+        title: "Грешка",
+        description: "Моля, попълнете всички задължителни полета и изберете файл.",
+        variant: "destructive",
+      });
       return;
     }
     if (isPrivate && selectedUserIds.length === 0) {
-      setError("При частни документи трябва да изберете поне един потребител.");
+      toast({
+        title: "Грешка",
+        description: "При частни документи трябва да изберете поне един потребител.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -115,18 +133,22 @@ export default function UploadFile() {
         withCredentials: true,
       });
 
-      setSuccess("Файлът беше качен успешно.");
+      toast({
+        title: "Успех",
+        description: "Файлът беше качен успешно",
+      });
+
       setFile(null);
       setFileName("");
       setFileType(fileTypeOptions[0]?.value ?? "");
       setSelectedUserIds([]);
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/upload", {replace: true});
-      }, 1200);
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Неуспех при качване.";
-      setError(msg);
+      toast({
+        title: "Грешка",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -134,9 +156,38 @@ export default function UploadFile() {
 
   const isPrivate = fileType === "private_documents";
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setFile(files[0]);
+    }
+  };
+
   return (
-    <div className="flex min-h-svh w-full items-start justify-center">
-      <div className="w-full max-w-lg">
+    <div className="flex min-h-svh w-full items-start justify-center p-4">
+      <div className="w-full max-w-3xl">
         <Card>
           <CardHeader>
             <CardTitle>Качи документ</CardTitle>
@@ -147,15 +198,6 @@ export default function UploadFile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
-              {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
-              )}
-              {success && (
-                <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md text-center">
-                  {success}
-                </div>
-              )}
-
               <div className="grid gap-3">
                 <Label htmlFor="file_name">Име на файл</Label>
                 <Input
@@ -175,16 +217,22 @@ export default function UploadFile() {
                   value={fileType}
                   onChange={(e) => setFileType(e.target.value)}
                   className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={submitting}
+                  disabled={submitting || userRole === "accountant"}
                   required
                 >
-                  {fileTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  {fileTypeOptions
+                    .filter((opt) => userRole !== "accountant" || opt.value === "accounting")
+                    .map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                 </select>
-                <p className="text-xs text-muted-foreground">Използвайте валидна стойност според FileType в бекенда.</p>
+                <p className="text-xs text-muted-foreground">
+                  {userRole === "accountant"
+                    ? "Счетоводителите могат да качват само счетоводни документи."
+                    : "Използвайте валидна стойност според FileType в бекенда."}
+                </p>
               </div>
 
               <div className="grid gap-3">
@@ -240,18 +288,53 @@ export default function UploadFile() {
                   disabled={submitting}
                   required
                 />
-                <div className="flex items-center gap-3">
-                  <Button asChild variant="secondary" disabled={submitting}>
-                    <label htmlFor="file">Избери файл</label>
-                  </Button>
-                </div>
-                <span
-                  className="text-sm text-muted-foreground truncate"
-                  title={file?.name || "Няма избран файл"}
-                  style={{maxWidth: "calc(100% - 140px)"}}
+
+                {/* Drag and drop zone */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                    isDragging
+                      ? "border-primary bg-primary/5 scale-[1.02]"
+                      : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
+                  } ${submitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => !submitting && document.getElementById("file")?.click()}
                 >
-                  {file?.name || "Няма избран файл"}
-                </span>
+                  <div className="flex flex-col items-center gap-2">
+                    <svg
+                      className="w-12 h-12 text-muted-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                    {file ? (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {file.size >= 1024 * 1024
+                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+                            : `${(file.size / 1024).toFixed(2)} KB`}
+                        </p>
+                        <p className="text-xs text-primary">Кликни или пусни файл за промяна</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">
+                          {isDragging ? "Пусни файла тук" : "Кликни или пусни файл"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col gap-3">

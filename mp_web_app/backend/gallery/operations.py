@@ -23,6 +23,8 @@ CLOUDFRONT_DOMAIN = os.environ.get("CLOUDFRONT_DOMAIN")  # e.g., d123.cloudfront
 USE_CLOUDFRONT = os.environ.get("USE_CLOUDFRONT", "false").lower() == "true"
 
 ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
+MAX_IMAGE_SIZE_MB = 15  # Maximum image size in MB
+MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 
 
 def get_gallery_repository() -> GalleryRepository:
@@ -35,9 +37,22 @@ def upload_gallery_image(
 ) -> GalleryImageMetadata:
   """Upload gallery image to S3 and store metadata in DynamoDB."""
   # Validate file extension
+  if not file.filename or "." not in file.filename:
+    raise InvalidImageFormatError(ALLOWED_IMAGE_EXTENSIONS)
+
   file_extension = file.filename.split(".")[-1].lower()
   if file_extension not in ALLOWED_IMAGE_EXTENSIONS:
     raise InvalidImageFormatError(ALLOWED_IMAGE_EXTENSIONS)
+
+  # Validate file size
+  file.file.seek(0, 2)  # Seek to end of file
+  file_size = file.file.tell()  # Get current position (file size)
+  file.file.seek(0)  # Reset to beginning
+
+  if file_size > MAX_IMAGE_SIZE_BYTES:
+    raise ImageUploadError(
+      f"File too large. Maximum size: {MAX_IMAGE_SIZE_MB}MB. Your file: {file_size / 1024 / 1024:.2f}MB"
+    )
 
   # Generate unique S3 key
   image_id = str(uuid4())
@@ -79,11 +94,11 @@ def upload_gallery_image(
 def get_gallery_images(repo: GalleryRepository, include_urls: bool = True):
   """
   Retrieve all gallery images from DynamoDB.
-  
+
   Args:
     repo: Gallery repository
     include_urls: If True, adds 'url' field with CloudFront/S3 URL to each image
-  
+
   Returns:
     List of gallery image objects with optional URLs
   """
@@ -103,7 +118,7 @@ def get_gallery_images(repo: GalleryRepository, include_urls: bool = True):
       items.extend(response["Items"])
 
     images = [repo.convert_item_to_object(item) for item in items]
-    
+
     # Add URLs to each image if requested
     if include_urls:
       for image in images:
@@ -112,7 +127,7 @@ def get_gallery_images(repo: GalleryRepository, include_urls: bool = True):
         except Exception:
           # If URL generation fails, skip this image
           image.url = None
-    
+
     return images
   except ClientError as e:
     raise DatabaseError(f"Failed to fetch gallery images: {e.response['Error']['Message']}")
@@ -151,14 +166,14 @@ def delete_gallery_image(image_id: str, repo: GalleryRepository) -> bool:
 def generate_presigned_url(s3_key: str, bucket: str, expiration: int = 3600) -> str:
   """
   Generate URL for image access.
-  
+
   If CloudFront is enabled, returns CloudFront URL (permanent, cached).
   Otherwise, returns S3 presigned URL (temporary, direct to S3).
   """
   # Use CloudFront if configured (recommended for production)
   if USE_CLOUDFRONT and CLOUDFRONT_DOMAIN:
     return f"https://{CLOUDFRONT_DOMAIN}/{s3_key}"
-  
+
   # Fallback to S3 presigned URL
   s3 = boto3.client("s3")
   try:

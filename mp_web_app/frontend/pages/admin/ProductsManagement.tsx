@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import apiClient from "@/context/apiClient";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 
@@ -106,13 +107,24 @@ export default function ProductsManagement() {
 
   const handleEdit = async () => {
     if (!selectedProduct) return;
+    
+    // Validate name is not empty
+    if (!formData.name || formData.name.trim() === "") {
+      toast({
+        title: "Грешка",
+        description: "Името на продукта е задължително",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const payload = {
-        name: formData.name || null,
-        width: formData.width ? parseFloat(formData.width) : null,
-        height: formData.height ? parseFloat(formData.height) : null,
-        length: formData.length ? parseFloat(formData.length) : null,
-        description: formData.description || null,
+        name: formData.name.trim(),
+        width: formData.width && formData.width.trim() !== "" ? parseFloat(formData.width) : null,
+        height: formData.height && formData.height.trim() !== "" ? parseFloat(formData.height) : null,
+        length: formData.length && formData.length.trim() !== "" ? parseFloat(formData.length) : null,
+        description: formData.description && formData.description.trim() !== "" ? formData.description.trim() : null,
       };
 
       await apiClient.put(`products/update/${selectedProduct.id}`, payload);
@@ -178,7 +190,7 @@ export default function ProductsManagement() {
     <AdminLayout title="Управление на продукти">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Списък с продукти</h3>
+          <h3 className="text-lg font-semibold">Списък с продукти ({products.length})</h3>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>Създай продукт</Button>
@@ -247,30 +259,33 @@ export default function ProductsManagement() {
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">Зареждане...</p>
+          <LoadingSpinner />
         ) : products.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични продукти</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Име</TableHead>
-                <TableHead className="text-center">Дължина (см)</TableHead>
-                <TableHead className="text-center">Ширина (см)</TableHead>
-                <TableHead className="text-center">Височина (см)</TableHead>
-                <TableHead>Описание</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="w-[15%] whitespace-nowrap">Име</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
+                <TableHead className="w-[30%] whitespace-nowrap">Описание</TableHead>
+                <TableHead className="w-[20%] whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-center">{product.length ?? "-"}</TableCell>
-                  <TableCell className="text-center">{product.width ?? "-"}</TableCell>
-                  <TableCell className="text-center">{product.height ?? "-"}</TableCell>
-                  <TableCell className="max-w-xs truncate">{product.description || "-"}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{product.name}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.length ?? "-"}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.width ?? "-"}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.height ?? "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{product.description || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
                         Редактирай
@@ -284,6 +299,7 @@ export default function ProductsManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}

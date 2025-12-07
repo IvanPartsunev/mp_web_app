@@ -46,5 +46,6 @@ class UserSecret(BaseModel):
   email: EmailStr
   member_code: str
   role: str
+  active: bool
   salt: str
   password_hash: str

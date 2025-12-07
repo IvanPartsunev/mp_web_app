@@ -48,8 +48,17 @@ export function extractApiErrorDetails(error: any): string {
     
     // File upload errors
     if (/Invalid file type/i.test(msg)) return "Невалиден тип файл";
-    if (/Invalid image format/i.test(msg)) return "Невалиден формат на изображение";
+    if (/Invalid image format/i.test(msg)) return "Невалиден формат на изображение. Разрешени формати: JPG, JPEG, PNG, GIF, WEBP";
     if (/Invalid members list file type/i.test(msg)) return "Невалиден тип файл за списък с членове. Разрешен тип: .csv";
+    if (/File too large/i.test(msg)) {
+      // Extract size info if present
+      const match = msg.match(/Maximum size: (\d+)MB.*Your file: ([\d.]+)MB/i);
+      if (match) {
+        return `Файлът е твърде голям. Максимален размер: ${match[1]}MB. Вашият файл: ${match[2]}MB`;
+      }
+      return "Файлът е твърде голям";
+    }
+    if (/Image upload failed/i.test(msg)) return "Неуспешно качване на снимката";
     
     // Token errors
     if (/Invalid or expired token/i.test(msg)) return "Невалиден или изтекъл токен";

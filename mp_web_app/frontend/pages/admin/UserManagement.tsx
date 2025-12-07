@@ -7,6 +7,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import apiClient from "@/context/apiClient";
 
 interface User {
@@ -25,6 +26,7 @@ const roleTranslations: Record<string, string> = {
   regular: "Обикновен",
   board: "УС",
   control: "КС",
+  accountant: "Счетоводител",
   admin: "Админ",
 };
 
@@ -49,12 +51,15 @@ export default function UserManagement() {
       const response = await apiClient.get("users/list");
       // Force a new array reference to trigger React re-render
       setUsers([...(response.data || [])]);
-    } catch (err) {
-      toast({
-        title: "Грешка",
-        description: "Неуспешно зареждане на потребителите",
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      // Don't show error toast for auth refresh errors (they're handled automatically)
+      if (!(err as any)?.isAuthRefresh) {
+        toast({
+          title: "Грешка",
+          description: "Неуспешно зареждане на потребителите",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -123,30 +128,38 @@ export default function UserManagement() {
   return (
     <AdminLayout title="Управление на потребители">
       <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Списък с потребители ({users.length})</h3>
+        </div>
         {loading ? (
-          <p className="text-center text-muted-foreground">Зареждане...</p>
+          <LoadingSpinner />
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Име</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Роля</TableHead>
-                <TableHead>Активен</TableHead>
-                <TableHead>Абониран</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
+                <TableHead className="whitespace-nowrap">Име</TableHead>
+                <TableHead className="whitespace-nowrap">Email</TableHead>
+                <TableHead className="whitespace-nowrap">Телефон</TableHead>
+                <TableHead className="whitespace-nowrap w-[10%]">Роля</TableHead>
+                <TableHead className="whitespace-nowrap w-[8%]">Активен</TableHead>
+                <TableHead className="whitespace-nowrap w-[8%]">Абониран</TableHead>
+                <TableHead className="whitespace-nowrap w-[15%]">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">
                     {user.first_name} {user.last_name}
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{roleTranslations[user.role] || user.role}</TableCell>
-                  <TableCell>{user.active ? "Да" : "Не"}</TableCell>
-                  <TableCell>{user.subscribed ? "Да" : "Не"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.email}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.phone || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{roleTranslations[user.role] || user.role}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.active ? "Да" : "Не"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{user.subscribed ? "Да" : "Не"}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
@@ -161,6 +174,7 @@ export default function UserManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}
@@ -191,6 +205,7 @@ export default function UserManagement() {
                       <SelectItem value="regular">Обикновен</SelectItem>
                       <SelectItem value="board">УС</SelectItem>
                       <SelectItem value="control">КС</SelectItem>
+                      <SelectItem value="accountant">Счетоводител</SelectItem>
                       <SelectItem value="admin">Администратор</SelectItem>
                     </SelectContent>
                   </Select>

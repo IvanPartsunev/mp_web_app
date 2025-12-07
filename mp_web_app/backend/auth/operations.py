@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Literal, Optional
 from uuid import uuid4
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import EmailStr, ValidationError
@@ -20,7 +20,7 @@ from users.operations import get_user_by_email, get_user_by_id, get_user_reposit
 from users.roles import ROLE_HIERARCHY, UserRole
 
 REFRESH_TABLE_NAME = os.environ.get("REFRESH_TABLE_NAME")
-ACCESS_TOKEN_EXPIRE_MINUTES = 1
+ACCESS_TOKEN_EXPIRE_MINUTES = 5
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -157,6 +157,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), repo: UserRepository =
     user = get_user_by_id(user_id, repo)
     if not user:
       raise UserNotFoundError("User not found")
+    # Check if user account is active
+    if not user.active:
+      raise UnauthorizedError("Account is not active")
     return user
   except UnauthorizedError as e:
     raise HTTPException(status_code=401, detail=str(e))
@@ -168,6 +171,10 @@ def authenticate_user(email: str, password: str, repo: UserRepository) -> Option
   user = get_user_by_email(email, repo, secret=True)
 
   if not user:
+    return None
+
+  # Check if user account is active
+  if not user.active:
     return None
 
   if verify_password(password_hash=user.password_hash, password=password, salt=user.salt):
