@@ -13,6 +13,7 @@ interface FileMetadata {
   file_name: string;
   file_type: string;
   uploaded_by: string;
+  uploaded_by_name?: string;
   created_at: string;
 }
 
@@ -153,15 +154,15 @@ export default function DocumentsManagement() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-          <Table className="w-full table-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
                 <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
-                <TableHead className="whitespace-nowrap">Име на файл</TableHead>
-                <TableHead className="whitespace-nowrap">Тип</TableHead>
-                <TableHead className="whitespace-nowrap">Качен от</TableHead>
-                <TableHead className="whitespace-nowrap">Дата</TableHead>
-                <TableHead className="whitespace-nowrap text-right">Действия</TableHead>
+                <TableHead className="whitespace-nowrap w-[30%]">Име на файл</TableHead>
+                <TableHead className="whitespace-nowrap w-[20%]">Тип</TableHead>
+                <TableHead className="whitespace-nowrap w-[15%]">Качен от</TableHead>
+                <TableHead className="whitespace-nowrap w-[15%]">Дата</TableHead>
+                <TableHead className="whitespace-nowrap w-[15%] text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,7 +173,7 @@ export default function DocumentsManagement() {
                   <TableCell className="whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">{file.uploaded_by}</TableCell>
+                  <TableCell className="whitespace-nowrap">{file.uploaded_by_name || file.uploaded_by}</TableCell>
                   <TableCell className="whitespace-nowrap">{new Date(file.created_at).toLocaleDateString("bg-BG", {
                     day: '2-digit',
                     month: '2-digit',

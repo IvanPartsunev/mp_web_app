@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
 from app_config import AllowedFileExtensions
-from database.repositories import FileMetadataRepository
+from database.repositories import FileMetadataRepository, UserRepository
 from files.exceptions import (
   FileAccessDeniedError,
   FileNotFoundError,
@@ -27,12 +27,43 @@ from utils.decorators import retry
 
 BUCKET = os.environ.get("UPLOADS_BUCKET")
 UPLOADS_TABLE_NAME = os.environ.get("UPLOADS_TABLE_NAME")
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
 
 @lru_cache
 def get_allowed_file_extensions():
   """Get all allowed preset file extensions"""
   return AllowedFileExtensions().allowed_file_extensions
+
+
+def _enrich_with_user_names(files_metadata: list[FileMetadata]):
+  """Enrich file metadata with uploader names."""
+  if not files_metadata:
+    return
+  
+  # Collect unique user IDs
+  user_ids = {fm.uploaded_by for fm in files_metadata if fm.uploaded_by}
+  if not user_ids:
+    return
+  
+  # Fetch users and create a map
+  user_repo = UserRepository(USERS_TABLE_NAME)
+  users_map = {}
+  
+  for user_id in user_ids:
+    try:
+      response = user_repo.table.get_item(Key={"id": user_id})
+      if "Item" in response:
+        user = user_repo.convert_item_to_object(response["Item"])
+        users_map[user.id] = f"{user.first_name} {user.last_name}"
+    except Exception:
+      # If fetch fails, continue without this user's name
+      continue
+  
+  # Enrich file metadata with user names
+  for fm in files_metadata:
+    if fm.uploaded_by:
+      fm.uploaded_by_name = users_map.get(fm.uploaded_by, fm.uploaded_by)
 
 
 def get_uploads_repository():
@@ -92,6 +123,10 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository):
       items.extend(response["Items"])
 
     files_metadata = [repo.convert_item_to_object(item) for item in items]
+    
+    # Enrich with user names
+    _enrich_with_user_names(files_metadata)
+    
     return files_metadata
 
   except Exception as e:

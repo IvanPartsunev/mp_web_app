@@ -119,23 +119,13 @@ export default function ProductsManagement() {
     }
     
     try {
-      const payload: any = {
+      const payload = {
         name: formData.name.trim(),
+        width: formData.width && formData.width.trim() !== "" ? parseFloat(formData.width) : null,
+        height: formData.height && formData.height.trim() !== "" ? parseFloat(formData.height) : null,
+        length: formData.length && formData.length.trim() !== "" ? parseFloat(formData.length) : null,
+        description: formData.description && formData.description.trim() !== "" ? formData.description.trim() : null,
       };
-      
-      // Only include dimensions if they have values
-      if (formData.width && formData.width.trim() !== "") {
-        payload.width = parseFloat(formData.width);
-      }
-      if (formData.height && formData.height.trim() !== "") {
-        payload.height = parseFloat(formData.height);
-      }
-      if (formData.length && formData.length.trim() !== "") {
-        payload.length = parseFloat(formData.length);
-      }
-      if (formData.description && formData.description.trim() !== "") {
-        payload.description = formData.description.trim();
-      }
 
       await apiClient.put(`products/update/${selectedProduct.id}`, payload);
       toast({
@@ -273,28 +263,29 @@ export default function ProductsManagement() {
         ) : products.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични продукти</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
-                <TableHead className="w-[20%] whitespace-nowrap">Име</TableHead>
-                <TableHead className="text-center w-[8%] whitespace-nowrap">Дължина (см)</TableHead>
-                <TableHead className="text-center w-[8%] whitespace-nowrap">Ширина (см)</TableHead>
-                <TableHead className="text-center w-[8%] whitespace-nowrap">Височина (см)</TableHead>
-                <TableHead className="w-[30%] pl-8 whitespace-nowrap">Описание</TableHead>
-                <TableHead className="w-[21%] whitespace-nowrap">Действия</TableHead>
+                <TableHead className="w-[15%] whitespace-nowrap">Име</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
+                <TableHead className="text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
+                <TableHead className="w-[30%] whitespace-nowrap">Описание</TableHead>
+                <TableHead className="w-[20%] whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product, index) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-center">{product.length ?? "-"}</TableCell>
-                  <TableCell className="text-center">{product.width ?? "-"}</TableCell>
-                  <TableCell className="text-center">{product.height ?? "-"}</TableCell>
-                  <TableCell className="pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{product.name}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.length ?? "-"}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.width ?? "-"}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{product.height ?? "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{product.description || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
                         Редактирай
@@ -308,6 +299,7 @@ export default function ProductsManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}

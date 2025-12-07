@@ -19,6 +19,7 @@ class FileMetadata(BaseModel):
   file_name: str | None = None
   file_type: FileType
   uploaded_by: str | None = None
+  uploaded_by_name: str | None = None  # User's full name for display
   created_at: str = datetime.now().isoformat()
 
 

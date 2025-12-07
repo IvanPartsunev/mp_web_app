@@ -203,22 +203,23 @@ export default function NewsManagement() {
         ) : news.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични новини</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[5%]">№</TableHead>
-                <TableHead>Заглавие</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead>Дата</TableHead>
-                <TableHead>Действия</TableHead>
+                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
+                <TableHead className="w-[35%] whitespace-nowrap">Заглавие</TableHead>
+                <TableHead className="w-[20%] whitespace-nowrap">Тип</TableHead>
+                <TableHead className="w-[15%] whitespace-nowrap">Дата</TableHead>
+                <TableHead className="w-[25%] whitespace-nowrap">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {news.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{item.title}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     {item.news_type === "private" ? (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
                         <Lock className="w-3 h-3" />
@@ -231,8 +232,8 @@ export default function NewsManagement() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         Редактирай
@@ -246,6 +247,7 @@ export default function NewsManagement() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
 
         {/* Edit Dialog */}
