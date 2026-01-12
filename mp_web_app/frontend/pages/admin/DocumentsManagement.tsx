@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useState, useMemo} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -6,16 +6,8 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import apiClient from "@/context/apiClient";
-
-interface FileMetadata {
-  id: string;
-  file_name: string;
-  file_type: string;
-  uploaded_by: string;
-  uploaded_by_name?: string;
-  created_at: string;
-}
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
 
 const FILE_TYPES = [
   {value: "all", label: "Всички документи"},
@@ -29,67 +21,20 @@ const FILE_TYPES = [
 ];
 
 export default function DocumentsManagement() {
-  const [files, setFiles] = useState<FileMetadata[]>([]);
-  const [filteredFiles, setFilteredFiles] = useState<FileMetadata[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: files = [], isLoading: loading} = useAllFiles();
+  const deleteMutation = useDeleteFile();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileMetadata | null>(null);
   const [selectedFileType, setSelectedFileType] = useState("all");
 
   const {toast} = useToast();
 
-  const fetchFiles = async () => {
-    try {
-      setLoading(true);
-      // Fetch files from all file types
-      const fileTypes = [
-        "governing_documents",
-        "forms",
-        "minutes",
-        "transcripts",
-        "accounting",
-        "private_documents",
-        "others",
-      ];
-
-      const allFiles: FileMetadata[] = [];
-      for (const type of fileTypes) {
-        try {
-          const response = await apiClient.get(`files/list`, {
-            params: {file_type: type},
-          });
-          if (response.data) {
-            allFiles.push(...response.data);
-          }
-        } catch (err) {
-          console.error(`Failed to fetch ${type}:`, err);
-        }
-      }
-
-      setFiles(allFiles);
-      setFilteredFiles(allFiles);
-    } catch (err) {
-      toast({
-        title: "Грешка",
-        description: "Неуспешно зареждане на документите",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFiles();
-  }, []);
-
-  useEffect(() => {
-    // Filter files based on selected type
+  const filteredFiles = useMemo(() => {
     if (selectedFileType === "all") {
-      setFilteredFiles(files);
-    } else {
-      setFilteredFiles(files.filter((f) => f.file_type === selectedFileType));
+      return files;
     }
+    return files.filter((f) => f.file_type === selectedFileType);
   }, [selectedFileType, files]);
 
   const openDeleteDialog = (file: FileMetadata) => {
@@ -98,25 +43,22 @@ export default function DocumentsManagement() {
   };
 
   const handleDelete = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile?.id) return;
 
-    try {
-      await apiClient.delete(`files/delete/${selectedFile.id}`);
-
-      toast({
-        title: "Успех",
-        description: "Документът е изтрит успешно",
-      });
-      setDeleteDialogOpen(false);
-      setSelectedFile(null);
-      fetchFiles();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно изтриване на документа",
-        variant: "destructive",
-      });
-    }
+    deleteMutation.mutate(selectedFile.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Документът е изтрит успешно"});
+        setDeleteDialogOpen(false);
+        setSelectedFile(null);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно изтриване на документа",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const getFileTypeLabel = (fileType: string): string => {
@@ -153,33 +95,35 @@ export default function DocumentsManagement() {
             Няма налични документи{selectedFileType !== "all" ? " от този тип" : ""}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-          <Table className="w-full">
+          <div className={TABLE_STYLES.scrollWrapper}>
+          <Table className={TABLE_STYLES.tableLarge}>
             <TableHeader>
               <TableRow>
-                <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
-                <TableHead className="whitespace-nowrap w-[30%]">Име на файл</TableHead>
-                <TableHead className="whitespace-nowrap w-[20%]">Тип</TableHead>
-                <TableHead className="whitespace-nowrap w-[15%]">Качен от</TableHead>
-                <TableHead className="whitespace-nowrap w-[15%]">Дата</TableHead>
-                <TableHead className="whitespace-nowrap w-[15%] text-right">Действия</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[180px]`}>Тип</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[150px]`}>Качен от</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[100px]`}>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredFiles.map((file, index) => (
                 <TableRow key={file.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
-                  <TableCell className="font-medium whitespace-nowrap">{file.file_name}</TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">{file.uploaded_by_name || file.uploaded_by}</TableCell>
-                  <TableCell className="whitespace-nowrap">{new Date(file.created_at).toLocaleDateString("bg-BG", {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                  })}</TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.cellBase}>{file.uploaded_by_name || file.uploaded_by || "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
+                    {file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }) : "-"}
+                  </TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     <Button
                       variant="destructive"
                       size="sm"

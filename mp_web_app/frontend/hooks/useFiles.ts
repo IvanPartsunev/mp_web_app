@@ -16,6 +16,7 @@ export interface FileMetadata {
   file_name?: string | null;
   file_type: FileType;
   uploaded_by?: string | null;
+  uploaded_by_name?: string | null;
   created_at?: string | null;
 }
 
