@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -8,7 +8,8 @@ import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import apiClient from "@/context/apiClient";
+import {useUsersList, useUpdateUser, useDeleteUser} from "@/hooks/useUsers";
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
 
 interface User {
   id: string;
@@ -31,8 +32,10 @@ const roleTranslations: Record<string, string> = {
 };
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: users = [], isLoading: loading} = useUsersList();
+  const updateMutation = useUpdateUser();
+  const deleteMutation = useDeleteUser();
+
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -44,30 +47,6 @@ export default function UserManagement() {
   } | null>(null);
 
   const {toast} = useToast();
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get("users/list");
-      // Force a new array reference to trigger React re-render
-      setUsers([...(response.data || [])]);
-    } catch (err: any) {
-      // Don't show error toast for auth refresh errors (they're handled automatically)
-      if (!(err as any)?.isAuthRefresh) {
-        toast({
-          title: "Грешка",
-          description: "Неуспешно зареждане на потребителите",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
@@ -81,23 +60,22 @@ export default function UserManagement() {
 
   const handleEdit = async () => {
     if (!selectedUser || !formData) return;
-    try {
-      await apiClient.put(`users/update/${selectedUser.id}`, formData);
-      toast({
-        title: "Успех",
-        description: "Потребителят е обновен успешно",
-      });
-      setEditDialogOpen(false);
-      setSelectedUser(null);
-      setFormData(null);
-      await fetchUsers();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
-        variant: "destructive",
-      });
-    }
+
+    updateMutation.mutate({id: selectedUser.id, ...formData}, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Потребителят е обновен успешно"});
+        setEditDialogOpen(false);
+        setSelectedUser(null);
+        setFormData(null);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const openDeleteDialog = (user: User) => {
@@ -107,22 +85,21 @@ export default function UserManagement() {
 
   const handleDelete = async () => {
     if (!selectedUser) return;
-    try {
-      await apiClient.delete(`users/delete/${selectedUser.id}`);
-      toast({
-        title: "Успех",
-        description: "Потребителят е изтрит успешно",
-      });
-      setDeleteDialogOpen(false);
-      setSelectedUser(null);
-      fetchUsers();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно изтриване на потребителя",
-        variant: "destructive",
-      });
-    }
+
+    deleteMutation.mutate(selectedUser.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Потребителят е изтрит успешно"});
+        setDeleteDialogOpen(false);
+        setSelectedUser(null);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно изтриване на потребителя",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
@@ -134,33 +111,33 @@ export default function UserManagement() {
         {loading ? (
           <LoadingSpinner />
         ) : (
-          <div className="overflow-x-auto">
-          <Table className="w-full">
+          <div className={TABLE_STYLES.scrollWrapper}>
+          <Table className={TABLE_STYLES.tableBase}>
             <TableHeader>
               <TableRow>
-                <TableHead className="whitespace-nowrap w-[5%]">№</TableHead>
-                <TableHead className="whitespace-nowrap">Име</TableHead>
-                <TableHead className="whitespace-nowrap">Email</TableHead>
-                <TableHead className="whitespace-nowrap">Телефон</TableHead>
-                <TableHead className="whitespace-nowrap w-[10%]">Роля</TableHead>
-                <TableHead className="whitespace-nowrap w-[8%]">Активен</TableHead>
-                <TableHead className="whitespace-nowrap w-[8%]">Абониран</TableHead>
-                <TableHead className="whitespace-nowrap w-[15%]">Действия</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                <TableHead className={TABLE_STYLES.headBase}>Име</TableHead>
+                <TableHead className={TABLE_STYLES.headBase}>Email</TableHead>
+                <TableHead className={TABLE_STYLES.headBase}>Телефон</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[10%]`}>Роля</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Активен</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Абониран</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
-                  <TableCell className="font-medium whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>
                     {user.first_name} {user.last_name}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">{user.email}</TableCell>
-                  <TableCell className="whitespace-nowrap">{user.phone || "-"}</TableCell>
-                  <TableCell className="whitespace-nowrap">{roleTranslations[user.role] || user.role}</TableCell>
-                  <TableCell className="whitespace-nowrap">{user.active ? "Да" : "Не"}</TableCell>
-                  <TableCell className="whitespace-nowrap">{user.subscribed ? "Да" : "Не"}</TableCell>
-                  <TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{user.email}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{user.phone || "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{roleTranslations[user.role] || user.role}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{user.active ? "Да" : "Не"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
                         Редактирай
