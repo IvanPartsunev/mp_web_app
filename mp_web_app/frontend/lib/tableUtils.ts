@@ -38,6 +38,9 @@ export const TABLE_STYLES = {
   /** Scroll wrapper - enables horizontal scroll on small screens */
   scrollWrapper: "overflow-x-auto",
 
+  /** Base table styling - default (alias for tableMedium) */
+  tableBase: "w-full min-w-[700px]",
+
   /** Base table styling - small tables (3-4 columns) */
   tableSmall: "w-full min-w-[500px]",
 
@@ -97,6 +100,8 @@ export const COLUMN_WIDTHS = {
   actions: "w-[170px]",
   /** Name with icon column / product name - 180px */
   nameWithIcon: "w-[180px]",
+  /** Large column (names in tables) - 200px */
+  large: "w-[200px]",
   /** Email column - 250px */
   email: "w-[250px]",
   /** Description column - 250px */

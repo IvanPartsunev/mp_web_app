@@ -8,20 +8,8 @@ import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {useUsersList, useUpdateUser, useDeleteUser} from "@/hooks/useUsers";
+import {useUsersList, useUpdateUser, useDeleteUser, User} from "@/hooks/useUsers";
 import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  role: string;
-  active: boolean;
-  subscribed: boolean;
-  created_at: string;
-}
 
 const roleTranslations: Record<string, string> = {
   regular: "Обикновен",
@@ -51,15 +39,15 @@ export default function UserManagement() {
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
     setFormData({
-      role: user.role,
-      active: user.active,
-      subscribed: user.subscribed,
+      role: user.role ?? "regular",
+      active: user.active ?? user.is_active ?? false,
+      subscribed: user.subscribed ?? false,
     });
     setEditDialogOpen(true);
   };
 
   const handleEdit = async () => {
-    if (!selectedUser || !formData) return;
+    if (!selectedUser?.id || !formData) return;
 
     updateMutation.mutate({id: selectedUser.id, ...formData}, {
       onSuccess: () => {
@@ -84,7 +72,7 @@ export default function UserManagement() {
   };
 
   const handleDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser?.id) return;
 
     deleteMutation.mutate(selectedUser.id, {
       onSuccess: () => {
@@ -134,8 +122,8 @@ export default function UserManagement() {
                   </TableCell>
                   <TableCell className={TABLE_STYLES.cellBase}>{user.email}</TableCell>
                   <TableCell className={TABLE_STYLES.cellBase}>{user.phone || "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{roleTranslations[user.role] || user.role}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{user.active ? "Да" : "Не"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{user.role ? (roleTranslations[user.role] || user.role) : "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{(user.active ?? user.is_active) ? "Да" : "Не"}</TableCell>
                   <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
                   <TableCell className={TABLE_STYLES.cellBase}>
                     <div className="flex gap-2">

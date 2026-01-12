@@ -106,7 +106,7 @@ export default function NewsManagement() {
     setFormData({
       title: newsItem.title,
       content: newsItem.content,
-      news_type: newsItem.news_type,
+      news_type: newsItem.news_type ?? "regular",
     });
     setEditDialogOpen(true);
   };
@@ -205,13 +205,13 @@ export default function NewsManagement() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{item.created_at ? new Date(item.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
                   <TableCell className={TABLE_STYLES.cellBase}>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
                         Редактирай
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item)}>
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item as News)}>
                         Изтрий
                       </Button>
                     </div>

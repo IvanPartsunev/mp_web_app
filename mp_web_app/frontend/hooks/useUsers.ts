@@ -10,8 +10,11 @@ export interface User {
   phone?: string;
   role?: string;
   is_active?: boolean;
+  active?: boolean;
+  subscribed?: boolean;
   user_code?: string;
   is_code_valid?: boolean;
+  created_at?: string;
 }
 
 // Query key factory
@@ -62,9 +65,9 @@ export function useControlMembers() {
 // Update user mutation
 export function useUpdateUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, ...user }: User & { id: string }) => {
+    mutationFn: async ({ id, ...user }: Partial<User> & { id: string }) => {
       const response = await apiClient.put(`users/update/${id}`, user);
       return response.data;
     },

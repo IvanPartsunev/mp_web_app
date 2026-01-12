@@ -88,10 +88,11 @@ export default function FileManagement() {
                     <TableRow>
                       <TableHead className="w-12">
                         <Checkbox
-                          checked={typeFiles.every((f) => selectedFiles.has(f.id))}
+                          checked={typeFiles.every((f) => f.id && selectedFiles.has(f.id))}
                           onCheckedChange={(checked) => {
                             const newSelection = new Set(selectedFiles);
                             typeFiles.forEach((f) => {
+                              if (!f.id) return;
                               if (checked) {
                                 newSelection.add(f.id);
                               } else {
@@ -109,16 +110,16 @@ export default function FileManagement() {
                   </TableHeader>
                   <TableBody>
                     {typeFiles.map((file) => (
-                      <TableRow key={file.id}>
+                      <TableRow key={file.id ?? file.file_name}>
                         <TableCell>
                           <Checkbox
-                            checked={selectedFiles.has(file.id)}
-                            onCheckedChange={() => toggleFileSelection(file.id)}
+                            checked={file.id ? selectedFiles.has(file.id) : false}
+                            onCheckedChange={() => file.id && toggleFileSelection(file.id)}
                           />
                         </TableCell>
                         <TableCell className="font-medium">{file.file_name}</TableCell>
-                        <TableCell>{file.uploaded_by}</TableCell>
-                        <TableCell>{new Date(file.created_at).toLocaleDateString("bg-BG")}</TableCell>
+                        <TableCell>{file.uploaded_by || "-"}</TableCell>
+                        <TableCell>{file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
