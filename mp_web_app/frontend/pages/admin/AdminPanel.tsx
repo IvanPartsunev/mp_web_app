@@ -10,7 +10,6 @@ import ProductsManagement from "./ProductsManagement";
 import DocumentsManagement from "./DocumentsManagement";
 import GalleryManagement from "./GalleryManagement";
 import MembersManagement from "./MembersManagement";
-import EmailsManagement from "./EmailsManagement";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -85,7 +84,6 @@ export default function AdminPanel() {
               <SelectItem value="products">Продукти</SelectItem>
               <SelectItem value="gallery">Галерия</SelectItem>
               <SelectItem value="members">Членове</SelectItem>
-              <SelectItem value="emails">Мейл</SelectItem>
               <SelectItem value="documents">Документи</SelectItem>
             </SelectContent>
           </Select>
@@ -97,19 +95,17 @@ export default function AdminPanel() {
             {activeTab === "documents" && <DocumentsManagement />}
             {activeTab === "gallery" && <GalleryManagement />}
             {activeTab === "members" && <MembersManagement />}
-            {activeTab === "emails" && <EmailsManagement />}
           </div>
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="news">Новини</TabsTrigger>
             <TabsTrigger value="users">Потребители</TabsTrigger>
             <TabsTrigger value="products">Продукти</TabsTrigger>
             <TabsTrigger value="documents">Документи</TabsTrigger>
             <TabsTrigger value="gallery">Галерия</TabsTrigger>
             <TabsTrigger value="members">Членове</TabsTrigger>
-            <TabsTrigger value="emails">Мейл</TabsTrigger>
           </TabsList>
 
           <TabsContent value="news" className="mt-6">
@@ -136,9 +132,6 @@ export default function AdminPanel() {
             <MembersManagement />
           </TabsContent>
 
-          <TabsContent value="emails" className="mt-6">
-            <EmailsManagement />
-          </TabsContent>
         </Tabs>
       )}
       </div>
