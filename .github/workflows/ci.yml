@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: uv sync --all-groups
+
+      - name: Lint
+        run: make backend-lint
+
+      - name: Format check
+        run: make backend-format-check
+
+      - name: Tests
+        run: make backend-test
+
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: mp_web_app/frontend/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        run: cd mp_web_app/frontend && pnpm install
+
+      - name: Lint
+        run: make frontend-lint
+
+      - name: Format check
+        run: make frontend-format-check
