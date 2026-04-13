@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -15,21 +15,16 @@ import {
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import apiClient from "@/context/apiClient";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
-
-interface Product {
-  id: string;
-  name: string;
-  width?: number | null;
-  height?: number | null;
-  length?: number | null;
-  description?: string | null;
-}
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product} from "@/hooks/useProducts";
 
 export default function ProductsManagement() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: products = [], isLoading: loading} = useProducts();
+  const createMutation = useCreateProduct();
+  const updateMutation = useUpdateProduct();
+  const deleteMutation = useDeleteProduct();
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,128 +40,73 @@ export default function ProductsManagement() {
 
   const {toast} = useToast();
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get("products/list");
-      setProducts(response.data || []);
-    } catch (err: any) {
-      console.error('Fetch products error:', err);
-      const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно зареждане на продуктите";
-      toast({
-        title: "Грешка",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const handleCreate = async () => {
-    try {
-      const payload = {
-        name: formData.name,
-        width: formData.width ? parseFloat(formData.width) : null,
-        height: formData.height ? parseFloat(formData.height) : null,
-        length: formData.length ? parseFloat(formData.length) : null,
-        description: formData.description || null,
-      };
+    const payload = {
+      name: formData.name,
+      width: formData.width ? parseFloat(formData.width) : null,
+      height: formData.height ? parseFloat(formData.height) : null,
+      length: formData.length ? parseFloat(formData.length) : null,
+      description: formData.description || null,
+    };
 
-      await apiClient.post("products/create", payload);
-      toast({
-        title: "Успех",
-        description: "Продуктът е създаден успешно",
-      });
-      setCreateDialogOpen(false);
-      setFormData({name: "", width: "", height: "", length: "", description: ""});
-      fetchProducts();
-    } catch (err: any) {
-      console.error('Create product error:', err);
-      let errorMessage = "Неуспешно създаване на продукта";
-      try {
-        errorMessage = extractApiErrorDetails(err.response?.data) || errorMessage;
-      } catch (e) {
-        console.error('Error extracting message:', e);
-      }
-      // Ensure it's a string
-      if (typeof errorMessage !== 'string') {
-        errorMessage = String(errorMessage);
-      }
-      toast({
-        title: "Грешка",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    createMutation.mutate(payload, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Продуктът е създаден успешно"});
+        setCreateDialogOpen(false);
+        setFormData({name: "", width: "", height: "", length: "", description: ""});
+      },
+      onError: (err: any) => {
+        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно създаване на продукта";
+        toast({title: "Грешка", description: errorMessage, variant: "destructive"});
+      },
+    });
   };
 
   const handleEdit = async () => {
-    if (!selectedProduct) return;
-    
-    // Validate name is not empty
+    if (!selectedProduct?.id) return;
+
     if (!formData.name || formData.name.trim() === "") {
-      toast({
-        title: "Грешка",
-        description: "Името на продукта е задължително",
-        variant: "destructive",
-      });
+      toast({title: "Грешка", description: "Името на продукта е задължително", variant: "destructive"});
       return;
     }
-    
-    try {
-      const payload = {
-        name: formData.name.trim(),
-        width: formData.width && formData.width.trim() !== "" ? parseFloat(formData.width) : null,
-        height: formData.height && formData.height.trim() !== "" ? parseFloat(formData.height) : null,
-        length: formData.length && formData.length.trim() !== "" ? parseFloat(formData.length) : null,
-        description: formData.description && formData.description.trim() !== "" ? formData.description.trim() : null,
-      };
 
-      await apiClient.put(`products/update/${selectedProduct.id}`, payload);
-      toast({
-        title: "Успех",
-        description: "Продуктът е обновен успешно",
-      });
-      setEditDialogOpen(false);
-      setSelectedProduct(null);
-      setFormData({name: "", width: "", height: "", length: "", description: ""});
-      fetchProducts();
-    } catch (err: any) {
-      console.error('Edit product error:', err);
-      const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно обновяване на продукта";
-      toast({
-        title: "Грешка",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    const payload = {
+      id: selectedProduct.id,
+      name: formData.name.trim(),
+      width: formData.width && formData.width.trim() !== "" ? parseFloat(formData.width) : null,
+      height: formData.height && formData.height.trim() !== "" ? parseFloat(formData.height) : null,
+      length: formData.length && formData.length.trim() !== "" ? parseFloat(formData.length) : null,
+      description: formData.description && formData.description.trim() !== "" ? formData.description.trim() : null,
+    };
+
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Продуктът е обновен успешно"});
+        setEditDialogOpen(false);
+        setSelectedProduct(null);
+        setFormData({name: "", width: "", height: "", length: "", description: ""});
+      },
+      onError: (err: any) => {
+        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно обновяване на продукта";
+        toast({title: "Грешка", description: errorMessage, variant: "destructive"});
+      },
+    });
   };
 
   const handleDelete = async () => {
-    if (!selectedProduct) return;
-    try {
-      await apiClient.delete(`products/delete/${selectedProduct.id}`);
-      toast({
-        title: "Успех",
-        description: "Продуктът е изтрит успешно",
-      });
-      setDeleteDialogOpen(false);
-      setSelectedProduct(null);
-      fetchProducts();
-    } catch (err: any) {
-      console.error('Delete product error:', err);
-      const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно изтриване на продукта";
-      toast({
-        title: "Грешка",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
+    if (!selectedProduct?.id) return;
+
+    deleteMutation.mutate(selectedProduct.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Продуктът е изтрит успешно"});
+        setDeleteDialogOpen(false);
+        setSelectedProduct(null);
+      },
+      onError: (err: any) => {
+        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно изтриване на продукта";
+        toast({title: "Грешка", description: errorMessage, variant: "destructive"});
+      },
+    });
   };
 
   const openEditDialog = (product: Product) => {
@@ -263,29 +203,29 @@ export default function ProductsManagement() {
         ) : products.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични продукти</p>
         ) : (
-          <div className="overflow-x-auto">
-          <Table className="w-full">
+          <div className={TABLE_STYLES.scrollWrapper}>
+          <Table className={TABLE_STYLES.tableXLarge}>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
-                <TableHead className="w-[15%] whitespace-nowrap">Име</TableHead>
-                <TableHead className="text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
-                <TableHead className="text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
-                <TableHead className="text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
-                <TableHead className="w-[30%] whitespace-nowrap">Описание</TableHead>
-                <TableHead className="w-[20%] whitespace-nowrap">Действия</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.nameWithIcon}`}>Име</TableHead>
+                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Дължина (см)</TableHead>
+                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Ширина (см)</TableHead>
+                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Височина (см)</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.description}`}>Описание</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product, index) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
-                  <TableCell className="font-medium whitespace-nowrap">{product.name}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap">{product.length ?? "-"}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap">{product.width ?? "-"}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap">{product.height ?? "-"}</TableCell>
-                  <TableCell className="whitespace-nowrap">{product.description || "-"}</TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{product.name}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellCenter}>{product.length ?? "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellCenter}>{product.width ?? "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellCenter}>{product.height ?? "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>{product.description || "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
                         Редактирай

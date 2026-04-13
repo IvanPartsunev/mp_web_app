@@ -1,69 +1,20 @@
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Checkbox} from "@/components/ui/checkbox";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
-import apiClient from "@/context/apiClient";
-
-interface FileMetadata {
-  id: string;
-  file_name: string;
-  file_type: string;
-  uploaded_by: string;
-  created_at: string;
-}
+import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
 
 export default function FileManagement() {
-  const [files, setFiles] = useState<FileMetadata[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: files = [], isLoading: loading} = useAllFiles();
+  const deleteMutation = useDeleteFile();
+
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const {toast} = useToast();
-
-  const fetchFiles = async () => {
-    try {
-      setLoading(true);
-      // Fetch files from all file types
-      const fileTypes = [
-        "governing_documents",
-        "forms",
-        "minutes",
-        "transcripts",
-        "accounting",
-        "private_documents",
-        "others",
-      ];
-
-      const allFiles: FileMetadata[] = [];
-      for (const type of fileTypes) {
-        try {
-          const response = await apiClient.get(`files/list?file_type=${type}`);
-          if (response.data) {
-            allFiles.push(...response.data);
-          }
-        } catch (err) {
-          console.error(`Failed to fetch ${type}:`, err);
-        }
-      }
-
-      setFiles(allFiles);
-    } catch (err) {
-      toast({
-        title: "Грешка",
-        description: "Неуспешно зареждане на файловете",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFiles();
-  }, []);
 
   const toggleFileSelection = (fileId: string) => {
     const newSelection = new Set(selectedFiles);
@@ -76,28 +27,28 @@ export default function FileManagement() {
   };
 
   const handleDelete = async () => {
-    try {
-      const filesToDelete = files.filter((f) => selectedFiles.has(f.id));
+    const filesToDelete = files.filter((f) => f.id && selectedFiles.has(f.id));
+    let deletedCount = 0;
 
-      // Delete each file
-      for (const file of filesToDelete) {
-        await apiClient.delete(`files/delete/${file.id}`);
+    for (const file of filesToDelete) {
+      if (!file.id) continue;
+      try {
+        await deleteMutation.mutateAsync(file.id);
+        deletedCount++;
+      } catch (err: any) {
+        toast({
+          title: "Грешка",
+          description: err.message || "Неуспешно изтриване на файл",
+          variant: "destructive",
+        });
       }
-
-      toast({
-        title: "Успех",
-        description: `${filesToDelete.length} файла са изтрити успешно`,
-      });
-      setDeleteDialogOpen(false);
-      setSelectedFiles(new Set());
-      fetchFiles();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.message || "Неуспешно изтриване на файловете",
-        variant: "destructive",
-      });
     }
+
+    if (deletedCount > 0) {
+      toast({title: "Успех", description: `${deletedCount} файла са изтрити успешно`});
+    }
+    setDeleteDialogOpen(false);
+    setSelectedFiles(new Set());
   };
 
   const groupedFiles = files.reduce(
@@ -137,10 +88,11 @@ export default function FileManagement() {
                     <TableRow>
                       <TableHead className="w-12">
                         <Checkbox
-                          checked={typeFiles.every((f) => selectedFiles.has(f.id))}
+                          checked={typeFiles.every((f) => f.id && selectedFiles.has(f.id))}
                           onCheckedChange={(checked) => {
                             const newSelection = new Set(selectedFiles);
                             typeFiles.forEach((f) => {
+                              if (!f.id) return;
                               if (checked) {
                                 newSelection.add(f.id);
                               } else {
@@ -158,16 +110,16 @@ export default function FileManagement() {
                   </TableHeader>
                   <TableBody>
                     {typeFiles.map((file) => (
-                      <TableRow key={file.id}>
+                      <TableRow key={file.id ?? file.file_name}>
                         <TableCell>
                           <Checkbox
-                            checked={selectedFiles.has(file.id)}
-                            onCheckedChange={() => toggleFileSelection(file.id)}
+                            checked={file.id ? selectedFiles.has(file.id) : false}
+                            onCheckedChange={() => file.id && toggleFileSelection(file.id)}
                           />
                         </TableCell>
                         <TableCell className="font-medium">{file.file_name}</TableCell>
-                        <TableCell>{file.uploaded_by}</TableCell>
-                        <TableCell>{new Date(file.created_at).toLocaleDateString("bg-BG")}</TableCell>
+                        <TableCell>{file.uploaded_by || "-"}</TableCell>
+                        <TableCell>{file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

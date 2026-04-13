@@ -1,27 +1,19 @@
-import React, {useEffect, useState, useRef} from "react";
+import React, {useState, useRef, useMemo} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Card} from "@/components/ui/card";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
-import apiClient from "@/context/apiClient";
 import {Trash2} from "lucide-react";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
-
-interface GalleryImage {
-  id: string;
-  image_name: string;
-  s3_key: string;
-  s3_bucket: string;
-  uploaded_by: string;
-  created_at: string;
-}
+import {useGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
 
 export default function GalleryManagement() {
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const {data: images = [], isLoading: loading} = useGallery();
+  const createMutation = useCreateGalleryImage();
+  const deleteMutation = useDeleteGalleryImage();
+
   const [uploading, setUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
@@ -32,36 +24,16 @@ export default function GalleryManagement() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {toast} = useToast();
 
-  const fetchGallery = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get("gallery/list");
-      const galleryImages = response.data || [];
-      setImages(galleryImages);
-
-      // URLs now come with the response
-      const urls: Record<string, string> = {};
-      galleryImages.forEach((image: any) => {
-        if (image.url) {
-          urls[image.id] = image.url;
-        }
-      });
-      setImageUrls(urls);
-    } catch (err: any) {
-      const errorMessage = extractApiErrorDetails(err.response?.data || err);
-      toast({
-        title: "Грешка",
-        description: errorMessage || "Неуспешно зареждане на галерията",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchGallery();
-  }, []);
+  // Build image URLs from response data
+  const imageUrls = useMemo(() => {
+    const urls: Record<string, string> = {};
+    images.forEach((image) => {
+      if (image.url) {
+        urls[image.id] = image.url;
+      }
+    });
+    return urls;
+  }, [images]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,16 +121,11 @@ export default function GalleryManagement() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast({
-        title: "Грешка",
-        description: "Моля изберете файл",
-        variant: "destructive",
-      });
+      toast({title: "Грешка", description: "Моля изберете файл", variant: "destructive"});
       return;
     }
 
-    // Validate file size on frontend (15MB limit)
-    const maxSize = 15 * 1024 * 1024; // 15MB in bytes
+    const maxSize = 15 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
       toast({
         title: "Грешка",
@@ -168,7 +135,6 @@ export default function GalleryManagement() {
       return;
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(selectedFile.type)) {
       toast({
@@ -179,46 +145,34 @@ export default function GalleryManagement() {
       return;
     }
 
-    try {
-      setUploading(true);
+    setUploading(true);
 
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      if (imageName) {
-        formData.append("image_name", imageName);
-      }
-
-      await apiClient.post("gallery/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      toast({
-        title: "Успех",
-        description: "Снимката е качена успешно",
-      });
-
-      // Reset form
-      setSelectedFile(null);
-      setImageName("");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      // Refresh gallery
-      await fetchGallery();
-    } catch (err: any) {
-      const errorMessage = extractApiErrorDetails(err.response?.data || err);
-      toast({
-        title: "Грешка при качване",
-        description: errorMessage || "Неуспешно качване на снимката",
-        variant: "destructive",
-      });
-      console.error("Upload error:", err);
-    } finally {
-      setUploading(false);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    if (imageName) {
+      formData.append("image_name", imageName);
     }
+
+    createMutation.mutate(formData, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Снимката е качена успешно"});
+        setSelectedFile(null);
+        setImageName("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setUploading(false);
+      },
+      onError: (err: any) => {
+        const errorMessage = extractApiErrorDetails(err.response?.data || err);
+        toast({
+          title: "Грешка при качване",
+          description: errorMessage || "Неуспешно качване на снимката",
+          variant: "destructive",
+        });
+        setUploading(false);
+      },
+    });
   };
 
   const openDeleteDialog = (image: GalleryImage) => {
@@ -229,23 +183,21 @@ export default function GalleryManagement() {
   const handleDelete = async () => {
     if (!selectedImage) return;
 
-    try {
-      await apiClient.delete(`gallery/delete/${selectedImage.id}`);
-      toast({
-        title: "Успех",
-        description: "Снимката е изтрита успешно",
-      });
-      setDeleteDialogOpen(false);
-      setSelectedImage(null);
-      fetchGallery();
-    } catch (err: any) {
-      const errorMessage = extractApiErrorDetails(err.response?.data || err);
-      toast({
-        title: "Грешка",
-        description: errorMessage || "Неуспешно изтриване на снимката",
-        variant: "destructive",
-      });
-    }
+    deleteMutation.mutate(selectedImage.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Снимката е изтрита успешно"});
+        setDeleteDialogOpen(false);
+        setSelectedImage(null);
+      },
+      onError: (err: any) => {
+        const errorMessage = extractApiErrorDetails(err.response?.data || err);
+        toast({
+          title: "Грешка",
+          description: errorMessage || "Неуспешно изтриване на снимката",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (

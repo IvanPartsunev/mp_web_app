@@ -1,5 +1,3 @@
-// components/products-table.tsx
-import React from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {
@@ -12,35 +10,21 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import {useProducts, type Product} from "@/hooks/useProducts";
+import {usePagination} from "@/hooks/usePagination";
+import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES, LOADING_MESSAGES} from "@/lib/tableUtils";
+import {SECTION_STYLES} from "@/lib/styles";
 
 type ProductsTableProps = {
   title?: string;
 };
 
-const PAGE_SIZE = 25;
-
 export function ProductsTable({title = "Продукти"}: ProductsTableProps) {
-  // Use React Query hook for caching (1 hour)
   const {data = [], isLoading: loading, error: queryError} = useProducts();
-  const [page, setPage] = React.useState<number>(1);
-  
-  // Convert error to string for display
+  const pagination = usePagination(data);
   const error = queryError ? "Възникна грешка при зареждане." : null;
 
-  // Pagination helpers
-  const total = data.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const startIdx = (page - 1) * PAGE_SIZE;
-  const endIdx = Math.min(startIdx + PAGE_SIZE, total);
-  const pageItems = data.slice(startIdx, endIdx);
-
-  const goToPage = (p: number) => {
-    if (p < 1 || p > totalPages) return;
-    setPage(p);
-  };
-
   return (
-    <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
+    <section className={SECTION_STYLES.fullWidth}>
       {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
 
       <Card>
@@ -48,162 +32,176 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
           <CardTitle>Списък с налични продукти</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
-            <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="py-2 w-[5%] whitespace-nowrap">№</TableHead>
-                <TableHead className="py-2 w-[20%] whitespace-nowrap">Име</TableHead>
-                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Дължина (см)</TableHead>
-                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Ширина (см)</TableHead>
-                <TableHead className="py-2 text-center w-[10%] whitespace-nowrap">Височина (см)</TableHead>
-                <TableHead className="py-2 w-[45%] pl-8 whitespace-nowrap">Описание</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading && (
+          <div className={TABLE_STYLES.scrollWrapper}>
+            <Table className={TABLE_STYLES.tableBase}>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="py-2">
-                    Зареждане...
-                  </TableCell>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.large}`}>Име</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
+                    Дължина (см)
+                  </TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
+                    Ширина (см)
+                  </TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
+                    Височина (см)
+                  </TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.description} pl-8`}>
+                    Описание
+                  </TableHead>
                 </TableRow>
-              )}
-              {error && !loading && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-red-600 py-2">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              )}
-              {!loading && !error && pageItems.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-2">
-                    Няма налични продукти.
-                  </TableCell>
-                </TableRow>
-              )}
-              {!loading &&
-                !error &&
-                pageItems.map((product: Product, idx: number) => (
-                  <TableRow key={product.id ?? `product-${startIdx + idx}`}>
-                    <TableCell className="font-medium py-2">{startIdx + idx + 1}</TableCell>
-                    <TableCell className="py-2 font-medium">{product.name}</TableCell>
-                    <TableCell className="py-2 text-center">{product.length ?? "-"}</TableCell>
-                    <TableCell className="py-2 text-center">{product.width ?? "-"}</TableCell>
-                    <TableCell className="py-2 text-center">{product.height ?? "-"}</TableCell>
-                    <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
+              </TableHeader>
+              <TableBody>
+                {loading && (
+                  <TableRow>
+                    <TableCell colSpan={6} className={TABLE_STYLES.cellPadded}>
+                      {LOADING_MESSAGES.generic}
+                    </TableCell>
                   </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-
-          {/* Pagination footer */}
-        {totalPages > 1 && (
-          <div className="mt-2">
-            <Pagination>
-              <PaginationContent className="px-1 py-1">
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page - 1);
-                    }}
-                  />
-                </PaginationItem>
-
-                {/* Show first, current-1, current, current+1, last with ellipses */}
-                {page > 2 && (
-                  <>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToPage(1);
-                        }}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    {page > 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                  </>
                 )}
-
-                {page > 1 && (
-                  <PaginationItem>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page - 1);
-                      }}
-                    >
-                      {page - 1}
-                    </PaginationLink>
-                  </PaginationItem>
+                {error && !loading && (
+                  <TableRow>
+                    <TableCell colSpan={6} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
+                      {error}
+                    </TableCell>
+                  </TableRow>
                 )}
-
-                <PaginationItem>
-                  <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-
-                {page < totalPages && (
-                  <PaginationItem>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page + 1);
-                      }}
-                    >
-                      {page + 1}
-                    </PaginationLink>
-                  </PaginationItem>
+                {!loading && !error && pagination.pageItems.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className={TABLE_STYLES.cellPadded}>
+                      {EMPTY_MESSAGES.products}
+                    </TableCell>
+                  </TableRow>
                 )}
-
-                {page < totalPages - 1 && (
-                  <>
-                    {page < totalPages - 2 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToPage(totalPages);
-                        }}
-                      >
-                        {totalPages}
-                      </PaginationLink>
-                    </PaginationItem>
-                  </>
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page + 1);
-                    }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-            <div className="px-1 text-xs text-muted-foreground">
-              Показани {startIdx + 1}-{endIdx} от {total}
-            </div>
+                {!loading &&
+                  !error &&
+                  pagination.pageItems.map((product: Product, idx: number) => (
+                    <TableRow key={product.id ?? `product-${pagination.startIdx + idx}`}>
+                      <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
+                      <TableCell className={`${TABLE_STYLES.cellPadded} font-medium`}>{product.name}</TableCell>
+                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
+                        {product.length ?? "-"}
+                      </TableCell>
+                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
+                        {product.width ?? "-"}
+                      </TableCell>
+                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
+                        {product.height ?? "-"}
+                      </TableCell>
+                      <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
           </div>
-        )}
+
+          {pagination.totalPages > 1 && (
+            <div className="mt-2">
+              <Pagination>
+                <PaginationContent className="px-1 py-1">
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        pagination.prevPage();
+                      }}
+                    />
+                  </PaginationItem>
+
+                  {pagination.page > 2 && (
+                    <>
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            pagination.goToPage(1);
+                          }}
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+                      {pagination.page > 3 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                    </>
+                  )}
+
+                  {pagination.page > 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          pagination.prevPage();
+                        }}
+                      >
+                        {pagination.page - 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
+                      {pagination.page}
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {pagination.page < pagination.totalPages && (
+                    <PaginationItem>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          pagination.nextPage();
+                        }}
+                      >
+                        {pagination.page + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+
+                  {pagination.page < pagination.totalPages - 1 && (
+                    <>
+                      {pagination.page < pagination.totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            pagination.goToPage(pagination.totalPages);
+                          }}
+                        >
+                          {pagination.totalPages}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </>
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        pagination.nextPage();
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+              <div className="px-1 text-xs text-muted-foreground">
+                Показани {pagination.startIdx + 1}-{pagination.endIdx} от {pagination.total}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </section>

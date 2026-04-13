@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -17,21 +17,21 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {Lock, Globe} from "lucide-react";
-import apiClient from "@/context/apiClient";
-import {getAccessToken} from "@/context/tokenStore";
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {useNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
 
-interface News {
+interface News extends NewsItem {
   id: string;
-  title: string;
-  content: string;
   author_id: string;
   created_at: string;
-  news_type: "regular" | "private";
 }
 
 export default function NewsManagement() {
-  const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {data: news = [], isLoading: loading} = useNews();
+  const createMutation = useCreateNews();
+  const updateMutation = useUpdateNews();
+  const deleteMutation = useDeleteNews();
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,87 +45,60 @@ export default function NewsManagement() {
 
   const {toast} = useToast();
 
-  const fetchNews = async () => {
-    try {
-      setLoading(true);
-      const token = getAccessToken();
-      const response = await apiClient.get("news/list", {
-        params: token ? {token} : {},
-      });
-      setNews(response.data || []);
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно зареждане на новините",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNews();
-  }, []);
-
   const handleCreate = async () => {
-    try {
-      await apiClient.post("news/create", formData);
-      toast({
-        title: "Успех",
-        description: "Новината е създадена успешно",
-      });
-      setCreateDialogOpen(false);
-      setFormData({title: "", content: "", news_type: "regular"});
-      fetchNews();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно създаване на новината",
-        variant: "destructive",
-      });
-    }
+    createMutation.mutate(formData, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Новината е създадена успешно"});
+        setCreateDialogOpen(false);
+        setFormData({title: "", content: "", news_type: "regular"});
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно създаване на новината",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const handleEdit = async () => {
     if (!selectedNews) return;
-    try {
-      await apiClient.put(`news/update/${selectedNews.id}`, formData);
-      toast({
-        title: "Успех",
-        description: "Новината е обновена успешно",
-      });
-      setEditDialogOpen(false);
-      setSelectedNews(null);
-      setFormData({title: "", content: "", news_type: "regular"});
-      fetchNews();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно обновяване на новината",
-        variant: "destructive",
-      });
-    }
+
+    updateMutation.mutate({id: selectedNews.id, ...formData}, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Новината е обновена успешно"});
+        setEditDialogOpen(false);
+        setSelectedNews(null);
+        setFormData({title: "", content: "", news_type: "regular"});
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно обновяване на новината",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const handleDelete = async () => {
     if (!selectedNews) return;
-    try {
-      await apiClient.delete(`news/delete/${selectedNews.id}`);
-      toast({
-        title: "Успех",
-        description: "Новината е изтрита успешно",
-      });
-      setDeleteDialogOpen(false);
-      setSelectedNews(null);
-      fetchNews();
-    } catch (err: any) {
-      toast({
-        title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно изтриване на новината",
-        variant: "destructive",
-      });
-    }
+
+    deleteMutation.mutate(selectedNews.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Новината е изтрита успешно"});
+        setDeleteDialogOpen(false);
+        setSelectedNews(null);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Грешка",
+          description: err.response?.data?.detail || "Неуспешно изтриване на новината",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const openEditDialog = (newsItem: News) => {
@@ -133,7 +106,7 @@ export default function NewsManagement() {
     setFormData({
       title: newsItem.title,
       content: newsItem.content,
-      news_type: newsItem.news_type,
+      news_type: newsItem.news_type ?? "regular",
     });
     setEditDialogOpen(true);
   };
@@ -203,23 +176,23 @@ export default function NewsManagement() {
         ) : news.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">Няма налични новини</p>
         ) : (
-          <div className="overflow-x-auto">
-          <Table className="w-full">
+          <div className={TABLE_STYLES.scrollWrapper}>
+          <Table className={TABLE_STYLES.tableBase}>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[5%] whitespace-nowrap">№</TableHead>
-                <TableHead className="w-[35%] whitespace-nowrap">Заглавие</TableHead>
-                <TableHead className="w-[20%] whitespace-nowrap">Тип</TableHead>
-                <TableHead className="w-[15%] whitespace-nowrap">Дата</TableHead>
-                <TableHead className="w-[25%] whitespace-nowrap">Действия</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[35%]`}>Заглавие</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
+                <TableHead className={`${TABLE_STYLES.headBase} w-[25%]`}>Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {news.map((item, index) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{index + 1}</TableCell>
-                  <TableCell className="font-medium whitespace-nowrap">{item.title}</TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{item.title}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     {item.news_type === "private" ? (
                       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
                         <Lock className="w-3 h-3" />
@@ -232,13 +205,13 @@ export default function NewsManagement() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap">{new Date(item.created_at).toLocaleDateString("bg-BG")}</TableCell>
-                  <TableCell className="whitespace-nowrap">
+                  <TableCell className={TABLE_STYLES.cellBase}>{item.created_at ? new Date(item.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
+                  <TableCell className={TABLE_STYLES.cellBase}>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
                         Редактирай
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item)}>
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item as News)}>
                         Изтрий
                       </Button>
                     </div>

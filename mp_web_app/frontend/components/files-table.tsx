@@ -1,5 +1,3 @@
-// components/files/FilesTable.tsx
-import React from "react";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -14,33 +12,19 @@ import {
 } from "@/components/ui/pagination";
 import apiClient from "@/context/apiClient";
 import {useFiles, type FileType, type FileMetadata} from "@/hooks/useFiles";
+import {usePagination} from "@/hooks/usePagination";
+import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES, LOADING_MESSAGES} from "@/lib/tableUtils";
+import {HERO_STYLES, SECTION_STYLES} from "@/lib/styles";
 
 type FilesTableProps = {
   fileType: FileType;
   title?: string;
 };
 
-const PAGE_SIZE = 25;
-
 export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
-  // Use React Query hook for caching (1 hour)
   const {data = [], isLoading: loading, error: queryError} = useFiles(fileType);
-  const [page, setPage] = React.useState<number>(1);
-  
-  // Convert error to string for display
+  const pagination = usePagination(data);
   const error = queryError ? "Възникна грешка при зареждане." : null;
-
-  // Pagination helpers
-  const total = data.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const startIdx = (page - 1) * PAGE_SIZE;
-  const endIdx = Math.min(startIdx + PAGE_SIZE, total);
-  const pageItems = data.slice(startIdx, endIdx);
-
-  const goToPage = (p: number) => {
-    if (p < 1 || p > totalPages) return;
-    setPage(p);
-  };
 
   const handleDownload = async (file: FileMetadata) => {
     if (!file.id || !file.file_name) return;
@@ -85,193 +69,189 @@ export function FilesTable({fileType, title = "Документи"}: FilesTableP
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       {title && (
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-white to-primary/10 dark:from-gray-900 dark:via-gray-800 dark:to-primary/5 border-b border-gray-200/50">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="container mx-auto px-4 py-12 md:py-16 relative">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-primary to-gray-900 dark:from-white dark:via-primary dark:to-white bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                {title}
-              </h1>
+        <section className={HERO_STYLES.section}>
+          <div className={HERO_STYLES.overlay} />
+          <div className={HERO_STYLES.container}>
+            <div className={HERO_STYLES.content}>
+              <h1 className={HERO_STYLES.title}>{title}</h1>
             </div>
           </div>
         </section>
       )}
 
-      <section className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Списък с налични файлове</CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <div className="overflow-x-auto">
-            <Table className="w-full table-auto">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="whitespace-nowrap py-2 w-[5%]">№</TableHead>
-                <TableHead className="whitespace-nowrap py-2">Име на файл</TableHead>
-                <TableHead className="whitespace-nowrap py-2">Дата на създаване</TableHead>
-                <TableHead className="whitespace-nowrap text-right py-2">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading && (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
-                    Зареждане...
-                  </TableCell>
-                </TableRow>
-              )}
-              {error && !loading && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-red-600 py-2 whitespace-nowrap">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              )}
-              {!loading && !error && pageItems.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-2 whitespace-nowrap">
-                    Няма налични записи.
-                  </TableCell>
-                </TableRow>
-              )}
-              {!loading &&
-                !error &&
-                pageItems.map((file: FileMetadata, idx: number) => (
-                  <TableRow key={file.id ?? `${file.file_name}-${startIdx + idx}`}>
-                    <TableCell className="font-medium py-2 whitespace-nowrap">{startIdx + idx + 1}</TableCell>
-                    <TableCell className="py-2 whitespace-nowrap">{file.file_name}</TableCell>
-                    <TableCell className="py-2 whitespace-nowrap">
-                      {file.created_at ? new Date(file.created_at).toLocaleDateString('bg-BG', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                      }) : "-"}
-                    </TableCell>
-                    <TableCell className="text-right py-2 whitespace-nowrap">
-                      <Button size="sm" onClick={() => handleDownload(file)}>
-                        Изтегли
-                      </Button>
-                    </TableCell>
+      <section className={SECTION_STYLES.fullWidth}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Списък с налични файлове</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0">
+            <div className={TABLE_STYLES.scrollWrapper}>
+              <Table className={TABLE_STYLES.tableBase}>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                    <TableHead className={TABLE_STYLES.headPadded}>Име на файл</TableHead>
+                    <TableHead className={TABLE_STYLES.headPadded}>Дата на създаване</TableHead>
+                    <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headRight}`}>Действия</TableHead>
                   </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-          </div>
-
-          {/* Pagination footer */}
-        {totalPages > 1 && (
-          <div className="mt-2">
-            <Pagination>
-              <PaginationContent className="px-1 py-1">
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page - 1);
-                    }}
-                  />
-                </PaginationItem>
-
-                {/* Show first, current-1, current, current+1, last with ellipses */}
-                {page > 2 && (
-                  <>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToPage(1);
-                        }}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    {page > 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                  </>
-                )}
-
-                {page > 1 && (
-                  <PaginationItem>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page - 1);
-                      }}
-                    >
-                      {page - 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                )}
-
-                <PaginationItem>
-                  <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-
-                {page < totalPages && (
-                  <PaginationItem>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page + 1);
-                      }}
-                    >
-                      {page + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                )}
-
-                {page < totalPages - 1 && (
-                  <>
-                    {page < totalPages - 2 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToPage(totalPages);
-                        }}
-                      >
-                        {totalPages}
-                      </PaginationLink>
-                    </PaginationItem>
-                  </>
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page + 1);
-                    }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-            <div className="px-1 text-xs text-muted-foreground">
-              Показани {startIdx + 1}-{endIdx} от {total}
+                </TableHeader>
+                <TableBody>
+                  {loading && (
+                    <TableRow>
+                      <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
+                        {LOADING_MESSAGES.generic}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {error && !loading && (
+                    <TableRow>
+                      <TableCell colSpan={4} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
+                        {error}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!loading && !error && pagination.pageItems.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
+                        {EMPTY_MESSAGES.files}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!loading &&
+                    !error &&
+                    pagination.pageItems.map((file: FileMetadata, idx: number) => (
+                      <TableRow key={file.id ?? `${file.file_name}-${pagination.startIdx + idx}`}>
+                        <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
+                        <TableCell className={TABLE_STYLES.cellPadded}>{file.file_name}</TableCell>
+                        <TableCell className={TABLE_STYLES.cellPadded}>
+                          {file.created_at
+                            ? new Date(file.created_at).toLocaleDateString("bg-BG", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })
+                            : "-"}
+                        </TableCell>
+                        <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellRight}`}>
+                          <Button size="sm" onClick={() => handleDownload(file)}>
+                            Изтегли
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
             </div>
-          </div>
-        )}
-        </CardContent>
-      </Card>
+
+            {pagination.totalPages > 1 && (
+              <div className="mt-2">
+                <Pagination>
+                  <PaginationContent className="px-1 py-1">
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          pagination.prevPage();
+                        }}
+                      />
+                    </PaginationItem>
+
+                    {pagination.page > 2 && (
+                      <>
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              pagination.goToPage(1);
+                            }}
+                          >
+                            1
+                          </PaginationLink>
+                        </PaginationItem>
+                        {pagination.page > 3 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                      </>
+                    )}
+
+                    {pagination.page > 1 && (
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            pagination.prevPage();
+                          }}
+                        >
+                          {pagination.page - 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
+                        {pagination.page}
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {pagination.page < pagination.totalPages && (
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            pagination.nextPage();
+                          }}
+                        >
+                          {pagination.page + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {pagination.page < pagination.totalPages - 1 && (
+                      <>
+                        {pagination.page < pagination.totalPages - 2 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              pagination.goToPage(pagination.totalPages);
+                            }}
+                          >
+                            {pagination.totalPages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          pagination.nextPage();
+                        }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+                <div className="px-1 text-xs text-muted-foreground">
+                  Показани {pagination.startIdx + 1}-{pagination.endIdx} от {pagination.total}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
