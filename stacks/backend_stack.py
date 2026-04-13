@@ -8,6 +8,7 @@ from aws_cdk import (
   aws_certificatemanager as acm,
   aws_route53 as route53,
   aws_route53_targets as route53_targets,
+  aws_logs as logs,
   RemovalPolicy,
   Duration,
   CfnOutput,
@@ -146,11 +147,20 @@ class BackendStack(Stack):
       removal_policy=RemovalPolicy.RETAIN
     )
 
+    # Minimal log group with 1-day retention to cut CloudWatch costs
+    lambda_log_group = logs.LogGroup(
+      self, "BackendLambdaLogGroup",
+      log_group_name="/aws/lambda/BackendLambda",
+      retention=logs.RetentionDays.ONE_DAY,
+      removal_policy=RemovalPolicy.DESTROY,
+    )
+
     # Lambda function with dependencies bundled directly
     self.backend_lambda = _lambda.Function(
       self, "BackendLambda",
       runtime=_lambda.Runtime.PYTHON_3_12,
       handler="api.handler",
+      log_group=lambda_log_group,
       code=_lambda.Code.from_asset(
         os.path.join("mp_web_app", "backend"),
         bundling={
@@ -195,7 +205,12 @@ class BackendStack(Stack):
       self, "BackendApi",
       handler=self.backend_lambda,
       proxy=True,
-      deploy_options=apigateway.StageOptions(stage_name="prod"),
+      deploy_options=apigateway.StageOptions(
+        stage_name="prod",
+        logging_level=apigateway.MethodLoggingLevel.OFF,
+        data_trace_enabled=False,
+        metrics_enabled=False,
+      ),
     )
 
     # Add custom domain to API Gateway
