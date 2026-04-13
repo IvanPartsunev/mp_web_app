@@ -42,8 +42,11 @@ jobs:
       - name: Install CDK CLI
         run: npm install -g aws-cdk
 
-      - name: Install dependencies
-        run: make install-prod
+      - name: Install backend dependencies
+        run: uv sync --no-dev
+
+      - name: Install frontend dependencies
+        run: cd mp_web_app/frontend && pnpm install
 
       - name: Deploy infrastructure
         run: make deploy-all
