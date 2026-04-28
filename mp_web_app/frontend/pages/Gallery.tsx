@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef} from "react";
+import {useState} from "react";
 import {GalleryModal} from "@/components/gallery-modal";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useGallery} from "@/hooks/useGallery";
@@ -8,30 +8,6 @@ export default function Gallery() {
   const {data: images = [], isLoading: loading, error: queryError} = useGallery();
   const error = queryError ? "Неуспешно зареждане на галерията" : null;
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  // Lazy loading with Intersection Observer
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement;
-            const src = img.dataset.src;
-            if (src && !loadedImages.has(src)) {
-              img.src = src;
-              setLoadedImages((prev) => new Set(prev).add(src));
-              observerRef.current?.unobserve(img);
-            }
-          }
-        });
-      },
-      {rootMargin: "50px"}
-    );
-
-    return () => observerRef.current?.disconnect();
-  }, [loadedImages]);
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
@@ -82,15 +58,10 @@ export default function Gallery() {
                   >
                     <div className="relative overflow-hidden rounded-xl bg-muted shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]">
                       <img
-                        data-src={image.url}
+                        src={image.url}
                         alt={image.image_name}
                         className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-110"
                         loading="lazy"
-                        ref={(el) => {
-                          if (el && observerRef.current) {
-                            observerRef.current.observe(el);
-                          }
-                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="absolute bottom-0 left-0 right-0 p-4">
