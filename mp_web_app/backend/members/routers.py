@@ -1,14 +1,14 @@
-from typing import Union
 from datetime import datetime
+from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 
-from auth.operations import get_current_user, role_required
+from auth.operations import get_current_user
 from database.exceptions import DatabaseError
 from database.repositories import MemberRepository
-from members.exceptions import InvalidFileTypeError, MemberNotFoundError, ValidationError
-from members.models import Member, MemberPublic, MemberUpdate
+from members.exceptions import InvalidFileTypeError
+from members.models import Member, MemberPublic
 from members.operations import (
   convert_members_list,
   get_member_repository,
@@ -83,7 +83,7 @@ async def members_export(
     return StreamingResponse(
       csv_bytes,
       media_type="text/csv",
-      headers={"Content-Disposition": f"attachment; filename={datetime.now().strftime("%Y%m%d")}_members.csv"},
+      headers={"Content-Disposition": f"attachment; filename={datetime.now().strftime('%Y%m%d')}_members.csv"},
     )
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))

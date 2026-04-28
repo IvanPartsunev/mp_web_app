@@ -74,7 +74,9 @@ export default function CooperativeMembers() {
                       {isAdmin && (
                         <>
                           <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Код</TableHead>
-                          <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Използван</TableHead>
+                          <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
+                            Използван
+                          </TableHead>
                         </>
                       )}
                     </TableRow>

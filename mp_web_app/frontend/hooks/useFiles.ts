@@ -1,15 +1,15 @@
 // hooks/useFiles.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/context/apiClient';
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import apiClient from "@/context/apiClient";
 
 export type FileType =
-  | 'governing_documents'
-  | 'forms'
-  | 'minutes'
-  | 'transcripts'
-  | 'accounting'
-  | 'private_documents'
-  | 'others';
+  | "governing_documents"
+  | "forms"
+  | "minutes"
+  | "transcripts"
+  | "accounting"
+  | "private_documents"
+  | "others";
 
 export interface FileMetadata {
   id?: string | null;
@@ -22,9 +22,9 @@ export interface FileMetadata {
 
 // Query key factory
 export const fileKeys = {
-  all: ['files'] as const,
-  lists: () => [...fileKeys.all, 'list'] as const,
-  list: (fileType?: FileType) => [...fileKeys.lists(), { fileType }] as const,
+  all: ["files"] as const,
+  lists: () => [...fileKeys.all, "list"] as const,
+  list: (fileType?: FileType) => [...fileKeys.lists(), {fileType}] as const,
 };
 
 // Fetch files by type
@@ -32,8 +32,8 @@ export function useFiles(fileType: FileType) {
   return useQuery({
     queryKey: fileKeys.list(fileType),
     queryFn: async () => {
-      const response = await apiClient.get<FileMetadata[]>('files/list', {
-        params: { file_type: fileType },
+      const response = await apiClient.get<FileMetadata[]>("files/list", {
+        params: {file_type: fileType},
         withCredentials: true,
       });
       return response.data ?? [];
@@ -48,20 +48,20 @@ export function useAllFiles() {
     queryKey: fileKeys.lists(),
     queryFn: async () => {
       const fileTypes: FileType[] = [
-        'governing_documents',
-        'forms',
-        'minutes',
-        'transcripts',
-        'accounting',
-        'private_documents',
-        'others',
+        "governing_documents",
+        "forms",
+        "minutes",
+        "transcripts",
+        "accounting",
+        "private_documents",
+        "others",
       ];
-      
+
       const allFiles: FileMetadata[] = [];
       for (const type of fileTypes) {
         try {
-          const response = await apiClient.get<FileMetadata[]>('files/list', {
-            params: { file_type: type },
+          const response = await apiClient.get<FileMetadata[]>("files/list", {
+            params: {file_type: type},
           });
           if (response.data) {
             allFiles.push(...response.data);
@@ -79,13 +79,13 @@ export function useAllFiles() {
 // Delete file mutation
 export function useDeleteFile() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       await apiClient.delete(`files/delete/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: fileKeys.all });
+      queryClient.invalidateQueries({queryKey: fileKeys.all});
     },
   });
 }

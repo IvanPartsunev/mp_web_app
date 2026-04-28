@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Logo } from "@/components/logo";
+import {useEffect, useState} from "react";
+import {Logo} from "@/components/logo";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);

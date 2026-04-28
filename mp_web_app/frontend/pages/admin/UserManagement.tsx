@@ -49,21 +49,24 @@ export default function UserManagement() {
   const handleEdit = async () => {
     if (!selectedUser?.id || !formData) return;
 
-    updateMutation.mutate({id: selectedUser.id, ...formData}, {
-      onSuccess: () => {
-        toast({title: "Успех", description: "Потребителят е обновен успешно"});
-        setEditDialogOpen(false);
-        setSelectedUser(null);
-        setFormData(null);
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
-          variant: "destructive",
-        });
-      },
-    });
+    updateMutation.mutate(
+      {id: selectedUser.id, ...formData},
+      {
+        onSuccess: () => {
+          toast({title: "Успех", description: "Потребителят е обновен успешно"});
+          setEditDialogOpen(false);
+          setSelectedUser(null);
+          setFormData(null);
+        },
+        onError: (err: any) => {
+          toast({
+            title: "Грешка",
+            description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const openDeleteDialog = (user: User) => {
@@ -100,45 +103,49 @@ export default function UserManagement() {
           <LoadingSpinner />
         ) : (
           <div className={TABLE_STYLES.scrollWrapper}>
-          <Table className={TABLE_STYLES.tableBase}>
-            <TableHeader>
-              <TableRow>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                <TableHead className={TABLE_STYLES.headBase}>Име</TableHead>
-                <TableHead className={TABLE_STYLES.headBase}>Email</TableHead>
-                <TableHead className={TABLE_STYLES.headBase}>Телефон</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[10%]`}>Роля</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Активен</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Абониран</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user, index) => (
-                <TableRow key={user.id}>
-                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
-                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>
-                    {user.first_name} {user.last_name}
-                  </TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{user.email}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{user.phone || "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{user.role ? (roleTranslations[user.role] || user.role) : "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{(user.active ?? user.is_active) ? "Да" : "Не"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-                        Редактирай
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
-                        Изтрий
-                      </Button>
-                    </div>
-                  </TableCell>
+            <Table className={TABLE_STYLES.tableBase}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                  <TableHead className={TABLE_STYLES.headBase}>Име</TableHead>
+                  <TableHead className={TABLE_STYLES.headBase}>Email</TableHead>
+                  <TableHead className={TABLE_STYLES.headBase}>Телефон</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[10%]`}>Роля</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Активен</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Абониран</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Действия</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {users.map((user, index) => (
+                  <TableRow key={user.id}>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>
+                      {user.first_name} {user.last_name}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>{user.email}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>{user.phone || "-"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {user.role ? roleTranslations[user.role] || user.role : "-"}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {(user.active ?? user.is_active) ? "Да" : "Не"}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
+                          Редактирай
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
+                          Изтрий
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 

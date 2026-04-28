@@ -8,7 +8,8 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-primary/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500 before:pointer-events-none",
+        default:
+          "border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-primary/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500 before:pointer-events-none",
         elevated: "border border-gray-200/50 dark:border-gray-700/50 shadow-xl hover:shadow-2xl backdrop-blur-sm",
         outlined: "border-2 border-gray-300 dark:border-gray-600 shadow-md hover:shadow-xl hover:border-primary/50",
       },
@@ -27,9 +28,7 @@ const cardVariants = cva(
 interface CardProps extends React.ComponentProps<"div">, VariantProps<typeof cardVariants> {}
 
 function Card({className, variant, hoverable, ...props}: CardProps) {
-  return (
-    <div data-slot="card" className={cn(cardVariants({variant, hoverable}), className)} {...props} />
-  );
+  return <div data-slot="card" className={cn(cardVariants({variant, hoverable}), className)} {...props} />;
 }
 
 function CardHeader({className, ...props}: React.ComponentProps<"div">) {

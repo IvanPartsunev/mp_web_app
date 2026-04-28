@@ -13,6 +13,7 @@ components/
 ### ui/ Directory
 
 Base UI components from shadcn/ui. These are building blocks:
+
 - `button.tsx`, `input.tsx`, `textarea.tsx`
 - `table.tsx` (TableHeader, TableRow, TableCell, etc.)
 - `dialog.tsx`, `select.tsx`, `card.tsx`
@@ -20,15 +21,15 @@ Base UI components from shadcn/ui. These are building blocks:
 
 ### Feature Components
 
-| Component | Purpose |
-|-----------|---------|
-| `admin-layout.tsx` | Layout wrapper for admin pages |
-| `confirm-dialog.tsx` | Reusable confirmation modal |
-| `files-table.tsx` | Table for displaying files with pagination |
+| Component            | Purpose                                       |
+| -------------------- | --------------------------------------------- |
+| `admin-layout.tsx`   | Layout wrapper for admin pages                |
+| `confirm-dialog.tsx` | Reusable confirmation modal                   |
+| `files-table.tsx`    | Table for displaying files with pagination    |
 | `products-table.tsx` | Table for displaying products with pagination |
-| `gallery-modal.tsx` | Full-screen image viewer |
-| `login-form.tsx` | Login form with validation |
-| `upload-file.tsx` | File upload with drag-and-drop |
+| `gallery-modal.tsx`  | Full-screen image viewer                      |
+| `login-form.tsx`     | Login form with validation                    |
+| `upload-file.tsx`    | File upload with drag-and-drop                |
 
 ## Creating New Components
 
@@ -38,17 +39,18 @@ Base UI components from shadcn/ui. These are building blocks:
 4. Use shared styles from `@/lib/styles` or `@/lib/tableUtils`
 
 Example:
+
 ```tsx
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { TABLE_STYLES } from "@/lib/tableUtils";
+import {Button} from "@/components/ui/button";
+import {Card} from "@/components/ui/card";
+import {TABLE_STYLES} from "@/lib/tableUtils";
 
 interface MyComponentProps {
   title: string;
   onAction: () => void;
 }
 
-export function MyComponent({ title, onAction }: MyComponentProps) {
+export function MyComponent({title, onAction}: MyComponentProps) {
   return (
     <Card>
       <h2>{title}</h2>
@@ -63,23 +65,22 @@ export function MyComponent({ title, onAction }: MyComponentProps) {
 For tables, use the shared `TABLE_STYLES` from `lib/tableUtils.ts`:
 
 ```tsx
-import { TABLE_STYLES, COLUMN_WIDTHS } from "@/lib/tableUtils";
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
 
 <div className={TABLE_STYLES.scrollWrapper}>
   <Table className={TABLE_STYLES.tableBase}>
     <TableHeader>
       <TableRow>
-        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>
-          No
-        </TableHead>
+        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>No</TableHead>
         {/* more columns */}
       </TableRow>
     </TableHeader>
   </Table>
-</div>
+</div>;
 ```
 
 This ensures:
+
 - Consistent column widths
 - Horizontal scrolling on small screens
 - No content overflow

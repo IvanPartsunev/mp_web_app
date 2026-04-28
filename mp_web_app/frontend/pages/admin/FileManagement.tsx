@@ -119,7 +119,9 @@ export default function FileManagement() {
                         </TableCell>
                         <TableCell className="font-medium">{file.file_name}</TableCell>
                         <TableCell>{file.uploaded_by || "-"}</TableCell>
-                        <TableCell>{file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
+                        <TableCell>
+                          {file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG") : "-"}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

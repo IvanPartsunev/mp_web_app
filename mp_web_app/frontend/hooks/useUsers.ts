@@ -1,6 +1,6 @@
 // hooks/useUsers.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/context/apiClient';
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import apiClient from "@/context/apiClient";
 
 export interface User {
   id?: string;
@@ -19,11 +19,11 @@ export interface User {
 
 // Query key factory
 export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
+  all: ["users"] as const,
+  lists: () => [...userKeys.all, "list"] as const,
   list: () => [...userKeys.lists()] as const,
-  board: () => [...userKeys.all, 'board'] as const,
-  control: () => [...userKeys.all, 'control'] as const,
+  board: () => [...userKeys.all, "board"] as const,
+  control: () => [...userKeys.all, "control"] as const,
 };
 
 // Fetch all users (admin)
@@ -31,7 +31,7 @@ export function useUsersList() {
   return useQuery({
     queryKey: userKeys.list(),
     queryFn: async () => {
-      const response = await apiClient.get<User[]>('users/list');
+      const response = await apiClient.get<User[]>("users/list");
       return response.data ?? [];
     },
     staleTime: 0, // admin panel — always fetch fresh data
@@ -43,7 +43,7 @@ export function useBoardMembers() {
   return useQuery({
     queryKey: userKeys.board(),
     queryFn: async () => {
-      const response = await apiClient.get<User[]>('users/board');
+      const response = await apiClient.get<User[]>("users/board");
       return response.data ?? [];
     },
     staleTime: 60 * 60 * 1000, // 1 hour
@@ -55,7 +55,7 @@ export function useControlMembers() {
   return useQuery({
     queryKey: userKeys.control(),
     queryFn: async () => {
-      const response = await apiClient.get<User[]>('users/control');
+      const response = await apiClient.get<User[]>("users/control");
       return response.data ?? [];
     },
     staleTime: 60 * 60 * 1000, // 1 hour
@@ -67,12 +67,12 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...user }: Partial<User> & { id: string }) => {
+    mutationFn: async ({id, ...user}: Partial<User> & {id: string}) => {
       const response = await apiClient.put(`users/update/${id}`, user);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      queryClient.invalidateQueries({queryKey: userKeys.all});
     },
   });
 }
@@ -80,13 +80,13 @@ export function useUpdateUser() {
 // Delete user mutation
 export function useDeleteUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       await apiClient.delete(`users/delete/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      queryClient.invalidateQueries({queryKey: userKeys.all});
     },
   });
 }

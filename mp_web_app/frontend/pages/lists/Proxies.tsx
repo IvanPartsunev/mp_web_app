@@ -77,7 +77,9 @@ export default function Proxies() {
                       {isAdmin && (
                         <>
                           <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Код</TableHead>
-                          <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Използван</TableHead>
+                          <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
+                            Използван
+                          </TableHead>
                         </>
                       )}
                     </TableRow>
@@ -89,12 +91,8 @@ export default function Proxies() {
                         <TableCell className={TABLE_STYLES.cellBase}>{member.first_name}</TableCell>
                         <TableCell className={TABLE_STYLES.cellBase}>{member.middle_name || "-"}</TableCell>
                         <TableCell className={TABLE_STYLES.cellBase}>{member.last_name}</TableCell>
-                        {isLoggedIn && (
-                          <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>
-                        )}
-                        {canSeePhone && (
-                          <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>
-                        )}
+                        {isLoggedIn && <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>}
+                        {canSeePhone && <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>}
                         {isAdmin && (
                           <>
                             <TableCell className={TABLE_STYLES.cellCenter}>

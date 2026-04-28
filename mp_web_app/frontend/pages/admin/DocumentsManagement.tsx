@@ -96,46 +96,46 @@ export default function DocumentsManagement() {
           </p>
         ) : (
           <div className={TABLE_STYLES.scrollWrapper}>
-          <Table className={TABLE_STYLES.tableLarge}>
-            <TableHeader>
-              <TableRow>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[180px]`}>Тип</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[150px]`}>Качен от</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[100px]`}>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredFiles.map((file, index) => (
-                <TableRow key={file.id}>
-                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
-                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
-                  </TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{file.uploaded_by_name || file.uploaded_by || "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    {file.created_at ? new Date(file.created_at).toLocaleDateString("bg-BG", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    }) : "-"}
-                  </TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openDeleteDialog(file)}
-                    >
-                      Изтрий
-                    </Button>
-                  </TableCell>
+            <Table className={TABLE_STYLES.tableLarge}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[180px]`}>Тип</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[150px]`}>Качен от</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[100px]`}>Действия</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredFiles.map((file, index) => (
+                  <TableRow key={file.id}>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {file.uploaded_by_name || file.uploaded_by || "-"}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {file.created_at
+                        ? new Date(file.created_at).toLocaleDateString("bg-BG", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : "-"}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(file)}>
+                        Изтрий
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 

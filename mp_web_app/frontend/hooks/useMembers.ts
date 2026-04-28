@@ -1,6 +1,6 @@
 // hooks/useMembers.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/context/apiClient';
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import apiClient from "@/context/apiClient";
 
 export interface Member {
   member_code: string;
@@ -16,18 +16,17 @@ export interface Member {
 
 // Query key factory
 export const memberKeys = {
-  all: ['members'] as const,
-  lists: () => [...memberKeys.all, 'list'] as const,
-  list: (filters?: { proxy_only?: boolean; role?: string }) => 
-    [...memberKeys.lists(), filters] as const,
+  all: ["members"] as const,
+  lists: () => [...memberKeys.all, "list"] as const,
+  list: (filters?: {proxy_only?: boolean; role?: string}) => [...memberKeys.lists(), filters] as const,
 };
 
 // Fetch members list
-export function useMembers(filters?: { proxy_only?: boolean; role?: string }, staleTime = 0) {
+export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 0) {
   return useQuery({
     queryKey: memberKeys.list(filters),
     queryFn: async () => {
-      const response = await apiClient.get<Member[]>('members/list', {
+      const response = await apiClient.get<Member[]>("members/list", {
         params: filters,
       });
       return response.data ?? [];
@@ -39,14 +38,14 @@ export function useMembers(filters?: { proxy_only?: boolean; role?: string }, st
 // Create member mutation
 export function useCreateMember() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (member: Omit<Member, 'member_code'>) => {
-      const response = await apiClient.post('members/create', member);
+    mutationFn: async (member: Omit<Member, "member_code">) => {
+      const response = await apiClient.post("members/create", member);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
+      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
     },
   });
 }
@@ -54,14 +53,14 @@ export function useCreateMember() {
 // Update member mutation
 export function useUpdateMember() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ member_code, ...member }: Member) => {
+    mutationFn: async ({member_code, ...member}: Member) => {
       const response = await apiClient.put(`members/update/${member_code}`, member);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
+      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
     },
   });
 }
@@ -69,13 +68,13 @@ export function useUpdateMember() {
 // Delete member mutation
 export function useDeleteMember() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (member_code: string) => {
       await apiClient.delete(`members/delete/${member_code}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.lists() });
+      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
     },
   });
 }

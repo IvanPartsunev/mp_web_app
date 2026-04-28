@@ -21,6 +21,7 @@ pages/
 ## Public Pages
 
 Accessible without login:
+
 - `Home.tsx` - Landing page with news
 - `Products.tsx` - Products catalog
 - `Gallery.tsx` - Image gallery
@@ -31,39 +32,40 @@ Accessible without login:
 ## Protected Pages
 
 Require authentication:
+
 - `Profile.tsx` - User profile
 
 ## Admin Pages
 
 Require admin role (`/admin/*`):
 
-| Page | Purpose |
-|------|---------|
-| `AdminPanel.tsx` | Admin dashboard with tabs |
-| `UserManagement.tsx` | Manage users and roles |
-| `ProductsManagement.tsx` | CRUD for products |
-| `NewsManagement.tsx` | CRUD for news articles |
-| `DocumentsManagement.tsx` | Manage documents |
-| `FileManagement.tsx` | Bulk file management |
-| `GalleryManagement.tsx` | Manage gallery images |
-| `MembersManagement.tsx` | Manage cooperative members |
+| Page                      | Purpose                    |
+| ------------------------- | -------------------------- |
+| `AdminPanel.tsx`          | Admin dashboard with tabs  |
+| `UserManagement.tsx`      | Manage users and roles     |
+| `ProductsManagement.tsx`  | CRUD for products          |
+| `NewsManagement.tsx`      | CRUD for news articles     |
+| `DocumentsManagement.tsx` | Manage documents           |
+| `FileManagement.tsx`      | Bulk file management       |
+| `GalleryManagement.tsx`   | Manage gallery images      |
+| `MembersManagement.tsx`   | Manage cooperative members |
 
 ## Role-Based Visibility
 
 Some content visibility depends on user role:
 
-| Role | Access Level |
-|------|--------------|
-| `regular` | Basic member access |
-| `board` | Board member access |
-| `control` | Control member access |
+| Role         | Access Level                |
+| ------------ | --------------------------- |
+| `regular`    | Basic member access         |
+| `board`      | Board member access         |
+| `control`    | Control member access       |
 | `accountant` | Accounting documents access |
-| `admin` | Full access |
+| `admin`      | Full access                 |
 
 Role checks happen in components using `useAuth()`:
 
 ```tsx
-const { user, isLoggedIn } = useAuth();
+const {user, isLoggedIn} = useAuth();
 const isAdmin = user?.role === "admin";
 const canSeePhone = isAdmin || user?.role === "board";
 ```
@@ -75,7 +77,7 @@ const canSeePhone = isAdmin || user?.role === "board";
 Use `HERO_STYLES` for consistent hero sections:
 
 ```tsx
-import { HERO_STYLES } from "@/lib/styles";
+import {HERO_STYLES} from "@/lib/styles";
 
 <section className={HERO_STYLES.section}>
   <div className={HERO_STYLES.overlay} />
@@ -84,7 +86,7 @@ import { HERO_STYLES } from "@/lib/styles";
       <h1 className={HERO_STYLES.title}>Page Title</h1>
     </div>
   </div>
-</section>
+</section>;
 ```
 
 ### Data Tables
@@ -92,19 +94,17 @@ import { HERO_STYLES } from "@/lib/styles";
 Use `TABLE_STYLES` for consistent tables:
 
 ```tsx
-import { TABLE_STYLES, COLUMN_WIDTHS } from "@/lib/tableUtils";
+import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
 
 <div className={TABLE_STYLES.scrollWrapper}>
   <Table className={TABLE_STYLES.tableBase}>
     <TableHeader>
       <TableRow>
-        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>
-          No
-        </TableHead>
+        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>No</TableHead>
       </TableRow>
     </TableHeader>
   </Table>
-</div>
+</div>;
 ```
 
 ### Loading States

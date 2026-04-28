@@ -71,69 +71,67 @@ export default function AdminPanel() {
       </section>
 
       <div className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
+        {isMobile ? (
+          <div className="w-full">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full mb-6">
+                <SelectValue placeholder="Изберете секция" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="news">Новини</SelectItem>
+                <SelectItem value="users">Потребители</SelectItem>
+                <SelectItem value="products">Продукти</SelectItem>
+                <SelectItem value="gallery">Галерия</SelectItem>
+                <SelectItem value="members">Членове</SelectItem>
+                <SelectItem value="documents">Документи</SelectItem>
+              </SelectContent>
+            </Select>
 
-      {isMobile ? (
-        <div className="w-full">
-          <Select value={activeTab} onValueChange={setActiveTab}>
-            <SelectTrigger className="w-full mb-6">
-              <SelectValue placeholder="Изберете секция" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="news">Новини</SelectItem>
-              <SelectItem value="users">Потребители</SelectItem>
-              <SelectItem value="products">Продукти</SelectItem>
-              <SelectItem value="gallery">Галерия</SelectItem>
-              <SelectItem value="members">Членове</SelectItem>
-              <SelectItem value="documents">Документи</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="mt-6">
-            {activeTab === "news" && <NewsManagement />}
-            {activeTab === "users" && <UserManagement />}
-            {activeTab === "products" && <ProductsManagement />}
-            {activeTab === "documents" && <DocumentsManagement />}
-            {activeTab === "gallery" && <GalleryManagement />}
-            {activeTab === "members" && <MembersManagement />}
+            <div className="mt-6">
+              {activeTab === "news" && <NewsManagement />}
+              {activeTab === "users" && <UserManagement />}
+              {activeTab === "products" && <ProductsManagement />}
+              {activeTab === "documents" && <DocumentsManagement />}
+              {activeTab === "gallery" && <GalleryManagement />}
+              {activeTab === "members" && <MembersManagement />}
+            </div>
           </div>
-        </div>
-      ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="news">Новини</TabsTrigger>
-            <TabsTrigger value="users">Потребители</TabsTrigger>
-            <TabsTrigger value="products">Продукти</TabsTrigger>
-            <TabsTrigger value="documents">Документи</TabsTrigger>
-            <TabsTrigger value="gallery">Галерия</TabsTrigger>
-            <TabsTrigger value="members">Членове</TabsTrigger>
-          </TabsList>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="news">Новини</TabsTrigger>
+              <TabsTrigger value="users">Потребители</TabsTrigger>
+              <TabsTrigger value="products">Продукти</TabsTrigger>
+              <TabsTrigger value="documents">Документи</TabsTrigger>
+              <TabsTrigger value="gallery">Галерия</TabsTrigger>
+              <TabsTrigger value="members">Членове</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="news" className="mt-6">
-            <NewsManagement />
-          </TabsContent>
+            <TabsContent value="news" className="mt-6">
+              <NewsManagement />
+            </TabsContent>
 
-          <TabsContent value="users" className="mt-6">
-            <UserManagement />
-          </TabsContent>
+            <TabsContent value="users" className="mt-6">
+              <UserManagement />
+            </TabsContent>
 
-          <TabsContent value="products" className="mt-6">
-            <ProductsManagement />
-          </TabsContent>
+            <TabsContent value="products" className="mt-6">
+              <ProductsManagement />
+            </TabsContent>
 
-          <TabsContent value="documents" className="mt-6">
-            <DocumentsManagement />
-          </TabsContent>
+            <TabsContent value="documents" className="mt-6">
+              <DocumentsManagement />
+            </TabsContent>
 
-          <TabsContent value="gallery" className="mt-6">
-            <GalleryManagement />
-          </TabsContent>
+            <TabsContent value="gallery" className="mt-6">
+              <GalleryManagement />
+            </TabsContent>
 
-          <TabsContent value="members" className="mt-6">
-            <MembersManagement />
-          </TabsContent>
-
-        </Tabs>
-      )}
+            <TabsContent value="members" className="mt-6">
+              <MembersManagement />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

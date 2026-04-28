@@ -39,7 +39,7 @@ function App() {
       <AuthProvider>
         <Toaster />
         <Routes>
-        <Route path="/" element={<Base />}>
+          <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
             <Route path="home" element={<Home />} />
             <Route path="products" element={<Products />} />
@@ -152,8 +152,8 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="new-password" element={<NewPassword />} />
             <Route path="unsubscribe" element={<Unsubscribe />} />
-        </Route>
-      </Routes>
+          </Route>
+        </Routes>
       </AuthProvider>
     </QueryClientProvider>
   );

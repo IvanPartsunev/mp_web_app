@@ -17,7 +17,7 @@ export default function Home() {
   // Use React Query hook for caching
   const {data: news = [], isLoading: loading, error: queryError} = useNews();
   const [page, setPage] = useState(1);
-  
+
   // Convert error to string for display
   const error = queryError ? "Неуспешно зареждане на новините" : null;
 
@@ -67,8 +67,18 @@ export default function Home() {
           <div className="max-w-md mx-auto text-center py-20">
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 space-y-4">
               <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-8 h-8 text-red-600 dark:text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <p className="text-red-800 dark:text-red-200 font-semibold">{error}</p>
@@ -87,7 +97,12 @@ export default function Home() {
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-12 space-y-4">
               <div className="w-20 h-20 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                 <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                  />
                 </svg>
               </div>
               <p className="text-gray-600 dark:text-gray-400 text-lg">Няма налични новини</p>
@@ -114,115 +129,115 @@ export default function Home() {
               ))}
             </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-12">
-              <Pagination>
-                <PaginationContent className="gap-2">
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page - 1);
-                      }}
-                    />
-                  </PaginationItem>
-
-                  {page > 2 && (
-                    <>
-                      <PaginationItem>
-                        <PaginationLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            goToPage(1);
-                          }}
-                        >
-                          1
-                        </PaginationLink>
-                      </PaginationItem>
-                      {page > 3 && (
-                        <PaginationItem>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      )}
-                    </>
-                  )}
-
-                  {page > 1 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-12">
+                <Pagination>
+                  <PaginationContent className="gap-2">
                     <PaginationItem>
-                      <PaginationLink
+                      <PaginationPrevious
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
                           goToPage(page - 1);
                         }}
-                      >
-                        {page - 1}
-                      </PaginationLink>
+                      />
                     </PaginationItem>
-                  )}
 
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-
-                  {page < totalPages && (
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToPage(page + 1);
-                        }}
-                      >
-                        {page + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )}
-
-                  {page < totalPages - 1 && (
-                    <>
-                      {page < totalPages - 2 && (
+                    {page > 2 && (
+                      <>
                         <PaginationItem>
-                          <PaginationEllipsis />
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              goToPage(1);
+                            }}
+                          >
+                            1
+                          </PaginationLink>
                         </PaginationItem>
-                      )}
+                        {page > 3 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                      </>
+                    )}
+
+                    {page > 1 && (
                       <PaginationItem>
                         <PaginationLink
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            goToPage(totalPages);
+                            goToPage(page - 1);
                           }}
                         >
-                          {totalPages}
+                          {page - 1}
                         </PaginationLink>
                       </PaginationItem>
-                    </>
-                  )}
+                    )}
 
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(page + 1);
-                      }}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-              <div className="text-center mt-2 text-sm text-muted-foreground">
-                Показани {startIdx + 1}-{endIdx} от {total}
+                    <PaginationItem>
+                      <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {page < totalPages && (
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            goToPage(page + 1);
+                          }}
+                        >
+                          {page + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )}
+
+                    {page < totalPages - 1 && (
+                      <>
+                        {page < totalPages - 2 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              goToPage(totalPages);
+                            }}
+                          >
+                            {totalPages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          goToPage(page + 1);
+                        }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+                <div className="text-center mt-2 text-sm text-muted-foreground">
+                  Показани {startIdx + 1}-{endIdx} от {total}
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
       </section>
     </div>
   );

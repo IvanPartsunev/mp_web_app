@@ -18,11 +18,24 @@ export default function MembersManagement() {
     if (file) setSelectedFile(file);
   };
 
-  const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDragOver  = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
     const files = e.dataTransfer.files;
     if (files && files.length > 0) setSelectedFile(files[0]);
   };
@@ -41,7 +54,11 @@ export default function MembersManagement() {
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err: any) {
-      toast({title: "Грешка", description: err.response?.data?.detail || "Неуспешна синхронизация на членовете", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err.response?.data?.detail || "Неуспешна синхронизация на членовете",
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }
@@ -60,7 +77,11 @@ export default function MembersManagement() {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      toast({title: "Грешка", description: err.response?.data?.detail || "Неуспешно изтегляне", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err.response?.data?.detail || "Неуспешно изтегляне",
+        variant: "destructive",
+      });
     } finally {
       setDownloading(false);
     }
@@ -71,12 +92,26 @@ export default function MembersManagement() {
       <div className="space-y-6">
         <Card className="p-4">
           <h3 className="text-lg font-semibold mb-4">Синхронизирай членове</h3>
-          <form onSubmit={(e) => { e.preventDefault(); handleUpload(); }} className="space-y-4">
-            <input ref={fileInputRef} type="file" onChange={handleFileSelect} disabled={uploading} className="sr-only" />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpload();
+            }}
+            className="space-y-4"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              disabled={uploading}
+              className="sr-only"
+            />
 
             <div
               className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
-                isDragging ? "border-primary bg-primary/5 scale-[1.02]" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
+                isDragging
+                  ? "border-primary bg-primary/5 scale-[1.02]"
+                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
               } ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
               onDragEnter={handleDragEnter}
               onDragOver={handleDragOver}
@@ -86,7 +121,12 @@ export default function MembersManagement() {
             >
               <div className="flex flex-col items-center gap-2">
                 <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
                 </svg>
                 {selectedFile ? (
                   <div className="space-y-1">
@@ -103,7 +143,9 @@ export default function MembersManagement() {
                     <p className="text-sm font-medium text-foreground">
                       {isDragging ? "Пусни файла тук" : "Кликни или пусни файл"}
                     </p>
-                    <p className="text-xs text-muted-foreground">Приема се само предварително подготвен файл с предварително зададена структура в .csv формат</p>
+                    <p className="text-xs text-muted-foreground">
+                      Приема се само предварително подготвен файл с предварително зададена структура в .csv формат
+                    </p>
                   </div>
                 )}
               </div>
@@ -121,8 +163,8 @@ export default function MembersManagement() {
         <Card className="p-4">
           <h3 className="text-lg font-semibold mb-2">Информация</h3>
           <p className="text-sm text-muted-foreground">
-            Качете файл с данни за членовете, за да синхронизирате информацията в системата.
-            Файлът трябва да съдържа необходимите полета за членовете.
+            Качете файл с данни за членовете, за да синхронизирате информацията в системата. Файлът трябва да съдържа
+            необходимите полета за членовете.
           </p>
         </Card>
       </div>

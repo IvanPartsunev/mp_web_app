@@ -245,15 +245,17 @@ def members_list_to_csv(repo: MemberRepository) -> io.BytesIO:
   writer = csv.DictWriter(buf, fieldnames=fieldnames, extrasaction="ignore", lineterminator="\n")
   writer.writeheader()
   for item in members:
-    writer.writerow({
-      "member_code": item.get("member_code", ""),
-      "first_name": item.get("first_name", ""),
-      "middle_name": item.get("middle_name") or "",
-      "last_name": item.get("last_name", ""),
-      "email": item.get("email") or "",
-      "phone": item.get("phone") or "",
-      "proxy": "true" if item.get("proxy") else "false",
-    })
+    writer.writerow(
+      {
+        "member_code": item.get("member_code", ""),
+        "first_name": item.get("first_name", ""),
+        "middle_name": item.get("middle_name") or "",
+        "last_name": item.get("last_name", ""),
+        "email": item.get("email") or "",
+        "phone": item.get("phone") or "",
+        "proxy": "true" if item.get("proxy") else "false",
+      }
+    )
 
   # Return as UTF-8 BOM bytes so Excel opens it correctly
   return io.BytesIO(b"\xef\xbb\xbf" + buf.getvalue().encode("utf-8"))

@@ -38,8 +38,8 @@ export default function GalleryManagement() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: "Грешка",
@@ -49,7 +49,7 @@ export default function GalleryManagement() {
         e.target.value = ""; // Reset input
         return;
       }
-      
+
       // Check file size
       const maxSize = 15 * 1024 * 1024; // 15MB
       if (file.size > maxSize) {
@@ -61,7 +61,7 @@ export default function GalleryManagement() {
         e.target.value = ""; // Reset input
         return;
       }
-      
+
       setSelectedFile(file);
       setImageName(file.name.split(".")[0]);
     }
@@ -93,9 +93,9 @@ export default function GalleryManagement() {
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const file = files[0];
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      
-      if (file.type.startsWith('image/') && allowedTypes.includes(file.type)) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+      if (file.type.startsWith("image/") && allowedTypes.includes(file.type)) {
         // Check file size
         const maxSize = 15 * 1024 * 1024; // 15MB
         if (file.size > maxSize) {
@@ -106,7 +106,7 @@ export default function GalleryManagement() {
           });
           return;
         }
-        
+
         setSelectedFile(file);
         setImageName(file.name.split(".")[0]);
       } else {
@@ -135,7 +135,7 @@ export default function GalleryManagement() {
       return;
     }
 
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(selectedFile.type)) {
       toast({
         title: "Грешка",
@@ -237,12 +237,7 @@ export default function GalleryManagement() {
               onClick={() => !uploading && fileInputRef.current?.click()}
             >
               <div className="flex flex-col items-center gap-2">
-                <svg
-                  className="w-12 h-12 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
