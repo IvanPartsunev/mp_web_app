@@ -1,6 +1,6 @@
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {User as UserIcon, Mail, Phone, CheckCircle, XCircle} from "lucide-react";
+import {User as UserIcon, Mail, Phone, CheckCircle} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useMembers} from "@/hooks/useMembers";
 import {useAuth} from "@/context/AuthContext";
