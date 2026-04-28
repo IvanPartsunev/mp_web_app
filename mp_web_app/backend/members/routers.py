@@ -4,7 +4,7 @@ from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 
-from auth.operations import get_current_user
+from auth.operations import get_current_user, role_required
 from database.exceptions import DatabaseError
 from database.repositories import MemberRepository
 from members.exceptions import InvalidFileTypeError
@@ -75,7 +75,7 @@ async def members_list(
 @member_router.get("/export", status_code=status.HTTP_200_OK)
 async def members_export(
   member_repo: MemberRepository = Depends(get_member_repository),
-  # user=Depends(role_required([UserRole.ADMIN])),
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   """Export all members as a CSV file (ADMIN only). Compatible with /sync_members upload."""
   try:
@@ -93,7 +93,7 @@ async def members_export(
 async def members_upload(
   file: UploadFile,
   member_repo: MemberRepository = Depends(get_member_repository),
-  # user = Depends(role_required([UserRole.ADMIN]))
+  user = Depends(role_required([UserRole.ADMIN]))
 ):
   try:
     file_name = file.filename
