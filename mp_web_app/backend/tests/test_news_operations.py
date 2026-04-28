@@ -69,6 +69,7 @@ class TestDeleteNews:
   @patch("news.operations.get_news_by_id")
   def test_returns_false_for_nonexistent_news(self, mock_get_news_by_id, mock_repo):
     from news.exceptions import NewsNotFoundError
+
     mock_get_news_by_id.side_effect = NewsNotFoundError("news123")
 
     with pytest.raises(NewsNotFoundError):
@@ -101,6 +102,7 @@ class TestUpdateNews:
   @patch("news.operations.get_news_by_id")
   def test_returns_none_for_nonexistent_news(self, mock_get_news_by_id, mock_repo):
     from news.exceptions import NewsNotFoundError
+
     mock_get_news_by_id.side_effect = NewsNotFoundError("news123")
 
     news_update = NewsUpdate(title="Updated Title", content="Updated content", news_type=NewsType.regular)
@@ -124,6 +126,7 @@ class TestGetNews:
 
   def test_returns_none_for_nonexistent_news(self, mock_repo):
     from news.exceptions import NewsNotFoundError
+
     mock_repo.table.get_item = Mock(return_value={})
 
     with pytest.raises(NewsNotFoundError):

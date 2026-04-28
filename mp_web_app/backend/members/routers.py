@@ -93,7 +93,7 @@ async def members_export(
 async def members_upload(
   file: UploadFile,
   member_repo: MemberRepository = Depends(get_member_repository),
-  user = Depends(role_required([UserRole.ADMIN]))
+  user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
     file_name = file.filename
