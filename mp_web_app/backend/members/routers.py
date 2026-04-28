@@ -1,6 +1,8 @@
 from typing import Union
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi.responses import StreamingResponse
 
 from auth.operations import get_current_user, role_required
 from database.exceptions import DatabaseError
@@ -9,13 +11,11 @@ from members.exceptions import InvalidFileTypeError, MemberNotFoundError, Valida
 from members.models import Member, MemberPublic, MemberUpdate
 from members.operations import (
   convert_members_list,
-  create_member,
-  delete_member,
   get_member_repository,
   is_valid_file_type,
   list_members,
+  members_list_to_csv,
   sync_members_list,
-  update_member,
 )
 from users.models import User
 from users.roles import UserRole
@@ -72,49 +72,19 @@ async def members_list(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.post("/create", status_code=status.HTTP_201_CREATED)
-async def member_create(
-  member: Member,
+@member_router.get("/export", status_code=status.HTTP_200_OK)
+async def members_export(
   member_repo: MemberRepository = Depends(get_member_repository),
-  user=Depends(role_required([UserRole.ADMIN])),
+  # user=Depends(role_required([UserRole.ADMIN])),
 ):
+  """Export all members as a CSV file (ADMIN only). Compatible with /sync_members upload."""
   try:
-    create_member(member, member_repo)
-  except DatabaseError as e:
-    raise HTTPException(status_code=500, detail=str(e))
-  except Exception as e:
-    raise HTTPException(status_code=400, detail=str(e))
-
-
-@member_router.put("/update/{member_code}", response_model=Member, status_code=status.HTTP_200_OK)
-async def member_update(
-  member_code: str,
-  member_data: MemberUpdate,
-  member_repo: MemberRepository = Depends(get_member_repository),
-  user=Depends(role_required([UserRole.ADMIN])),
-):
-  """Update member email and phone (ADMIN only)."""
-  try:
-    return update_member(member_code, member_data, member_repo)
-  except MemberNotFoundError as e:
-    raise HTTPException(status_code=404, detail=str(e))
-  except ValidationError as e:
-    raise HTTPException(status_code=400, detail=str(e))
-  except DatabaseError as e:
-    raise HTTPException(status_code=500, detail=str(e))
-
-
-@member_router.delete("/delete/{member_code}", status_code=status.HTTP_204_NO_CONTENT)
-async def member_delete(
-  member_code: str,
-  member_repo: MemberRepository = Depends(get_member_repository),
-  user=Depends(role_required([UserRole.ADMIN])),
-):
-  """Delete a member (ADMIN only)."""
-  try:
-    delete_member(member_code, member_repo)
-  except MemberNotFoundError as e:
-    raise HTTPException(status_code=404, detail=str(e))
+    csv_bytes = members_list_to_csv(member_repo)
+    return StreamingResponse(
+      csv_bytes,
+      media_type="text/csv",
+      headers={"Content-Disposition": f"attachment; filename={datetime.now().strftime("%Y%m%d")}_members.csv"},
+    )
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
