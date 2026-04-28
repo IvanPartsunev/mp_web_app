@@ -6,14 +6,30 @@ import {Button} from "./button";
 
 function Table({className, ...props}: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-[97%] mx-auto overflow-x-auto rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-      <table data-slot="table" className={cn("w-full caption-bottom text-sm min-w-[600px] xl:table-fixed", className)} {...props} />
+    <div
+      data-slot="table-container"
+      className="relative w-[97%] mx-auto overflow-x-auto rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+    >
+      <table
+        data-slot="table"
+        className={cn("w-full caption-bottom text-sm min-w-[600px] xl:table-fixed", className)}
+        {...props}
+      />
     </div>
   );
 }
 
 function TableHeader({className, ...props}: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b [&_tr]:bg-gradient-to-r [&_tr]:from-gray-50 [&_tr]:to-gray-100 dark:[&_tr]:from-gray-800 dark:[&_tr]:to-gray-700", className)} {...props} />;
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn(
+        "[&_tr]:border-b [&_tr]:bg-gradient-to-r [&_tr]:from-gray-50 [&_tr]:to-gray-100 dark:[&_tr]:from-gray-800 dark:[&_tr]:to-gray-700",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 function TableBody({className, ...props}: React.ComponentProps<"tbody">) {
@@ -146,12 +162,7 @@ function TablePagination({currentPage, totalPages, onPageChange, pageSize, total
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
           <ChevronLeft className="size-4" />
           Previous
         </Button>

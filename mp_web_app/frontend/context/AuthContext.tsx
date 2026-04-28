@@ -82,8 +82,9 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     const handleTokenCleared = () => {
       setIsLoggedIn(false);
       setUser(null);
-      // Invalidate all queries when logged out
-      queryClient.invalidateQueries();
+      // Clear all cached data so protected content is not accessible after logout
+      queryClient.clear();
+      navigate("/login");
     };
 
     // Listen for token refreshed event to invalidate cached queries

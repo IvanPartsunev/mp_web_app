@@ -204,41 +204,41 @@ export default function ProductsManagement() {
           <p className="text-center text-muted-foreground py-8">Няма налични продукти</p>
         ) : (
           <div className={TABLE_STYLES.scrollWrapper}>
-          <Table className={TABLE_STYLES.tableXLarge}>
-            <TableHeader>
-              <TableRow>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.nameWithIcon}`}>Име</TableHead>
-                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Дължина (см)</TableHead>
-                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Ширина (см)</TableHead>
-                <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Височина (см)</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.description}`}>Описание</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product, index) => (
-                <TableRow key={product.id}>
-                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
-                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{product.name}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellCenter}>{product.length ?? "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellCenter}>{product.width ?? "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellCenter}>{product.height ?? "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{product.description || "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
-                        Редактирай
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(product)}>
-                        Изтрий
-                      </Button>
-                    </div>
-                  </TableCell>
+            <Table className={TABLE_STYLES.tableXLarge}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.nameWithIcon}`}>Име</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Дължина (см)</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Ширина (см)</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Височина (см)</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.description}`}>Описание</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {products.map((product, index) => (
+                  <TableRow key={product.id}>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{product.name}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellCenter}>{product.length ?? "-"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellCenter}>{product.width ?? "-"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellCenter}>{product.height ?? "-"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>{product.description || "-"}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
+                          Редактирай
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(product)}>
+                          Изтрий
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 

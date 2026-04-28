@@ -13,7 +13,9 @@ export function AdminLayout({title, children}: AdminLayoutProps) {
         <CardHeader>
           <CardTitle className="text-2xl">{title}</CardTitle>
         </CardHeader>
-        <CardContent className="px-0 [&>div]:space-y-4 [&>div>div:not(:has(table))]:px-6 [&>div>p]:px-6">{children}</CardContent>
+        <CardContent className="px-0 [&>div]:space-y-4 [&>div>div:not(:has(table))]:px-6 [&>div>p]:px-6">
+          {children}
+        </CardContent>
       </Card>
     </div>
   );

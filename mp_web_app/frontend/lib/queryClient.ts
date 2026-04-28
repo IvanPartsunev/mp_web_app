@@ -1,11 +1,13 @@
 // lib/queryClient.ts
-import { QueryClient } from '@tanstack/react-query';
+import {QueryClient} from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Stale time: how long data is considered fresh
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Stale time: 0 means data is immediately stale after fetching,
+      // so invalidation always triggers a real refetch.
+      // Hooks that benefit from longer caching override this individually.
+      staleTime: 0,
       // Cache time: how long unused data stays in cache
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       // Retry failed requests

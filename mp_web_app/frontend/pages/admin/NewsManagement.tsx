@@ -65,21 +65,24 @@ export default function NewsManagement() {
   const handleEdit = async () => {
     if (!selectedNews) return;
 
-    updateMutation.mutate({id: selectedNews.id, ...formData}, {
-      onSuccess: () => {
-        toast({title: "Успех", description: "Новината е обновена успешно"});
-        setEditDialogOpen(false);
-        setSelectedNews(null);
-        setFormData({title: "", content: "", news_type: "regular"});
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно обновяване на новината",
-          variant: "destructive",
-        });
-      },
-    });
+    updateMutation.mutate(
+      {id: selectedNews.id, ...formData},
+      {
+        onSuccess: () => {
+          toast({title: "Успех", description: "Новината е обновена успешно"});
+          setEditDialogOpen(false);
+          setSelectedNews(null);
+          setFormData({title: "", content: "", news_type: "regular"});
+        },
+        onError: (err: any) => {
+          toast({
+            title: "Грешка",
+            description: err.response?.data?.detail || "Неуспешно обновяване на новината",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const handleDelete = async () => {
@@ -177,49 +180,51 @@ export default function NewsManagement() {
           <p className="text-center text-muted-foreground py-8">Няма налични новини</p>
         ) : (
           <div className={TABLE_STYLES.scrollWrapper}>
-          <Table className={TABLE_STYLES.tableBase}>
-            <TableHeader>
-              <TableRow>
-                <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[35%]`}>Заглавие</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
-                <TableHead className={`${TABLE_STYLES.headBase} w-[25%]`}>Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {news.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
-                  <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{item.title}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    {item.news_type === "private" ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
-                        <Lock className="w-3 h-3" />
-                        За членове
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
-                        <Globe className="w-3 h-3" />
-                        Обществена
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>{item.created_at ? new Date(item.created_at).toLocaleDateString("bg-BG") : "-"}</TableCell>
-                  <TableCell className={TABLE_STYLES.cellBase}>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
-                        Редактирай
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item as News)}>
-                        Изтрий
-                      </Button>
-                    </div>
-                  </TableCell>
+            <Table className={TABLE_STYLES.tableBase}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%]`}>Заглавие</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[25%]`}>Действия</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {news.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{item.title}</TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {item.news_type === "private" ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
+                          <Lock className="w-3 h-3" />
+                          За членове
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                          <Globe className="w-3 h-3" />
+                          Обществена
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString("bg-BG") : "-"}
+                    </TableCell>
+                    <TableCell className={TABLE_STYLES.cellBase}>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
+                          Редактирай
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item as News)}>
+                          Изтрий
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 

@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from users.exceptions import ValidationError
+from users.exceptions import UserNotFoundError, ValidationError
 from users.models import UserCreate, UserUpdate
 from users.operations import (
   create_user,
@@ -172,9 +172,8 @@ class TestUpdateUser:
     mock_repo = Mock()
     user_data = UserUpdate(role="admin")
 
-    result = update_user("user123", "test@example.com", user_data, mock_repo)
-
-    assert result is None
+    with pytest.raises(UserNotFoundError):
+      update_user("user123", "test@example.com", user_data, mock_repo)
 
 
 class TestDeleteUser:
@@ -187,9 +186,8 @@ class TestDeleteUser:
     mock_repo = Mock()
     mock_repo.table.delete_item = Mock()
 
-    result = delete_user("test@example.com", mock_repo)
+    delete_user("test@example.com", mock_repo)
 
-    assert result is True
     mock_repo.table.delete_item.assert_called_once_with(Key={"id": "user123"})
 
   @patch("users.operations.get_user_by_email")
@@ -197,7 +195,8 @@ class TestDeleteUser:
     mock_get_user.return_value = None
 
     mock_repo = Mock()
-    result = delete_user("test@example.com", mock_repo)
 
-    assert result is False
+    with pytest.raises(UserNotFoundError):
+      delete_user("test@example.com", mock_repo)
+
     mock_repo.table.delete_item.assert_not_called()

@@ -1,7 +1,7 @@
 // hooks/useGallery.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/context/apiClient';
-import { API_BASE_URL } from '@/app-config';
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import apiClient from "@/context/apiClient";
+import {API_BASE_URL} from "@/app-config";
 
 export interface GalleryImage {
   id: string;
@@ -15,8 +15,8 @@ export interface GalleryImage {
 
 // Query key factory
 export const galleryKeys = {
-  all: ['gallery'] as const,
-  lists: () => [...galleryKeys.all, 'list'] as const,
+  all: ["gallery"] as const,
+  lists: () => [...galleryKeys.all, "list"] as const,
   list: () => [...galleryKeys.lists()] as const,
 };
 
@@ -27,7 +27,7 @@ export function useGallery() {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}gallery/list`);
       if (!response.ok) {
-        throw new Error('Failed to fetch gallery');
+        throw new Error("Failed to fetch gallery");
       }
       const data = await response.json();
       return (data || []) as GalleryImage[];
@@ -39,18 +39,18 @@ export function useGallery() {
 // Create gallery image mutation
 export function useCreateGalleryImage() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiClient.post('gallery/create', formData, {
+      const response = await apiClient.post("gallery/create", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: galleryKeys.list() });
+      queryClient.invalidateQueries({queryKey: galleryKeys.list()});
     },
   });
 }
@@ -58,13 +58,13 @@ export function useCreateGalleryImage() {
 // Delete gallery image mutation
 export function useDeleteGalleryImage() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       await apiClient.delete(`gallery/delete/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: galleryKeys.list() });
+      queryClient.invalidateQueries({queryKey: galleryKeys.list()});
     },
   });
 }

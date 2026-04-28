@@ -8,6 +8,7 @@ from news.operations import (
   create_news,
   delete_news,
   get_news,
+  get_news_by_id,
   update_news,
 )
 
@@ -54,10 +55,10 @@ class TestCreateNews:
 
 
 class TestDeleteNews:
-  @patch("news.operations.get_news")
-  def test_deletes_existing_news(self, mock_get_news, mock_repo):
+  @patch("news.operations.get_news_by_id")
+  def test_deletes_existing_news(self, mock_get_news_by_id, mock_repo):
     mock_news = Mock()
-    mock_get_news.return_value = mock_news
+    mock_get_news_by_id.return_value = mock_news
     mock_repo.table.delete_item = Mock()
 
     result = delete_news("news123", mock_repo)
@@ -65,21 +66,23 @@ class TestDeleteNews:
     assert result is True
     mock_repo.table.delete_item.assert_called_once_with(Key={"id": "news123"})
 
-  @patch("news.operations.get_news")
-  def test_returns_false_for_nonexistent_news(self, mock_get_news, mock_repo):
-    mock_get_news.return_value = None
+  @patch("news.operations.get_news_by_id")
+  def test_returns_false_for_nonexistent_news(self, mock_get_news_by_id, mock_repo):
+    from news.exceptions import NewsNotFoundError
 
-    result = delete_news("news123", mock_repo)
+    mock_get_news_by_id.side_effect = NewsNotFoundError("news123")
 
-    assert result is False
+    with pytest.raises(NewsNotFoundError):
+      delete_news("news123", mock_repo)
+
     mock_repo.table.delete_item.assert_not_called()
 
 
 class TestUpdateNews:
-  @patch("news.operations.get_news")
-  def test_updates_news_successfully(self, mock_get_news, mock_repo):
+  @patch("news.operations.get_news_by_id")
+  def test_updates_news_successfully(self, mock_get_news_by_id, mock_repo):
     mock_news = Mock()
-    mock_get_news.return_value = mock_news
+    mock_get_news_by_id.return_value = mock_news
 
     mock_repo.table.update_item = Mock(return_value={"Attributes": {"id": "news123", "title": "Updated Title"}})
     mock_repo.convert_item_to_object = Mock(return_value=mock_news)
@@ -96,14 +99,17 @@ class TestUpdateNews:
     assert ":edited_by" in call_args["ExpressionAttributeValues"]
     assert call_args["ExpressionAttributeValues"][":edited_by"] == "user123"
 
-  @patch("news.operations.get_news")
-  def test_returns_none_for_nonexistent_news(self, mock_get_news, mock_repo):
-    mock_get_news.return_value = None
+  @patch("news.operations.get_news_by_id")
+  def test_returns_none_for_nonexistent_news(self, mock_get_news_by_id, mock_repo):
+    from news.exceptions import NewsNotFoundError
+
+    mock_get_news_by_id.side_effect = NewsNotFoundError("news123")
 
     news_update = NewsUpdate(title="Updated Title", content="Updated content", news_type=NewsType.regular)
-    result = update_news(news_update, "news123", "user123", mock_repo)
 
-    assert result is None
+    with pytest.raises(NewsNotFoundError):
+      update_news(news_update, "news123", "user123", mock_repo)
+
     mock_repo.table.update_item.assert_not_called()
 
 
@@ -113,17 +119,18 @@ class TestGetNews:
     mock_repo.table.get_item = Mock(return_value={"Item": mock_item})
     mock_repo.convert_item_to_object = Mock(return_value=mock_item)
 
-    result = get_news(mock_repo, news_id="news123")
+    result = get_news_by_id(mock_repo, news_id="news123")
 
     assert result is not None
     mock_repo.table.get_item.assert_called_once_with(Key={"id": "news123"})
 
   def test_returns_none_for_nonexistent_news(self, mock_repo):
+    from news.exceptions import NewsNotFoundError
+
     mock_repo.table.get_item = Mock(return_value={})
 
-    result = get_news(mock_repo, news_id="news123")
-
-    assert result is None
+    with pytest.raises(NewsNotFoundError):
+      get_news_by_id(mock_repo, news_id="news123")
 
   @patch("news.operations.is_token_expired")
   def test_gets_all_news_with_valid_token(self, mock_is_expired, mock_repo):

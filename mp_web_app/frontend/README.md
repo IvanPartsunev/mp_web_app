@@ -6,20 +6,20 @@ The frontend is a single-page application built with **React 18**, **TypeScript*
 
 ## Tech Stack
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| React | 18.3.1 | UI framework |
-| TypeScript | 5.7.3 | Type safety |
-| Vite | 6.0.7 | Build tool & dev server |
-| Tailwind CSS | 4.1.11 | Utility-first styling |
-| React Router DOM | 6.28.1 | Client-side routing |
-| TanStack React Query | 5.90.9 | Server state management & caching |
-| Axios | 1.7.9 | HTTP client with interceptors |
-| Radix UI | Various | Accessible headless UI primitives |
-| Lucide React | 0.468.0 | Icon library |
-| next-themes | 0.4.6 | Dark mode support |
-| Sonner | 2.0.7 | Toast notifications |
-| class-variance-authority | 0.7.1 | Component variants |
+| Technology               | Version | Purpose                           |
+| ------------------------ | ------- | --------------------------------- |
+| React                    | 18.3.1  | UI framework                      |
+| TypeScript               | 5.7.3   | Type safety                       |
+| Vite                     | 6.0.7   | Build tool & dev server           |
+| Tailwind CSS             | 4.1.11  | Utility-first styling             |
+| React Router DOM         | 6.28.1  | Client-side routing               |
+| TanStack React Query     | 5.90.9  | Server state management & caching |
+| Axios                    | 1.7.9   | HTTP client with interceptors     |
+| Radix UI                 | Various | Accessible headless UI primitives |
+| Lucide React             | 0.468.0 | Icon library                      |
+| next-themes              | 0.4.6   | Dark mode support                 |
+| Sonner                   | 2.0.7   | Toast notifications               |
+| class-variance-authority | 0.7.1   | Component variants                |
 
 ---
 
@@ -144,35 +144,35 @@ All routes are defined in `src/App.tsx` using React Router DOM v6.
 
 ### Public Routes (No Auth Required)
 
-| Path | Component | Description |
-|------|-----------|-------------|
-| `/` or `/home` | `Home` | News feed with pagination |
-| `/products` | `Products` | Product catalog with dimensions table |
-| `/gallery` | `Gallery` | Masonry image gallery with modal viewer |
-| `/contacts` | `Contacts` | Contact info, map, and history |
-| `/board` | `Board` | Board members list |
-| `/control` | `Control` | Control board members list |
-| `/governing-documents` | `GoverningDocuments` | Public governing documents |
-| `/forms` | `Forms` | Public forms |
-| `/login` | `Login` | Login form |
-| `/register` | `Register` | Registration form |
-| `/forgot-password` | `ForgotPassword` | Password reset request |
-| `/new-password` | `NewPassword` | Set new password |
-| `/unsubscribe` | `Unsubscribe` | Email unsubscribe |
+| Path                   | Component            | Description                             |
+| ---------------------- | -------------------- | --------------------------------------- |
+| `/` or `/home`         | `Home`               | News feed with pagination               |
+| `/products`            | `Products`           | Product catalog with dimensions table   |
+| `/gallery`             | `Gallery`            | Masonry image gallery with modal viewer |
+| `/contacts`            | `Contacts`           | Contact info, map, and history          |
+| `/board`               | `Board`              | Board members list                      |
+| `/control`             | `Control`            | Control board members list              |
+| `/governing-documents` | `GoverningDocuments` | Public governing documents              |
+| `/forms`               | `Forms`              | Public forms                            |
+| `/login`               | `Login`              | Login form                              |
+| `/register`            | `Register`           | Registration form                       |
+| `/forgot-password`     | `ForgotPassword`     | Password reset request                  |
+| `/new-password`        | `NewPassword`        | Set new password                        |
+| `/unsubscribe`         | `Unsubscribe`        | Email unsubscribe                       |
 
 ### Protected Routes (Auth Required)
 
-| Path | Component | Required Role | Description |
-|------|-----------|---------------|-------------|
-| `/proxies` | `Proxies` | Any authenticated | Proxy members list |
-| `/cooperative` | `CooperativeMembers` | Any authenticated | All members directory |
-| `/minutes` | `Minutes` | Any authenticated | Meeting minutes |
-| `/transcripts` | `Transcripts` | Any authenticated | Meeting transcripts |
-| `/accounting-documents` | `AccountingDocuments` | Admin, Accountant | Accounting files |
-| `/mydocuments` | `MyDocuments` | Any authenticated | Private documents |
-| `/others` | `Others` | Any authenticated | Other documents |
-| `/upload` | `UploadFile` | Admin, Accountant | File upload form |
-| `/admin` | `AdminPanel` | Admin | Full admin dashboard |
+| Path                    | Component             | Required Role     | Description           |
+| ----------------------- | --------------------- | ----------------- | --------------------- |
+| `/proxies`              | `Proxies`             | Any authenticated | Proxy members list    |
+| `/cooperative`          | `CooperativeMembers`  | Any authenticated | All members directory |
+| `/minutes`              | `Minutes`             | Any authenticated | Meeting minutes       |
+| `/transcripts`          | `Transcripts`         | Any authenticated | Meeting transcripts   |
+| `/accounting-documents` | `AccountingDocuments` | Admin, Accountant | Accounting files      |
+| `/mydocuments`          | `MyDocuments`         | Any authenticated | Private documents     |
+| `/others`               | `Others`              | Any authenticated | Other documents       |
+| `/upload`               | `UploadFile`          | Admin, Accountant | File upload form      |
+| `/admin`                | `AdminPanel`          | Admin             | Full admin dashboard  |
 
 ---
 
@@ -185,8 +185,8 @@ All API data is managed via **TanStack React Query** with custom hooks. Each hoo
 ```typescript
 // Query key factory
 const newsKeys = {
-  all: ['news'],
-  lists: () => [...newsKeys.all, 'list'],
+  all: ["news"],
+  lists: () => [...newsKeys.all, "list"],
   list: () => [...newsKeys.lists()],
 };
 
@@ -194,7 +194,7 @@ const newsKeys = {
 export function useNews() {
   return useQuery({
     queryKey: newsKeys.list(),
-    queryFn: () => apiClient.get('/news/list'),
+    queryFn: () => apiClient.get("/news/list"),
   });
 }
 
@@ -202,27 +202,28 @@ export function useNews() {
 export function useCreateNews() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data) => apiClient.post('/news/create', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: newsKeys.all }),
+    mutationFn: (data) => apiClient.post("/news/create", data),
+    onSuccess: () => queryClient.invalidateQueries({queryKey: newsKeys.all}),
   });
 }
 ```
 
 ### Hooks Overview
 
-| Hook | Entity | Queries | Mutations |
-|------|--------|---------|-----------|
-| `useNews` | News | list | create, update, delete |
-| `useUsers` | Users | list, board, control, me | update, delete |
-| `useProducts` | Products | list | create, update, delete |
-| `useGallery` | Gallery | list | create (upload), delete |
-| `useFiles` | Files | list (by type) | create (upload), delete, download |
-| `useMembers` | Members | list | create, update, delete, sync |
-| `usePagination` | Generic | N/A | N/A (pagination state) |
+| Hook            | Entity   | Queries                  | Mutations                         |
+| --------------- | -------- | ------------------------ | --------------------------------- |
+| `useNews`       | News     | list                     | create, update, delete            |
+| `useUsers`      | Users    | list, board, control, me | update, delete                    |
+| `useProducts`   | Products | list                     | create, update, delete            |
+| `useGallery`    | Gallery  | list                     | create (upload), delete           |
+| `useFiles`      | Files    | list (by type)           | create (upload), delete, download |
+| `useMembers`    | Members  | list                     | create, update, delete, sync      |
+| `usePagination` | Generic  | N/A                      | N/A (pagination state)            |
 
 ### Client State (React Context)
 
 **AuthContext** manages authentication:
+
 - `isLoggedIn` - Boolean auth status
 - `user` - Current user data (id, email, name, role)
 - `login(accessToken)` - Store token and decode user
@@ -248,6 +249,7 @@ export function useCreateNews() {
 ### Error Handling (`lib/errorUtils.ts`)
 
 All API errors pass through `extractApiErrorDetails()` which:
+
 1. Extracts error messages from FastAPI validation errors
 2. Translates English error messages to **Bulgarian** for user display
 3. Handles nested error formats (string, array, object)
@@ -276,23 +278,27 @@ The `components/ui/` directory contains **shadcn/ui** components built on **Radi
 ### Key Feature Components
 
 **Gallery Page:**
+
 - Masonry layout with responsive columns (1-4)
 - Intersection Observer for lazy loading images
 - Full-screen modal with previous/next navigation
 - Hover effects (scale, shadow, name overlay)
 
 **Admin Panel:**
+
 - Tabbed interface (desktop) / dropdown (mobile)
 - Persists active tab in localStorage
 - 6 management sections: News, Users, Products, Documents, Gallery, Members
 
 **File Upload:**
+
 - Drag-and-drop zone with visual feedback
 - File type validation (format + size)
 - Role-based upload restrictions (Admin: all types, Accountant: accounting only)
 - Multi-user access control for private documents
 
 **Navigation:**
+
 - Responsive design: full menu (desktop) / hamburger (mobile)
 - Dropdown menus for documents and lists sections
 - Role-based menu item visibility
@@ -355,8 +361,13 @@ interface FileMetadata {
 }
 
 type FileType =
-  | 'governing_documents' | 'forms' | 'minutes' | 'transcripts'
-  | 'accounting' | 'private_documents' | 'others';
+  | "governing_documents"
+  | "forms"
+  | "minutes"
+  | "transcripts"
+  | "accounting"
+  | "private_documents"
+  | "others";
 
 interface Member {
   member_code: string;
@@ -407,9 +418,9 @@ make frontend-check   # lint + format-check + type-check
 The `@/` alias maps to the frontend root directory:
 
 ```typescript
-import { Button } from "@/components/ui/button";
-import { useNews } from "@/hooks/useNews";
-import { apiClient } from "@/context/apiClient";
+import {Button} from "@/components/ui/button";
+import {useNews} from "@/hooks/useNews";
+import {apiClient} from "@/context/apiClient";
 ```
 
 ### Code Style

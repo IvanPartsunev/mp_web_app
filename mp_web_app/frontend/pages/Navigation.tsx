@@ -129,7 +129,8 @@ export function Navigation() {
         .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role || "").toLowerCase();
-      if (role === "admin" || role === "board" || role === "control" || role === "accountant" || role === "regular") return role as any;
+      if (role === "admin" || role === "board" || role === "control" || role === "accountant" || role === "regular")
+        return role as any;
       return null;
     } catch {
       return null;
@@ -162,12 +163,12 @@ export function Navigation() {
     if (mobileMenuOpen) {
       setShowMobileMenu(true);
       // Prevent body scroll when menu is open
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
       setTimeout(() => setMenuAnimating(true), 10);
     } else if (showMobileMenu) {
       setMenuAnimating(false);
       // Restore body scroll
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
       const timeout = setTimeout(() => setShowMobileMenu(false), 300);
       return () => clearTimeout(timeout);
     }
@@ -236,18 +237,17 @@ export function Navigation() {
               documentsItems = link.dropdown;
             } else if (isAccountant) {
               // Accountant: see ONLY accounting documents
-              documentsItems = link.dropdown.filter((item: any) => 
-                item.to === "/accounting-documents"
-              );
+              documentsItems = link.dropdown.filter((item: any) => item.to === "/accounting-documents");
             } else {
               // Regular users: see all except "Счетоводни документи" (accounting)
-              documentsItems = link.dropdown.filter((item: any) => 
-                item.to === "/governing-documents" || 
-                item.to === "/forms" || 
-                item.to === "/minutes" || 
-                item.to === "/transcripts" || 
-                item.to === "/mydocuments" ||
-                item.to === "/others"
+              documentsItems = link.dropdown.filter(
+                (item: any) =>
+                  item.to === "/governing-documents" ||
+                  item.to === "/forms" ||
+                  item.to === "/minutes" ||
+                  item.to === "/transcripts" ||
+                  item.to === "/mydocuments" ||
+                  item.to === "/others"
               );
             }
           } else {
@@ -285,18 +285,10 @@ export function Navigation() {
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
           <div className="mt-4 space-y-2">
-            <Button
-              className="w-full"
-              onClick={() => handleNavigation("/upload")}
-              disabled={isNavigating}
-            >
+            <Button className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
               Качи документ
             </Button>
-            <Button
-              className="w-full"
-              onClick={() => handleNavigation("/admin")}
-              disabled={isNavigating}
-            >
+            <Button className="w-full" onClick={() => handleNavigation("/admin")} disabled={isNavigating}>
               Админ панел
             </Button>
           </div>
@@ -304,11 +296,7 @@ export function Navigation() {
         {/* Accountant upload action for mobile */}
         {isLoggedIn && isAccountant && (
           <div className="mt-4">
-            <Button
-              className="w-full"
-              onClick={() => handleNavigation("/upload")}
-              disabled={isNavigating}
-            >
+            <Button className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
               Качи документ
             </Button>
           </div>
@@ -358,7 +346,13 @@ export function Navigation() {
     <>
       {/* Desktop Navigation */}
       {!isMobile && (
-        <div className="flex p-3 w-full items-center justify-center bg-background border-t-2 border-b-2 border-transparent" style={{borderImage: 'linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8)) 1'}}>
+        <div
+          className="flex p-3 w-full items-center justify-center bg-background border-t-2 border-b-2 border-transparent"
+          style={{
+            borderImage:
+              "linear-gradient(to right, oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56), oklch(0.5889 0.145 154.56 / 0.8)) 1",
+          }}
+        >
           <NavigationMenu viewport={false}>
             <NavigationMenuList className="gap-2">
               {NAV_LINKS.map((link) => {
@@ -366,10 +360,7 @@ export function Navigation() {
                   return (
                     <NavigationMenuItem key={link.label}>
                       <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                        <Link 
-                          to={link.to}
-                          className="transition-all duration-200 hover:scale-105"
-                        >
+                        <Link to={link.to} className="transition-all duration-200 hover:scale-105">
                           {link.label}
                         </Link>
                       </NavigationMenuLink>
@@ -397,18 +388,17 @@ export function Navigation() {
                     documentsItems = link.dropdown;
                   } else if (isAccountant) {
                     // Accountant: see ONLY accounting documents
-                    documentsItems = link.dropdown.filter((item: any) => 
-                      item.to === "/accounting-documents"
-                    );
+                    documentsItems = link.dropdown.filter((item: any) => item.to === "/accounting-documents");
                   } else {
                     // Regular users: see all except "Счетоводні документи" (accounting)
-                    documentsItems = link.dropdown.filter((item: any) => 
-                      item.to === "/governing-documents" || 
-                      item.to === "/forms" || 
-                      item.to === "/minutes" || 
-                      item.to === "/transcripts" || 
-                      item.to === "/mydocuments" ||
-                      item.to === "/others"
+                    documentsItems = link.dropdown.filter(
+                      (item: any) =>
+                        item.to === "/governing-documents" ||
+                        item.to === "/forms" ||
+                        item.to === "/minutes" ||
+                        item.to === "/transcripts" ||
+                        item.to === "/mydocuments" ||
+                        item.to === "/others"
                     );
                   }
                 } else {
@@ -423,20 +413,22 @@ export function Navigation() {
 
                 return (
                   <NavigationMenuItem key={link.label}>
-                    <NavigationMenuTrigger className="transition-all duration-200">
-                      {link.label}
-                    </NavigationMenuTrigger>
+                    <NavigationMenuTrigger className="transition-all duration-200">{link.label}</NavigationMenuTrigger>
                     <NavigationMenuContent className="relative z-50">
                       <ul className="grid w-[280px] gap-1 p-2">
                         {itemsToRender.map((item: any) => (
                           <li key={item.label}>
                             <NavigationMenuLink asChild>
-                              <Link 
+                              <Link
                                 to={item.to}
                                 className="block select-none rounded-lg p-3 leading-none no-underline outline-none transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:shadow-md border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50"
                               >
-                                <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">{item.label}</div>
-                                <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">{item.description}</div>
+                                <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">
+                                  {item.label}
+                                </div>
+                                <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">
+                                  {item.description}
+                                </div>
                               </Link>
                             </NavigationMenuLink>
                           </li>
@@ -478,30 +470,36 @@ export function Navigation() {
               {/* Auth section for desktop */}
               {!isLoggedIn ? (
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="transition-all duration-200">
-                    Вход
-                  </NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="transition-all duration-200">Вход</NavigationMenuTrigger>
                   <NavigationMenuContent className="relative z-50">
                     <ul className="grid w-[280px] gap-1 p-2">
                       <li>
                         <NavigationMenuLink asChild>
-                          <Link 
+                          <Link
                             to="/login"
                             className="block select-none rounded-lg p-3 leading-none no-underline outline-none transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:shadow-md border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50"
                           >
-                            <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">Влез</div>
-                            <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">Влезе в своя акаунт</div>
+                            <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">
+                              Влез
+                            </div>
+                            <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">
+                              Влезе в своя акаунт
+                            </div>
                           </Link>
                         </NavigationMenuLink>
                       </li>
                       <li>
                         <NavigationMenuLink asChild>
-                          <Link 
+                          <Link
                             to="/register"
                             className="block select-none rounded-lg p-3 leading-none no-underline outline-none transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:shadow-md border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50"
                           >
-                            <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">Създай</div>
-                            <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">Създай акаунт ако си член на ГПК</div>
+                            <div className="font-medium text-sm leading-none mb-1 text-gray-900 dark:text-white">
+                              Създай
+                            </div>
+                            <div className="text-gray-600 dark:text-gray-400 text-xs leading-snug">
+                              Създай акаунт ако си член на ГПК
+                            </div>
                           </Link>
                         </NavigationMenuLink>
                       </li>
@@ -510,10 +508,7 @@ export function Navigation() {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem>
-                  <Button 
-                    className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md" 
-                    onClick={logout}
-                  >
+                  <Button className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md" onClick={logout}>
                     Изход
                   </Button>
                 </NavigationMenuItem>

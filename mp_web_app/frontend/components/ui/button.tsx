@@ -10,12 +10,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 active:scale-95 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
+        default:
+          "bg-gradient-to-r from-primary to-primary/90 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 active:scale-95 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
         destructive:
           "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/40 hover:scale-105 active:scale-95",
         outline:
           "border-2 border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm hover:border-primary hover:bg-primary/5 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md",
-        secondary: "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-900 dark:text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95",
+        secondary:
+          "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-900 dark:text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95",
         ghost: "hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:scale-105 active:scale-95 backdrop-blur-sm",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
       },
@@ -35,9 +37,7 @@ const buttonVariants = cva(
   }
 );
 
-interface ButtonProps
-  extends React.ComponentProps<"button">,
-    VariantProps<typeof buttonVariants> {
+interface ButtonProps extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
 }
