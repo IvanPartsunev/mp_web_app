@@ -49,7 +49,7 @@ export function useCreateNews() {
   });
 }
 
-// Update news mutation
+// Update news mutation (with optimistic update)
 export function useUpdateNews() {
   const queryClient = useQueryClient();
   
@@ -58,7 +58,32 @@ export function useUpdateNews() {
       const response = await apiClient.put(`news/update/${id}`, news);
       return response.data;
     },
-    onSuccess: () => {
+    onMutate: async (updatedNews) => {
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: newsKeys.lists() });
+
+      // Snapshot all matching news list caches
+      const previousData = queryClient.getQueriesData<NewsItem[]>({ queryKey: newsKeys.lists() });
+
+      // Optimistically update all cached news list variants
+      queryClient.setQueriesData<NewsItem[]>({ queryKey: newsKeys.lists() }, (old) =>
+        old?.map((item) =>
+          item.id === updatedNews.id ? { ...item, ...updatedNews } : item
+        )
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      // Roll back to the snapshot on failure
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSettled: () => {
+      // Always reconcile with the server after success or failure
       queryClient.invalidateQueries({ queryKey: newsKeys.lists() });
     },
   });

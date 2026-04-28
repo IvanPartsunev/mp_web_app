@@ -8,7 +8,7 @@ import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
 import {HERO_STYLES, SECTION_STYLES} from "@/lib/styles";
 
 export default function Proxies() {
-  const {data: members = [], isLoading: loading, error: queryError} = useMembers({proxy_only: true});
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers({proxy_only: true}, 30 * 60 * 1000);
   const error = queryError ? "Неуспешно зареждане на пълномощниците" : null;
   const {isLoggedIn, user} = useAuth();
   const isAdmin = user?.role === "admin";
@@ -56,6 +56,7 @@ export default function Proxies() {
                           Име
                         </div>
                       </TableHead>
+                      <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.name}`}>Презиме</TableHead>
                       <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.name}`}>Фамилия</TableHead>
                       {isLoggedIn && (
                         <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.email}`}>
@@ -86,6 +87,7 @@ export default function Proxies() {
                       <TableRow key={index}>
                         <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
                         <TableCell className={TABLE_STYLES.cellBase}>{member.first_name}</TableCell>
+                        <TableCell className={TABLE_STYLES.cellBase}>{member.middle_name || "-"}</TableCell>
                         <TableCell className={TABLE_STYLES.cellBase}>{member.last_name}</TableCell>
                         {isLoggedIn && (
                           <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>
@@ -108,9 +110,7 @@ export default function Proxies() {
                               {member.member_code ? (
                                 !member.member_code_valid ? (
                                   <CheckCircle className="h-4 w-4 text-green-600 mx-auto" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-red-600 mx-auto" />
-                                )
+                                ) : null
                               ) : (
                                 "-"
                               )}

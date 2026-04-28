@@ -5,6 +5,7 @@ import apiClient from '@/context/apiClient';
 export interface Member {
   member_code: string;
   first_name: string;
+  middle_name?: string;
   last_name: string;
   email?: string;
   phone?: string;
@@ -22,7 +23,7 @@ export const memberKeys = {
 };
 
 // Fetch members list
-export function useMembers(filters?: { proxy_only?: boolean; role?: string }) {
+export function useMembers(filters?: { proxy_only?: boolean; role?: string }, staleTime = 0) {
   return useQuery({
     queryKey: memberKeys.list(filters),
     queryFn: async () => {
@@ -31,7 +32,7 @@ export function useMembers(filters?: { proxy_only?: boolean; role?: string }) {
       });
       return response.data ?? [];
     },
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime, // 0 for admin, callers can pass longer value for public pages
   });
 }
 

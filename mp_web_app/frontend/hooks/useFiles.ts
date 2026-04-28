@@ -38,7 +38,7 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 30 * 1000, // 30 seconds
   });
 }
 
@@ -72,7 +72,7 @@ export function useAllFiles() {
       }
       return allFiles;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes (admin panel)
+    staleTime: 0, // admin panel — always fetch fresh data
   });
 }
 

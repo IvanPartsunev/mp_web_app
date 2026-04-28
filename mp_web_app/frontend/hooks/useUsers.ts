@@ -34,7 +34,7 @@ export function useUsersList() {
       const response = await apiClient.get<User[]>('users/list');
       return response.data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes (admin panel)
+    staleTime: 0, // admin panel — always fetch fresh data
   });
 }
 
