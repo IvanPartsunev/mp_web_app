@@ -142,6 +142,7 @@ def get_news(repo: NewsRepository, token: str | None = None):
   items = response["Items"]
 
   while "LastEvaluatedKey" in response:
+    query_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
     response = repo.table.query(**query_kwargs)
     items.extend(response["Items"])
   return items
