@@ -33,6 +33,7 @@ class FrontendStack(Stack):
     self.frontend_url = f"https://{frontend_subdomain}.{domain_name}"
 
     # 4. Create a CloudFront distribution with the S3 bucket as the origin
+    # Both www and bare domain point here; REDIRECT_TO_HTTPS handles http->https
     distribution = cloudfront.Distribution(
       self, "FrontendDistribution",
       default_behavior=cloudfront.BehaviorOptions(
@@ -40,16 +41,27 @@ class FrontendStack(Stack):
         viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       ),
       default_root_object="index.html",
-      domain_names=[f"{frontend_subdomain}.{domain_name}"],
+      domain_names=[f"{frontend_subdomain}.{domain_name}", domain_name],
       certificate=certificate,
       error_responses=[
         cloudfront.ErrorResponse(
           http_status=404,
           response_http_status=200,
           response_page_path="/index.html",
-          ttl=Duration.minutes(0),  # optional, for instant updates
+          ttl=Duration.minutes(0),
         )
       ],
+    )
+
+    # Create a Route 53 A record for the root domain
+    route53.ARecord(
+      self,
+      "FrontendRootDnsRecord",
+      zone=hosted_zone,
+      record_name=domain_name,
+      target=route53.RecordTarget.from_alias(
+        route53_targets.CloudFrontTarget(distribution)
+      ),
     )
 
     # Create a Route 53 A record for the custom domain

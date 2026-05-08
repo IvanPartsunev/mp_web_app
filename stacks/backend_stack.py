@@ -30,6 +30,7 @@ class BackendStack(Stack):
     certificate: acm.ICertificate,
     uploads_cloudfront_domain: str = None,  # CloudFront domain from UploadsStack
     uploads_distribution_id: str = None,  # Distribution ID for cache invalidation
+    uploads_bucket_name: str = None,  # S3 bucket name from UploadsStack
     **kwargs
   ):
     super().__init__(scope, id, **kwargs)
@@ -187,7 +188,7 @@ class BackendStack(Stack):
         "MAIL_SENDER": "office@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
-        "UPLOADS_BUCKET": "uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
+        "UPLOADS_BUCKET": uploads_bucket_name or "",
         "GALLERY_TABLE_NAME": self.table6.table_name,
         "PRODUCTS_TABLE_NAME": self.table7.table_name,
         # CloudFront configuration
@@ -268,8 +269,8 @@ class BackendStack(Stack):
           "s3:DeleteObject"
         ],
         resources=[
-          "arn:aws:s3:::uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up",
-          "arn:aws:s3:::uploadsstack-uploadsbucket5e5e9b64-luhskbfle3up/*"
+          f"arn:aws:s3:::{uploads_bucket_name}",
+          f"arn:aws:s3:::{uploads_bucket_name}/*"
         ]
       )
     )

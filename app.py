@@ -7,21 +7,19 @@ from stacks.uploads_stack import UploadsStack
 from stacks.backend_stack import BackendStack
 
 # --- Configuration ---
-# IMPORTANT: Replace these placeholder values with your actual domain details.
 
-# 1. Your custom domain name.
-DOMAIN_NAME = "ivan-partsunev.com"
+# 1. Domain name.
+DOMAIN_NAME = "murdjovpojar.com"
 
-# 2. Subdomains for your frontend and backend.
+# 2. Subdomains for frontend and backend.
 FRONTEND_SUBDOMAIN = "www"
 API_SUBDOMAIN = "api"
 
-# 3. The Hosted Zone ID for your domain from AWS Route 53.
-HOSTED_ZONE_ID = "Z04684445P1BPRRLOCFS"
+# 3. The Hosted Zone ID for domain from AWS Route 53.
+HOSTED_ZONE_ID = "Z0052226BNBL8QXSJIMI"
 
-# 4. The ARN of your ACM Certificate.
-# IMPORTANT: This certificate must be in the us-east-1 region for CloudFront and API Gateway.
-CERTIFICATE_ARN = "arn:aws:acm:us-east-1:920373018400:certificate/ad3f9a87-f6bd-4ece-b26f-4d7ade6449b1"
+# 4. The ARN of ACM Certificate.
+CERTIFICATE_ARN = "arn:aws:acm:us-east-1:334317073615:certificate/9f5708b3-a287-483b-b9c6-9863dbfe141a"
 
 
 class DomainLookupStack(Stack):
@@ -45,7 +43,7 @@ app = App()
 # Optionally, set your AWS account and region here
 env = Environment(account=None, region=None)
 
-# Create the stack that looks up your domain resources
+# Create the stack that looks up domain resources
 domain_stack = DomainLookupStack(app, "DomainLookupStack", env=env)
 
 # Create the frontend stack, passing in the domain resources
@@ -73,6 +71,7 @@ backend_stack = BackendStack(
   certificate=domain_stack.certificate,
   uploads_cloudfront_domain=uploads_stack.uploads_distribution.distribution_domain_name,  # Pass CloudFront domain
   uploads_distribution_id=uploads_stack.uploads_distribution.distribution_id,  # Pass distribution ID
+  uploads_bucket_name=uploads_stack.uploads_bucket.bucket_name,  # Pass bucket name dynamically
 )
 
 app.synth()
