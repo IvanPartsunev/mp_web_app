@@ -325,7 +325,7 @@ Concrete repositories: `UserRepository`, `AuthRepository`, `NewsRepository`, `Ga
 | News notification | News creation | N/A |
 | Unsubscribe | Email link | N/A |
 
-Provider: **AWS SES** | Sender: `office@murdjovpojar.com` | Templates: Bulgarian HTML
+Provider: **AWS SES** | Sender: `notifications@murdjovpojar.com` | Templates: Bulgarian HTML
 
 ---
 

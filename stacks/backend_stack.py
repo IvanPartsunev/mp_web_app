@@ -185,7 +185,7 @@ class BackendStack(Stack):
         "REFRESH_TABLE_NAME": self.table3.table_name,
         "UPLOADS_TABLE_NAME": self.table4.table_name,
         "NEWS_TABLE_NAME": self.table5.table_name,
-        "MAIL_SENDER": "office@murdjovpojar.com",
+        "MAIL_SENDER": "notifications@murdjovpojar.com",
         "JWT_SECRET_ARN": self.jwt_secret.secret_arn,
         "JWT_ALGORITHM": "HS256",
         "UPLOADS_BUCKET": uploads_bucket_name or "",
