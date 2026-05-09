@@ -9,7 +9,7 @@ from boto3.dynamodb.conditions import Key
 from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
 
-from app_config import AllowedFileExtensions
+from app_config import FRONTEND_BASE_URL, AllowedFileExtensions
 from database.repositories import FileMetadataRepository, UserRepository
 from files.exceptions import (
   FileAccessDeniedError,
@@ -352,3 +352,26 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> No
     )
   except Exception as e:
     raise MetadataError(f"Failed to revoke share: {e}")
+
+
+def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
+  """Send a file share notification email to each user in file_metadata.allowed_to."""
+  from mail.operations import send_file_share_notification
+  from users.operations import get_user_by_id
+
+  if not file_metadata.allowed_to:
+    return
+
+  download_link = f"{FRONTEND_BASE_URL}/mydocuments"
+
+  for user_id in file_metadata.allowed_to:
+    try:
+      user = get_user_by_id(user_id, user_repo)
+      send_file_share_notification(
+        email=user.email,
+        file_name=file_metadata.file_name,
+        download_link=download_link,
+      )
+    except Exception as e:
+      print(f"Failed to send file share notification to user {user_id}: {e}")
+      continue

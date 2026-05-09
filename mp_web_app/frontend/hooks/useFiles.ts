@@ -1,6 +1,6 @@
 // hooks/useFiles.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient from "@/context/apiClient";
+import apiClient, {adminApiClient} from "@/context/apiClient";
 
 export type FileType =
   | "governing_documents"
@@ -39,7 +39,7 @@ export const fileKeys = {
   sharedAudit: () => [...fileKeys.all, "shared-audit"] as const,
 };
 
-// Fetch files by type (documents page — 2 minute cache)
+// Fetch files by type (documents page — 5 minute cache)
 export function useFiles(fileType: FileType) {
   return useQuery({
     queryKey: fileKeys.list(fileType),
@@ -50,11 +50,11 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Fetch all files (admin)
+// Fetch all files (admin) — always fresh, bypasses browser HTTP cache via X-Admin-Request header
 export function useAllFiles() {
   return useQuery({
     queryKey: fileKeys.lists(),
@@ -72,7 +72,7 @@ export function useAllFiles() {
       const allFiles: FileMetadata[] = [];
       for (const type of fileTypes) {
         try {
-          const response = await apiClient.get<FileMetadata[]>("files/list", {
+          const response = await adminApiClient.get<FileMetadata[]>("files/list", {
             params: {file_type: type},
           });
           if (response.data) {
@@ -102,12 +102,12 @@ export function useDeleteFile() {
   });
 }
 
-// Fetch shared files audit (admin only)
+// Fetch shared files audit (admin only) — always fresh, bypasses browser HTTP cache
 export function useSharedFilesAudit() {
   return useQuery({
     queryKey: fileKeys.sharedAudit(),
     queryFn: async () => {
-      const response = await apiClient.get<SharedFileAuditEntry[]>("files/shared-audit");
+      const response = await adminApiClient.get<SharedFileAuditEntry[]>("files/shared-audit");
       return response.data ?? [];
     },
     staleTime: 0,

@@ -1,6 +1,6 @@
 // hooks/useGallery.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient from "@/context/apiClient";
+import apiClient, {adminApiClient} from "@/context/apiClient";
 import {API_BASE_URL} from "@/app-config";
 
 export interface GalleryImage {
@@ -26,20 +26,25 @@ const galleryQueryFn = async () => {
   return ((await response.json()) || []) as GalleryImage[];
 };
 
-// Public gallery — 2 minute cache
+const adminGalleryQueryFn = async () => {
+  const response = await adminApiClient.get<GalleryImage[]>("gallery/list");
+  return response.data ?? [];
+};
+
+// Public gallery — 5 minute cache
 export function useGallery() {
   return useQuery({
     queryKey: galleryKeys.list("public"),
     queryFn: galleryQueryFn,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Admin gallery — always fresh
+// Admin gallery — always fresh, bypasses browser HTTP cache via X-Admin-Request header
 export function useAdminGallery() {
   return useQuery({
     queryKey: galleryKeys.list("admin"),
-    queryFn: galleryQueryFn,
+    queryFn: adminGalleryQueryFn,
     staleTime: 0,
   });
 }
