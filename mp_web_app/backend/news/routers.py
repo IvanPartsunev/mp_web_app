@@ -1,13 +1,21 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request, status
 
 from auth.operations import role_required
 from database.exceptions import DatabaseError
-from database.repositories import NewsRepository
+from database.repositories import NewsRepository, UserRepository
 from news.exceptions import NewsNotFoundError
 from news.models import News, NewsUpdate
-from news.operations import create_news, delete_news, get_news, get_news_repository, update_news
+from news.operations import (
+  create_news,
+  delete_news,
+  get_news,
+  get_news_repository,
+  notify_subscribed_users,
+  update_news,
+)
+from users.operations import get_user_repository
 from users.roles import UserRole
 
 news_router = APIRouter(tags=["news"])
@@ -33,11 +41,15 @@ async def news_list(
 async def news_create(
   request: Request,
   news_data: News,
+  background_tasks: BackgroundTasks,
   news_repo: NewsRepository = Depends(get_news_repository),
+  user_repo: UserRepository = Depends(get_user_repository),
   user=Depends(role_required([UserRole.ADMIN])),
 ):
   try:
-    return create_news(news_data=news_data, repo=news_repo, user_id=user.id, request=request)
+    result = create_news(news_data=news_data, repo=news_repo, user_id=user.id)
+    background_tasks.add_task(notify_subscribed_users, result.id, request, user_repo)
+    return result
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:

@@ -1,4 +1,3 @@
-import logging
 import os
 from datetime import datetime, timedelta
 from uuid import uuid4
@@ -47,16 +46,6 @@ def create_news(news_data: News, repo: NewsRepository, user_id: str, request: Re
     repo.table.put_item(Item=news_item)
   except ClientError as e:
     raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
-
-  # Send email notifications to subscribed users (non-blocking)
-  if request:
-    try:
-      from users.operations import get_user_repository
-
-      user_repo = get_user_repository()
-      notify_subscribed_users(news_data, news_id, request, user_repo)
-    except Exception as e:
-      logging.info(f"Warning: Failed to send email notifications: {e}")
 
   return repo.convert_item_to_object(news_item)
 
@@ -148,7 +137,7 @@ def get_news(repo: NewsRepository, token: str | None = None):
   return items
 
 
-def notify_subscribed_users(news_data: News, news_id: str, request: Request, user_repo: UserRepository):
+def notify_subscribed_users(news_id: str, request: Request, user_repo: UserRepository):
   """Send email notifications to subscribed users about new news."""
   from mail.operations import send_news_notification
   from users.operations import get_subscribed_users
