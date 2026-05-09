@@ -1,7 +1,9 @@
+import os
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
-from database.repositories import FileMetadataRepository
+from database.repositories import FileMetadataRepository, UserRepository
 from files.exceptions import (
   FileAccessDeniedError,
   FileNotFoundError,
@@ -11,8 +13,24 @@ from files.exceptions import (
   MetadataError,
   MissingAllowedUsersError,
 )
-from files.models import FileMetadata, FileMetadataFull, FileType
-from files.operations import delete_file, download_file, get_files_metadata, get_uploads_repository, upload_file
+from files.models import FileMetadata, FileMetadataFull, FileType, SharedFileAuditEntry
+from files.operations import (
+  delete_file,
+  download_file,
+  get_files_metadata,
+  get_shared_files_audit,
+  get_uploads_repository,
+  revoke_share,
+  upload_file,
+)
+
+USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
+
+
+def get_users_repository():
+  return UserRepository(USERS_TABLE_NAME)
+
+
 from users.roles import UserRole
 
 file_router = APIRouter(tags=["files"])
@@ -111,3 +129,32 @@ async def download_files(
     raise HTTPException(status_code=400, detail=str(e))
   except InvalidMetadataError as e:
     raise HTTPException(status_code=400, detail=str(e))
+
+
+@file_router.get("/shared-audit", response_model=list[SharedFileAuditEntry], status_code=status.HTTP_200_OK)
+async def shared_files_audit(
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user_repo: UserRepository = Depends(get_users_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Return all files that have been explicitly shared, expanded one row per recipient."""
+  try:
+    return get_shared_files_audit(repo, user_repo)
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+
+
+@file_router.delete("/{file_id}/shared-with/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_file_share(
+  file_id: str,
+  user_id: str,
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Remove a specific user from a file's allowed_to list."""
+  try:
+    revoke_share(file_id, user_id, repo)
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))

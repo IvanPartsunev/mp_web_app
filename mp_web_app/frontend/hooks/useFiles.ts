@@ -20,11 +20,23 @@ export interface FileMetadata {
   created_at?: string | null;
 }
 
+export interface SharedFileAuditEntry {
+  file_id: string;
+  file_name: string | null;
+  file_type: FileType;
+  uploaded_by_id: string | null;
+  uploaded_by_name: string | null;
+  created_at: string | null;
+  shared_with_id: string;
+  shared_with_name: string | null;
+}
+
 // Query key factory
 export const fileKeys = {
   all: ["files"] as const,
   lists: () => [...fileKeys.all, "list"] as const,
   list: (fileType?: FileType) => [...fileKeys.lists(), {fileType}] as const,
+  sharedAudit: () => [...fileKeys.all, "shared-audit"] as const,
 };
 
 // Fetch files by type
@@ -38,7 +50,7 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minutes — aligned with dynamic tier HTTP max-age=300
   });
 }
 
@@ -86,6 +98,32 @@ export function useDeleteFile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: fileKeys.all});
+    },
+  });
+}
+
+// Fetch shared files audit (admin only)
+export function useSharedFilesAudit() {
+  return useQuery({
+    queryKey: fileKeys.sharedAudit(),
+    queryFn: async () => {
+      const response = await apiClient.get<SharedFileAuditEntry[]>("files/shared-audit");
+      return response.data ?? [];
+    },
+    staleTime: 0,
+  });
+}
+
+// Revoke share mutation
+export function useRevokeShare() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({fileId, userId}: {fileId: string; userId: string}) => {
+      await apiClient.delete(`files/${fileId}/shared-with/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: fileKeys.sharedAudit()});
     },
   });
 }

@@ -6,8 +6,9 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
+import {TablePagination} from "@/components/table-pagination";
 
 const FILE_TYPES = [
   {value: "all", label: "Всички документи"},
@@ -27,15 +28,17 @@ export default function DocumentsManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileMetadata | null>(null);
   const [selectedFileType, setSelectedFileType] = useState("all");
+  const [page, setPage] = useState(1);
 
   const {toast} = useToast();
 
   const filteredFiles = useMemo(() => {
-    if (selectedFileType === "all") {
-      return files;
-    }
+    if (selectedFileType === "all") return files;
     return files.filter((f) => f.file_type === selectedFileType);
   }, [selectedFileType, files]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFiles.length / DEFAULT_PAGE_SIZE));
+  const pagedFiles = filteredFiles.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const openDeleteDialog = (file: FileMetadata) => {
     setSelectedFile(file);
@@ -71,7 +74,13 @@ export default function DocumentsManagement() {
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold">Списък с документи</h3>
-          <Select value={selectedFileType} onValueChange={setSelectedFileType}>
+          <Select
+            value={selectedFileType}
+            onValueChange={(v) => {
+              setSelectedFileType(v);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-[280px]">
               <SelectValue placeholder="Изберете тип документ" />
             </SelectTrigger>
@@ -104,13 +113,15 @@ export default function DocumentsManagement() {
                   <TableHead className={`${TABLE_STYLES.headBase} w-[180px]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[150px]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[100px]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[100px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredFiles.map((file, index) => (
+                {pagedFiles.map((file, index) => (
                   <TableRow key={file.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
@@ -127,7 +138,7 @@ export default function DocumentsManagement() {
                           })
                         : "-"}
                     </TableCell>
-                    <TableCell className={TABLE_STYLES.cellBase}>
+                    <TableCell className={TABLE_STYLES.cellCenter}>
                       <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(file)}>
                         Изтрий
                       </Button>
@@ -138,6 +149,8 @@ export default function DocumentsManagement() {
             </Table>
           </div>
         )}
+
+        <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
         {/* Delete Confirmation */}
         <ConfirmDialog

@@ -20,7 +20,7 @@ from files.exceptions import (
   MetadataError,
   MissingAllowedUsersError,
 )
-from files.models import FileMetadata, FileMetadataFull, FileType
+from files.models import FileMetadata, FileMetadataFull, FileType, SharedFileAuditEntry
 from users.models import User
 from users.roles import UserRole
 from utils.decorators import retry
@@ -262,3 +262,93 @@ def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_
 
   # Default deny
   return False
+
+
+def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserRepository) -> list[SharedFileAuditEntry]:
+  """Scan uploads table and return one entry per (file, recipient) pair where allowed_to is non-empty."""
+  try:
+    items = []
+    response = repo.table.scan()
+    items.extend(response.get("Items", []))
+    while "LastEvaluatedKey" in response:
+      response = repo.table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+      items.extend(response.get("Items", []))
+  except Exception as e:
+    raise MetadataError(f"Failed to scan uploads table: {e}")
+
+  # Filter to records with a non-empty allowed_to list
+  shared_items = [item for item in items if item.get("allowed_to")]
+
+  if not shared_items:
+    return []
+
+  # Collect all user IDs that need resolving (uploaders + all recipients)
+  user_ids: set[str] = set()
+  for item in shared_items:
+    if item.get("uploaded_by"):
+      user_ids.add(item["uploaded_by"])
+    for uid in item.get("allowed_to", []):
+      user_ids.add(uid)
+
+  # Batch-resolve names
+  users_map: dict[str, str] = {}
+  for uid in user_ids:
+    try:
+      resp = user_repo.table.get_item(Key={"id": uid})
+      if "Item" in resp:
+        user = user_repo.convert_item_to_object(resp["Item"])
+        users_map[uid] = f"{user.first_name} {user.last_name}"
+    except Exception:
+      continue
+
+  # Expand each file into one entry per recipient
+  entries: list[SharedFileAuditEntry] = []
+  for item in shared_items:
+    file_id = item.get("id", "")
+    file_name = item.get("file_name")
+    file_type = item.get("file_type")
+    uploaded_by_id = item.get("uploaded_by")
+    created_at = item.get("created_at", "")
+
+    for recipient_id in item.get("allowed_to", []):
+      entries.append(
+        SharedFileAuditEntry(
+          file_id=file_id,
+          file_name=file_name,
+          file_type=file_type,
+          uploaded_by_id=uploaded_by_id,
+          uploaded_by_name=users_map.get(uploaded_by_id, uploaded_by_id) if uploaded_by_id else None,
+          created_at=created_at,
+          shared_with_id=recipient_id,
+          shared_with_name=users_map.get(recipient_id, recipient_id),
+        )
+      )
+
+  return entries
+
+
+def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> None:
+  """Remove a specific user from a file's allowed_to list."""
+  try:
+    response = repo.table.get_item(Key={"id": file_id})
+  except Exception as e:
+    raise MetadataError(f"Failed to fetch file: {e}")
+
+  if "Item" not in response:
+    raise FileNotFoundError(f"File with id {file_id} not found")
+
+  allowed_to: list[str] = response["Item"].get("allowed_to") or []
+
+  if user_id not in allowed_to:
+    raise FileNotFoundError(f"User {user_id} is not in the allowed_to list for file {file_id}")
+
+  index = allowed_to.index(user_id)
+
+  try:
+    repo.table.update_item(
+      Key={"id": file_id},
+      UpdateExpression=f"REMOVE allowed_to[{index}]",
+      ConditionExpression="attribute_exists(id)",
+    )
+  except Exception as e:
+    raise MetadataError(f"Failed to revoke share: {e}")

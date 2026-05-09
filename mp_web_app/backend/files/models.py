@@ -27,3 +27,14 @@ class FileMetadataFull(FileMetadata):
   bucket: str | None = None
   key: str | None = None
   allowed_to: list[str] | None = None
+
+
+class SharedFileAuditEntry(BaseModel):
+  file_id: str
+  file_name: str | None = None
+  file_type: FileType
+  uploaded_by_id: str | None = None
+  uploaded_by_name: str | None = None
+  created_at: str
+  shared_with_id: str
+  shared_with_name: str | None = None

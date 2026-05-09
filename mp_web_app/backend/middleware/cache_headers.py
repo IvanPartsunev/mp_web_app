@@ -15,20 +15,24 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
   Middleware that adds Cache-Control headers based on the endpoint.
   """
 
-  # Define cache policies for different endpoint patterns
+  # Cache tiers aligned with React Query staleTime on the frontend:
+  #   static      (1h)  — public, rarely changing: gallery, products, board/control
+  #   semi-static (30m) — private, auth-gated, infrequently changing: members
+  #   dynamic     (5m)  — private, auth-gated, occasionally changing: news, files
+  #   no-cache          — admin-only or sensitive: users/list
   CACHE_POLICIES: ClassVar[dict[str, str]] = {
-    # Long cache (1 hour) - rarely changing data
-    "products/list": "public, max-age=3600, stale-while-revalidate=7200",
+    # static tier (1 hour)
     "gallery/list": "public, max-age=3600, stale-while-revalidate=7200",
+    "products/list": "public, max-age=3600, stale-while-revalidate=7200",
     "users/board": "public, max-age=3600, stale-while-revalidate=7200",
     "users/control": "public, max-age=3600, stale-while-revalidate=7200",
-    "members/list": "public, max-age=3600, stale-while-revalidate=7200",
-    "files/list": "public, max-age=3600, stale-while-revalidate=7200",
-    # Medium cache (10 minutes) - occasionally changing data
-    # Use private since response varies by Authorization (public+Vary:Authorization breaks mobile browsers)
-    "news/list": "private, max-age=600, stale-while-revalidate=1200",
-    # Short cache (5 minutes) - admin panel data
-    "users/list": "private, max-age=300, stale-while-revalidate=600",
+    # semi-static tier (30 minutes) — private: response varies by auth token
+    "members/list": "private, max-age=1800, stale-while-revalidate=3600",
+    # dynamic tier (5 minutes) — private: response varies by auth token
+    "news/list": "private, max-age=300, stale-while-revalidate=600",
+    "files/list": "private, max-age=300, stale-while-revalidate=600",
+    # no-cache tier — admin-only endpoint, must never be cached
+    "users/list": "no-store",
   }
 
   async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -46,12 +50,10 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
           response.headers["Vary"] = "Authorization"
           break
       else:
-        # Default: no cache for unmatched GET endpoints
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        # Default: no-store for unmatched GET endpoints
+        response.headers["Cache-Control"] = "no-store"
     else:
-      # Never cache mutations or errors
-      response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-      response.headers["Pragma"] = "no-cache"
-      response.headers["Expires"] = "0"
+      # Never cache mutations or error responses
+      response.headers["Cache-Control"] = "no-store"
 
     return response

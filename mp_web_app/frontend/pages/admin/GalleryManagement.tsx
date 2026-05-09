@@ -8,6 +8,9 @@ import {useToast} from "@/components/ui/use-toast";
 import {Trash2} from "lucide-react";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import {useGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
+import {TablePagination} from "@/components/table-pagination";
+
+const GALLERY_PAGE_SIZE = 20;
 
 export default function GalleryManagement() {
   const {data: images = [], isLoading: loading} = useGallery();
@@ -20,6 +23,7 @@ export default function GalleryManagement() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageName, setImageName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [page, setPage] = useState(1);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {toast} = useToast();
@@ -28,12 +32,13 @@ export default function GalleryManagement() {
   const imageUrls = useMemo(() => {
     const urls: Record<string, string> = {};
     images.forEach((image) => {
-      if (image.url) {
-        urls[image.id] = image.url;
-      }
+      if (image.url) urls[image.id] = image.url;
     });
     return urls;
   }, [images]);
+
+  const totalPages = Math.max(1, Math.ceil(images.length / GALLERY_PAGE_SIZE));
+  const pagedImages = images.slice((page - 1) * GALLERY_PAGE_SIZE, page * GALLERY_PAGE_SIZE);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -294,25 +299,27 @@ export default function GalleryManagement() {
           ) : images.length === 0 ? (
             <p className="text-center text-muted-foreground">Няма налични снимки</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[250px] gap-4">
-              {images.map((image) => {
-                if (!imageUrls[image.id]) return null;
-
-                return (
-                  <Card key={image.id} className="overflow-hidden relative group p-0">
-                    <img src={imageUrls[image.id]} alt={image.image_name} className="w-full h-full object-cover" />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => openDeleteDialog(image)}
-                    >
-                      <Trash2 className="h-4 w-4 text-white" />
-                    </Button>
-                  </Card>
-                );
-              })}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[250px] gap-4">
+                {pagedImages.map((image) => {
+                  if (!imageUrls[image.id]) return null;
+                  return (
+                    <Card key={image.id} className="overflow-hidden relative group p-0">
+                      <img src={imageUrls[image.id]} alt={image.image_name} className="w-full h-full object-cover" />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => openDeleteDialog(image)}
+                      >
+                        <Trash2 className="h-4 w-4 text-white" />
+                      </Button>
+                    </Card>
+                  );
+                })}
+              </div>
+              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            </>
           )}
         </div>
 
