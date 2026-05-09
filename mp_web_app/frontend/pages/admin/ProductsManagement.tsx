@@ -62,7 +62,8 @@ export default function ProductsManagement() {
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
       onError: (err: Error) => {
-        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно създаване на продукта";
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно създаване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });
@@ -93,7 +94,8 @@ export default function ProductsManagement() {
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
       onError: (err: Error) => {
-        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно обновяване на продукта";
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно обновяване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });
@@ -109,7 +111,8 @@ export default function ProductsManagement() {
         setSelectedProduct(null);
       },
       onError: (err: Error) => {
-        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно изтриване на продукта";
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно изтриване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });
