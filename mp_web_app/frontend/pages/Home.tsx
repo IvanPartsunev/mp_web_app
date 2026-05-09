@@ -86,7 +86,8 @@ export default function Home() {
               <p className="text-red-800 dark:text-red-200 font-semibold">{error}</p>
               {errorDetail && (
                 <p className="text-red-600 dark:text-red-400 text-xs font-mono break-all">
-                  {errorStatus ? `[${errorStatus}] ` : ""}{errorDetail}
+                  {errorStatus ? `[${errorStatus}] ` : ""}
+                  {errorDetail}
                 </p>
               )}
               <button
