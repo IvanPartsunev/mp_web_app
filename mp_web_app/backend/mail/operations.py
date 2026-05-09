@@ -223,6 +223,52 @@ def send_reset_email(
     raise EmailSendError(f"Failed to send email: {e}")
 
 
+def send_file_share_notification(
+  email: str,
+  file_name: str,
+  download_link: str,
+) -> None:
+  """Send a Bulgarian-language email notifying a user that a file was shared with them."""
+  subject = "ГПК Мурджов Пожар – споделен файл"
+
+  html_body = f"""
+    <!DOCTYPE html>
+    <html lang="bg">
+      <head>
+        <meta charset="UTF-8">
+        <title>Споделен файл – ГПК Мурджов Пожар</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:#f8f9fa;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
+          <tr>
+            <td align="center">
+              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
+                <tr>
+                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
+                    <p style="margin:0 0 16px 0;">Здравейте,</p>
+                    <p style="margin:0 0 24px 0;">Файлът „{file_name}" беше споделен с Вас. Можете да го изтеглите, като натиснете бутона по-долу:</p>
+                    <a href="{download_link}"
+                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
+                      Изтеглете файла
+                    </a>
+                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
+                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+  try:
+    send_email_ses(to_address=email, subject=subject, html_body=html_body)
+  except Exception as e:
+    raise EmailSendError(f"Failed to send file share notification: {e}")
+
+
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
   base_url = str(request.base_url).rstrip("/")

@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 
 from auth.operations import role_required
 from database.repositories import FileMetadataRepository, UserRepository
@@ -20,6 +20,7 @@ from files.operations import (
   get_files_metadata,
   get_shared_files_audit,
   get_uploads_repository,
+  notify_shared_users,
   revoke_share,
   upload_file,
 )
@@ -42,7 +43,9 @@ async def file_create(
   file_type: FileType = Form(...),
   allowed_to: list[str] = Form([]),
   file: UploadFile = File(...),
+  background_tasks: BackgroundTasks = BackgroundTasks(),
   repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user_repo: UserRepository = Depends(get_users_repository),
   user=Depends(role_required([UserRole.ADMIN, UserRole.ACCOUNTANT])),
 ):
   try:
@@ -53,7 +56,10 @@ async def file_create(
     file_metadata = FileMetadataFull(
       file_name=file_name, file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id
     )
-    return upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+    result = upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
+    if result.allowed_to:
+      background_tasks.add_task(notify_shared_users, result, user_repo)
+    return result
   except MissingAllowedUsersError as e:
     raise HTTPException(status_code=400, detail=str(e))
   except InvalidFileExtensionError as e:

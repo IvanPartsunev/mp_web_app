@@ -9,6 +9,7 @@ from files.operations import (
   _check_file_allowed_to_user,
   _create_file_name,
   _validate_metadata,
+  notify_shared_users,
 )
 
 
@@ -206,3 +207,74 @@ class TestCheckFileAllowedToUser:
 
     result = _check_file_allowed_to_user(file_meta, user_id="user123", user_role="regular_user")
     assert result is True
+
+
+class TestNotifySharedUsers:
+  def _make_file_meta(self, allowed_to):
+    return FileMetadataFull(
+      id="file-1",
+      file_name="report.pdf",
+      file_type=FileType.private_documents,
+      bucket="test-bucket",
+      key="private_documents/report.pdf",
+      uploaded_by="admin-1",
+      created_at="2024-01-01T00:00:00",
+      allowed_to=allowed_to,
+    )
+
+  @patch("mail.operations.send_file_share_notification")
+  @patch("users.operations.get_user_by_id")
+  def test_sends_one_email_per_recipient(self, mock_get_user, mock_send):
+    user_a = Mock(email="a@example.com")
+    user_b = Mock(email="b@example.com")
+    mock_get_user.side_effect = [user_a, user_b]
+
+    file_meta = self._make_file_meta(["uid-a", "uid-b"])
+    user_repo = Mock()
+
+    notify_shared_users(file_meta, user_repo)
+
+    assert mock_send.call_count == 2
+    emails_called = {c.kwargs["email"] for c in mock_send.call_args_list}
+    assert emails_called == {"a@example.com", "b@example.com"}
+
+  @patch("mail.operations.send_file_share_notification")
+  @patch("users.operations.get_user_by_id")
+  def test_continues_after_individual_failure(self, mock_get_user, mock_send):
+    user_b = Mock(email="b@example.com")
+    # First user lookup raises, second succeeds
+    mock_get_user.side_effect = [Exception("DB error"), user_b]
+
+    file_meta = self._make_file_meta(["uid-a", "uid-b"])
+    user_repo = Mock()
+
+    # Should not raise
+    notify_shared_users(file_meta, user_repo)
+
+    # Only the second recipient gets an email
+    assert mock_send.call_count == 1
+    assert mock_send.call_args.kwargs["email"] == "b@example.com"
+
+  @patch("mail.operations.send_file_share_notification")
+  @patch("users.operations.get_user_by_id")
+  def test_does_nothing_when_allowed_to_is_empty(self, mock_get_user, mock_send):
+    file_meta = self._make_file_meta([])
+    user_repo = Mock()
+
+    notify_shared_users(file_meta, user_repo)
+
+    mock_get_user.assert_not_called()
+    mock_send.assert_not_called()
+
+  @patch("mail.operations.send_file_share_notification")
+  @patch("users.operations.get_user_by_id")
+  def test_download_link_points_to_my_documents(self, mock_get_user, mock_send):
+    mock_get_user.return_value = Mock(email="user@example.com")
+
+    file_meta = self._make_file_meta(["uid-1"])
+    user_repo = Mock()
+
+    notify_shared_users(file_meta, user_repo)
+
+    download_link = mock_send.call_args.kwargs["download_link"]
+    assert download_link.endswith("/my-documents")
