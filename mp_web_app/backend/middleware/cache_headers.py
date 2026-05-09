@@ -52,8 +52,8 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
         for pattern, cache_control in self.CACHE_POLICIES.items():
           if pattern in path:
             response.headers["Cache-Control"] = cache_control
-            # Vary by Authorization to cache authenticated vs public separately
-            response.headers["Vary"] = "Authorization"
+            # Vary by Authorization (auth vs public) and X-Admin-Request (admin bypass)
+            response.headers["Vary"] = "Authorization, X-Admin-Request"
             break
         else:
           # Default: no-store for unmatched GET endpoints
