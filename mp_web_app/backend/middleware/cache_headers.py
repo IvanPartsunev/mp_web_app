@@ -25,7 +25,8 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
     "members/list": "public, max-age=3600, stale-while-revalidate=7200",
     "files/list": "public, max-age=3600, stale-while-revalidate=7200",
     # Medium cache (10 minutes) - occasionally changing data
-    "news/list": "public, max-age=600, stale-while-revalidate=1200",
+    # Use private since response varies by Authorization (public+Vary:Authorization breaks mobile browsers)
+    "news/list": "private, max-age=600, stale-while-revalidate=1200",
     # Short cache (5 minutes) - admin panel data
     "users/list": "private, max-age=300, stale-while-revalidate=600",
   }

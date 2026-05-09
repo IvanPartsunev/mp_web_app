@@ -16,11 +16,20 @@ from users.routers import user_router
 
 FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 
+# Allow both www and non-www variants of the frontend URL
+def get_allowed_origins(url: str) -> list[str]:
+  origins = [url]
+  if url.startswith("https://www."):
+    origins.append(url.replace("https://www.", "https://", 1))
+  elif url.startswith("https://") and not url.startswith("https://www."):
+    origins.append(url.replace("https://", "https://www.", 1))
+  return origins
+
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc", openapi_url="/api/openapi.json")
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=[FRONTEND_URL],
+  allow_origins=get_allowed_origins(FRONTEND_URL),
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
