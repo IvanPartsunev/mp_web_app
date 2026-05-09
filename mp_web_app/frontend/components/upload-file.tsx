@@ -25,7 +25,7 @@ export default function UploadFile() {
       {value: "governing_documents", label: "Нормативни документи"},
       {value: "forms", label: "Бланки"},
       {value: "minutes", label: "Протоколи"},
-      {value: "transcript", label: "Стенограми"},
+      {value: "transcripts", label: "Стенограми"},
       {value: "accounting", label: "Счетоводни документи"},
       {value: "private_documents", label: "Лични/частни документи"},
       {value: "others", label: "Други"},

@@ -18,6 +18,7 @@ from files.operations import (
   delete_file,
   download_file,
   get_files_metadata,
+  get_files_shared_with_user,
   get_shared_files_audit,
   get_uploads_repository,
   notify_shared_users,
@@ -87,7 +88,7 @@ async def files_list(
     if user.role == UserRole.REGULAR_USER.value and file_type == "accounting":
       raise HTTPException(status_code=403, detail="You don't have access to this document type")
 
-    return get_files_metadata(file_type, repo)
+    return get_files_metadata(file_type, repo, user_id=user.id)
   except MetadataError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
@@ -135,6 +136,20 @@ async def download_files(
     raise HTTPException(status_code=400, detail=str(e))
   except InvalidMetadataError as e:
     raise HTTPException(status_code=400, detail=str(e))
+
+
+@file_router.get("/shared-with-me", response_model=list[FileMetadata], status_code=status.HTTP_200_OK)
+async def files_shared_with_me(
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(
+    role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT, UserRole.BOARD, UserRole.CONTROL, UserRole.ADMIN])
+  ),
+):
+  """Return all files explicitly shared with the current user (appears in allowed_to)."""
+  try:
+    return get_files_shared_with_user(user.id, repo)
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @file_router.get("/shared-audit", response_model=list[SharedFileAuditEntry], status_code=status.HTTP_200_OK)

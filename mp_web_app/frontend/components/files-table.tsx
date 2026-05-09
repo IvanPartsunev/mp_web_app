@@ -16,17 +16,16 @@ import {usePagination} from "@/hooks/usePagination";
 import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES, LOADING_MESSAGES} from "@/lib/tableUtils";
 import {HERO_STYLES, SECTION_STYLES} from "@/lib/styles";
 
-type FilesTableProps = {
-  fileType: FileType;
-  title?: string;
-};
+type FilesTableProps =
+  | {fileType: FileType; title?: string; files?: undefined; isLoading?: undefined; error?: undefined}
+  | {files: FileMetadata[]; title?: string; fileType?: undefined; isLoading?: boolean; error?: string | null};
 
-export function FilesTable({fileType, title = "Документи"}: FilesTableProps) {
-  const {data = [], isLoading: loading, error: queryError} = useFiles(fileType);
-  const pagination = usePagination(data);
-  const error = queryError ? "Възникна грешка при зареждане." : null;
-
-  const handleDownload = async (file: FileMetadata) => {
+export function FilesTable({fileType, title = "Документи", files: externalFiles, isLoading: externalLoading, error: externalError}: FilesTableProps) {
+  const query = useFiles(fileType as FileType, {enabled: fileType !== undefined});
+  const data = externalFiles ?? query.data ?? [];
+  const loading = externalLoading ?? query.isLoading;
+  const error = externalError !== undefined ? externalError : (query.error ? "Възникна грешка при зареждане." : null);
+  const pagination = usePagination(data); = async (file: FileMetadata) => {
     if (!file.id || !file.file_name) return;
     try {
       const res = await apiClient.post(

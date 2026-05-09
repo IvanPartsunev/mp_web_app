@@ -105,7 +105,7 @@ def create_file_metadata(
   return repo.convert_item_to_object_full(file_metadata_item)
 
 
-def get_files_metadata(file_type: str, repo: FileMetadataRepository):
+def get_files_metadata(file_type: str, repo: FileMetadataRepository, user_id: str | None = None):
   try:
     response = repo.table.query(
       IndexName="file_type_created_at_index",
@@ -119,8 +119,13 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository):
         IndexName="file_type_created_at_index",
         KeyConditionExpression=Key("file_type").eq(file_type),
         ScanIndexForward=False,
+        ExclusiveStartKey=response["LastEvaluatedKey"],
       )
       items.extend(response["Items"])
+
+    # Private documents are only visible to users explicitly listed in allowed_to
+    if file_type == FileType.private_documents.value and user_id:
+      items = [item for item in items if user_id in (item.get("allowed_to") or [])]
 
     files_metadata = [repo.convert_item_to_object(item) for item in items]
 
@@ -375,3 +380,27 @@ def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserReposito
     except Exception as e:
       print(f"Failed to send file share notification to user {user_id}: {e}")
       continue
+
+
+def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> list[FileMetadata]:
+  """Return all files where the given user_id appears in allowed_to, regardless of file_type."""
+  try:
+    items = []
+    response = repo.table.scan(
+      FilterExpression="contains(allowed_to, :uid)",
+      ExpressionAttributeValues={":uid": user_id},
+    )
+    items.extend(response.get("Items", []))
+    while "LastEvaluatedKey" in response:
+      response = repo.table.scan(
+        FilterExpression="contains(allowed_to, :uid)",
+        ExpressionAttributeValues={":uid": user_id},
+        ExclusiveStartKey=response["LastEvaluatedKey"],
+      )
+      items.extend(response.get("Items", []))
+
+    files_metadata = [repo.convert_item_to_object(item) for item in items]
+    _enrich_with_user_names(files_metadata)
+    return files_metadata
+  except Exception as e:
+    raise MetadataError(f"Failed to fetch shared files: {e}")
