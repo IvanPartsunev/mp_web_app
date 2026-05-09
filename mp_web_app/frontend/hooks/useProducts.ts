@@ -1,6 +1,6 @@
 // hooks/useProducts.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient from "@/context/apiClient";
+import apiClient, {adminApiClient} from "@/context/apiClient";
 
 export interface Product {
   id?: string | null;
@@ -23,20 +23,25 @@ const productQueryFn = async () => {
   return response.data ?? [];
 };
 
-// Public products — 2 minute cache
+const adminProductQueryFn = async () => {
+  const response = await adminApiClient.get<Product[]>("products/list");
+  return response.data ?? [];
+};
+
+// Public products — 5 minute cache
 export function useProducts() {
   return useQuery({
     queryKey: productKeys.list("public"),
     queryFn: productQueryFn,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
-// Admin products — always fresh
+// Admin products — always fresh, bypasses browser HTTP cache via X-Admin-Request header
 export function useAdminProducts() {
   return useQuery({
     queryKey: productKeys.list("admin"),
-    queryFn: productQueryFn,
+    queryFn: adminProductQueryFn,
     staleTime: 0,
   });
 }

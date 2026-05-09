@@ -1,6 +1,6 @@
 // hooks/useNews.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient from "@/context/apiClient";
+import apiClient, {adminApiClient} from "@/context/apiClient";
 import {useAuth} from "@/context/AuthContext";
 
 export interface NewsItem {
@@ -19,7 +19,7 @@ export const newsKeys = {
   list: (variant: "public" | "admin" = "public") => [...newsKeys.lists(), variant] as const,
 };
 
-// Public news hook — 1 minute cache, varies by auth state
+// Public news hook — 2 minute cache, varies by auth state
 export function useNews() {
   const {isLoggedIn, user} = useAuth();
 
@@ -29,16 +29,16 @@ export function useNews() {
       const response = await apiClient.get<NewsItem[]>("news/list");
       return response.data ?? [];
     },
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
-// Admin news hook — always fresh, separate cache key
+// Admin news hook — always fresh, bypasses browser HTTP cache via X-Admin-Request header
 export function useAdminNews() {
   return useQuery({
     queryKey: newsKeys.list("admin"),
     queryFn: async () => {
-      const response = await apiClient.get<NewsItem[]>("news/list");
+      const response = await adminApiClient.get<NewsItem[]>("news/list");
       return response.data ?? [];
     },
     staleTime: 0,
