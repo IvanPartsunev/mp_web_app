@@ -7,7 +7,14 @@ from database.exceptions import DatabaseError
 from database.repositories import NewsRepository, UserRepository
 from news.exceptions import NewsNotFoundError
 from news.models import News, NewsUpdate
-from news.operations import create_news, delete_news, get_news, get_news_repository, notify_subscribed_users, update_news
+from news.operations import (
+  create_news,
+  delete_news,
+  get_news,
+  get_news_repository,
+  notify_subscribed_users,
+  update_news,
+)
 from users.operations import get_user_repository
 from users.roles import UserRole
 
