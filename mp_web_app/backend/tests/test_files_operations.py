@@ -277,4 +277,4 @@ class TestNotifySharedUsers:
     notify_shared_users(file_meta, user_repo)
 
     download_link = mock_send.call_args.kwargs["download_link"]
-    assert download_link.endswith("/my-documents")
+    assert download_link.endswith("/mydocuments")
