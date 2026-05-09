@@ -14,7 +14,10 @@ import {Menu as MenuIcon, X as CloseIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 
 // All navigation structure mapped here
-const NAV_LINKS = [
+type NavDropdownItem = {label: string; to: string; description?: string; requiresAuth?: boolean};
+type NavLink = {label: string; to?: string; dropdown?: NavDropdownItem[]};
+
+const NAV_LINKS: NavLink[] = [
   {label: "Начало", to: "/home"},
   {label: "Продукти", to: "/products"},
   {label: "Галерия", to: "/gallery"},
@@ -115,7 +118,8 @@ export function Navigation() {
   const isMobile = windowWidth < 1200;
 
   // Helper to filter dropdown items based on auth
-  const filterDropdown = (dropdown: any[]) => dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
+  const filterDropdown = (dropdown: {label: string; to: string; description?: string; requiresAuth?: boolean}[]) =>
+    dropdown.filter((item) => !item.requiresAuth || isLoggedIn);
 
   // Decode role from access token to check role
   const getUserRole = (): "admin" | "board" | "control" | "accountant" | "regular" | null => {
@@ -130,7 +134,7 @@ export function Navigation() {
       const payload = JSON.parse(atob(base64));
       const role = String(payload?.role || "").toLowerCase();
       if (role === "admin" || role === "board" || role === "control" || role === "accountant" || role === "regular")
-        return role as any;
+        return role as "admin" | "board" | "control" | "accountant" | "regular";
       return null;
     } catch {
       return null;
@@ -237,11 +241,11 @@ export function Navigation() {
               documentsItems = link.dropdown;
             } else if (isAccountant) {
               // Accountant: see ONLY accounting documents
-              documentsItems = link.dropdown.filter((item: any) => item.to === "/accounting-documents");
+              documentsItems = link.dropdown.filter((item) => item.to === "/accounting-documents");
             } else {
               // Regular users: see all except "Счетоводни документи" (accounting)
               documentsItems = link.dropdown.filter(
-                (item: any) =>
+                (item) =>
                   item.to === "/governing-documents" ||
                   item.to === "/forms" ||
                   item.to === "/minutes" ||
@@ -264,7 +268,7 @@ export function Navigation() {
             <div key={link.label} className="mt-2">
               <div className="font-semibold mb-2 px-4 text-primary text-sm uppercase tracking-wide">{link.label}</div>
               <div className="space-y-1">
-                {itemsToRender.map((item: any) => (
+                {itemsToRender.map((item) => (
                   <a
                     key={item.label}
                     href={item.to}
@@ -388,11 +392,11 @@ export function Navigation() {
                     documentsItems = link.dropdown;
                   } else if (isAccountant) {
                     // Accountant: see ONLY accounting documents
-                    documentsItems = link.dropdown.filter((item: any) => item.to === "/accounting-documents");
+                    documentsItems = link.dropdown.filter((item) => item.to === "/accounting-documents");
                   } else {
                     // Regular users: see all except "Счетоводні документи" (accounting)
                     documentsItems = link.dropdown.filter(
-                      (item: any) =>
+                      (item) =>
                         item.to === "/governing-documents" ||
                         item.to === "/forms" ||
                         item.to === "/minutes" ||
@@ -416,7 +420,7 @@ export function Navigation() {
                     <NavigationMenuTrigger className="transition-all duration-200">{link.label}</NavigationMenuTrigger>
                     <NavigationMenuContent className="relative z-50">
                       <ul className="grid w-[280px] gap-1 p-2">
-                        {itemsToRender.map((item: any) => (
+                        {itemsToRender.map((item) => (
                           <li key={item.label}>
                             <NavigationMenuLink asChild>
                               <Link

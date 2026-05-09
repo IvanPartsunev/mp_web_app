@@ -19,6 +19,7 @@ import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {Lock, Globe} from "lucide-react";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAdminNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
+import type {ApiError} from "@/lib/errorUtils";
 import {TablePagination} from "@/components/table-pagination";
 
 interface News extends NewsItem {
@@ -57,7 +58,7 @@ export default function NewsManagement() {
         setCreateDialogOpen(false);
         setFormData({title: "", content: "", news_type: "regular"});
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         toast({
           title: "Грешка",
           description: err.response?.data?.detail || "Неуспешно създаване на новината",
@@ -79,7 +80,7 @@ export default function NewsManagement() {
           setSelectedNews(null);
           setFormData({title: "", content: "", news_type: "regular"});
         },
-        onError: (err: any) => {
+        onError: (err: ApiError) => {
           toast({
             title: "Грешка",
             description: err.response?.data?.detail || "Неуспешно обновяване на новината",
@@ -99,7 +100,7 @@ export default function NewsManagement() {
         setDeleteDialogOpen(false);
         setSelectedNews(null);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         toast({
           title: "Грешка",
           description: err.response?.data?.detail || "Неуспешно изтриване на новината",

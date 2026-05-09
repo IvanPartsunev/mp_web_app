@@ -7,6 +7,7 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {Trash2} from "lucide-react";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
+import type {ApiError} from "@/lib/errorUtils";
 import {useAdminGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
 import {TablePagination} from "@/components/table-pagination";
 
@@ -168,7 +169,7 @@ export default function GalleryManagement() {
         }
         setUploading(false);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         const errorMessage = extractApiErrorDetails(err.response?.data || err);
         toast({
           title: "Грешка при качване",
@@ -194,7 +195,7 @@ export default function GalleryManagement() {
         setDeleteDialogOpen(false);
         setSelectedImage(null);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         const errorMessage = extractApiErrorDetails(err.response?.data || err);
         toast({
           title: "Грешка",

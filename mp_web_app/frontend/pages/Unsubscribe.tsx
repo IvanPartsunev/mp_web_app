@@ -4,6 +4,7 @@ import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {CheckCircle2, XCircle, Loader2} from "lucide-react";
 import apiClient from "@/context/apiClient";
+import type {ApiError} from "@/lib/errorUtils";
 
 export default function Unsubscribe() {
   const [searchParams] = useSearchParams();
@@ -25,9 +26,10 @@ export default function Unsubscribe() {
         await apiClient.get(`mail/unsubscribe?email=${email}&token=${token}`);
         setStatus("success");
         setMessage("Успешно се отписахте от новините");
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const apiErr = err as ApiError;
         setStatus("error");
-        setMessage(err.response?.data?.detail || "Грешка при отписване");
+        setMessage(apiErr.response?.data?.detail || "Грешка при отписване");
       }
     };
 

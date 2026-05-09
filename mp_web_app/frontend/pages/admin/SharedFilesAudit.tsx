@@ -5,6 +5,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useToast} from "@/components/ui/use-toast";
 import {useSharedFilesAudit, useRevokeShare} from "@/hooks/useFiles";
+import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
 
@@ -29,7 +30,7 @@ export default function SharedFilesAudit() {
         onSuccess: () => {
           toast({title: "Успех", description: "Споделянето е премахнато успешно"});
         },
-        onError: (err: any) => {
+        onError: (err: ApiError) => {
           toast({
             title: "Грешка",
             description: err.response?.data?.detail || "Неуспешно премахване на споделяне",

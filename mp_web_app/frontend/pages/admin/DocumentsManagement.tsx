@@ -8,6 +8,7 @@ import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
+import type {ApiError} from "@/lib/errorUtils";
 import {TablePagination} from "@/components/table-pagination";
 
 const FILE_TYPES = [
@@ -54,7 +55,7 @@ export default function DocumentsManagement() {
         setDeleteDialogOpen(false);
         setSelectedFile(null);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         toast({
           title: "Грешка",
           description: err.response?.data?.detail || "Неуспешно изтриване на документа",

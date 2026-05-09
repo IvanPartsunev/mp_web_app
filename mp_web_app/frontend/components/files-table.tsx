@@ -20,12 +20,20 @@ type FilesTableProps =
   | {fileType: FileType; title?: string; files?: undefined; isLoading?: undefined; error?: undefined}
   | {files: FileMetadata[]; title?: string; fileType?: undefined; isLoading?: boolean; error?: string | null};
 
-export function FilesTable({fileType, title = "Документи", files: externalFiles, isLoading: externalLoading, error: externalError}: FilesTableProps) {
+export function FilesTable({
+  fileType,
+  title = "Документи",
+  files: externalFiles,
+  isLoading: externalLoading,
+  error: externalError,
+}: FilesTableProps) {
   const query = useFiles(fileType as FileType, {enabled: fileType !== undefined});
   const data = externalFiles ?? query.data ?? [];
   const loading = externalLoading ?? query.isLoading;
-  const error = externalError !== undefined ? externalError : (query.error ? "Възникна грешка при зареждане." : null);
-  const pagination = usePagination(data); = async (file: FileMetadata) => {
+  const error = externalError !== undefined ? externalError : query.error ? "Възникна грешка при зареждане." : null;
+  const pagination = usePagination(data);
+
+  const handleDownload = async (file: FileMetadata) => {
     if (!file.id || !file.file_name) return;
     try {
       const res = await apiClient.post(
@@ -61,8 +69,9 @@ export function FilesTable({fileType, title = "Документи", files: exter
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.");
+    } catch (e: unknown) {
+      const apiErr = e as {response?: {data?: {detail?: string}}};
+      alert(apiErr?.response?.data?.detail ?? "Неуспешно изтегляне.");
     }
   };
 

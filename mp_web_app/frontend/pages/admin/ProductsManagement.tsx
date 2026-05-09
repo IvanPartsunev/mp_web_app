@@ -16,6 +16,7 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
+import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAdminProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product} from "@/hooks/useProducts";
 import {TablePagination} from "@/components/table-pagination";
@@ -60,7 +61,7 @@ export default function ProductsManagement() {
         setCreateDialogOpen(false);
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно създаване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
@@ -91,7 +92,7 @@ export default function ProductsManagement() {
         setSelectedProduct(null);
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно обновяване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
@@ -107,7 +108,7 @@ export default function ProductsManagement() {
         setDeleteDialogOpen(false);
         setSelectedProduct(null);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно изтриване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
