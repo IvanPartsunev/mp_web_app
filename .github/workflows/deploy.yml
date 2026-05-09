@@ -52,4 +52,6 @@ jobs:
         run: make deploy-all
 
       - name: Deploy frontend
+        env:
+          FRONTEND_DISTRIBUTION_ID: ${{ secrets.FRONTEND_DISTRIBUTION_ID }}
         run: make frontend-deploy
