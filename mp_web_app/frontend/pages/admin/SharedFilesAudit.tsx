@@ -30,10 +30,11 @@ export default function SharedFilesAudit() {
         onSuccess: () => {
           toast({title: "Успех", description: "Споделянето е премахнато успешно"});
         },
-        onError: (err: ApiError) => {
+        onError: (err: Error) => {
+          const detail = (err as ApiError).response?.data?.detail;
           toast({
             title: "Грешка",
-            description: err.response?.data?.detail || "Неуспешно премахване на споделяне",
+            description: detail || "Неуспешно премахване на споделяне",
             variant: "destructive",
           });
         },

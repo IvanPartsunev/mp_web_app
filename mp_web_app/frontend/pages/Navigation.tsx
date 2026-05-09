@@ -212,7 +212,7 @@ export function Navigation() {
                 href={link.to}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleNavigation(link.to);
+                  handleNavigation(link.to!);
                 }}
                 className="block px-4 py-3 rounded-lg hover:bg-accent active:bg-accent/80 active:scale-[0.98] transition-all duration-150 text-foreground font-medium"
               >
@@ -364,7 +364,7 @@ export function Navigation() {
                   return (
                     <NavigationMenuItem key={link.label}>
                       <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                        <Link to={link.to} className="transition-all duration-200 hover:scale-105">
+                        <Link to={link.to!} className="transition-all duration-200 hover:scale-105">
                           {link.label}
                         </Link>
                       </NavigationMenuLink>

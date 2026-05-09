@@ -55,10 +55,11 @@ export default function DocumentsManagement() {
         setDeleteDialogOpen(false);
         setSelectedFile(null);
       },
-      onError: (err: ApiError) => {
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
         toast({
           title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно изтриване на документа",
+          description: detail || "Неуспешно изтриване на документа",
           variant: "destructive",
         });
       },

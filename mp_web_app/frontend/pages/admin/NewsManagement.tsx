@@ -58,10 +58,11 @@ export default function NewsManagement() {
         setCreateDialogOpen(false);
         setFormData({title: "", content: "", news_type: "regular"});
       },
-      onError: (err: ApiError) => {
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
         toast({
           title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно създаване на новината",
+          description: detail || "Неуспешно създаване на новината",
           variant: "destructive",
         });
       },
@@ -80,10 +81,11 @@ export default function NewsManagement() {
           setSelectedNews(null);
           setFormData({title: "", content: "", news_type: "regular"});
         },
-        onError: (err: ApiError) => {
+        onError: (err: Error) => {
+          const detail = (err as ApiError).response?.data?.detail;
           toast({
             title: "Грешка",
-            description: err.response?.data?.detail || "Неуспешно обновяване на новината",
+            description: detail || "Неуспешно обновяване на новината",
             variant: "destructive",
           });
         },
@@ -100,10 +102,11 @@ export default function NewsManagement() {
         setDeleteDialogOpen(false);
         setSelectedNews(null);
       },
-      onError: (err: ApiError) => {
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
         toast({
           title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно изтриване на новината",
+          description: detail || "Неуспешно изтриване на новината",
           variant: "destructive",
         });
       },
