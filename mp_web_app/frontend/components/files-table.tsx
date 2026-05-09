@@ -20,11 +20,17 @@ type FilesTableProps =
   | {fileType: FileType; title?: string; files?: undefined; isLoading?: undefined; error?: undefined}
   | {files: FileMetadata[]; title?: string; fileType?: undefined; isLoading?: boolean; error?: string | null};
 
-export function FilesTable({fileType, title = "Документи", files: externalFiles, isLoading: externalLoading, error: externalError}: FilesTableProps) {
+export function FilesTable({
+  fileType,
+  title = "Документи",
+  files: externalFiles,
+  isLoading: externalLoading,
+  error: externalError,
+}: FilesTableProps) {
   const query = useFiles(fileType as FileType, {enabled: fileType !== undefined});
   const data = externalFiles ?? query.data ?? [];
   const loading = externalLoading ?? query.isLoading;
-  const error = externalError !== undefined ? externalError : (query.error ? "Възникна грешка при зареждане." : null);
+  const error = externalError !== undefined ? externalError : query.error ? "Възникна грешка при зареждане." : null;
   const pagination = usePagination(data);
 
   const handleDownload = async (file: FileMetadata) => {
