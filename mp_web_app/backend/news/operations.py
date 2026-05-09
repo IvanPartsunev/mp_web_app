@@ -147,7 +147,7 @@ def notify_subscribed_users(news_id: str, request: Request, user_repo: UserRepos
     subscribed_users = get_subscribed_users(user_repo)
 
     # Construct news link
-    news_link = f"{FRONTEND_BASE_URL}/?news_id={news_id}"
+    news_link = f"{FRONTEND_BASE_URL}/home"
 
     # Send email to each subscribed user
     for user in subscribed_users:
