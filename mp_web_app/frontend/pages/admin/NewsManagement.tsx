@@ -18,7 +18,7 @@ import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {Lock, Globe} from "lucide-react";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
-import {useNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
+import {useAdminNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
 import {TablePagination} from "@/components/table-pagination";
 
 interface News extends NewsItem {
@@ -28,7 +28,7 @@ interface News extends NewsItem {
 }
 
 export default function NewsManagement() {
-  const {data: news = [], isLoading: loading} = useNews();
+  const {data: news = [], isLoading: loading} = useAdminNews();
   const createMutation = useCreateNews();
   const updateMutation = useUpdateNews();
   const deleteMutation = useDeleteNews();

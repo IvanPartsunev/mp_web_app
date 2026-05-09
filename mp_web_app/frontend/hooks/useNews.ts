@@ -16,21 +16,32 @@ export interface NewsItem {
 export const newsKeys = {
   all: ["news"] as const,
   lists: () => [...newsKeys.all, "list"] as const,
-  list: () => [...newsKeys.lists()] as const,
+  list: (variant: "public" | "admin" = "public") => [...newsKeys.lists(), variant] as const,
 };
 
-// Fetch news list
+// Public news hook — 1 minute cache, varies by auth state
 export function useNews() {
   const {isLoggedIn, user} = useAuth();
 
   return useQuery({
-    queryKey: [...newsKeys.list(), {isLoggedIn, userId: user?.id}],
+    queryKey: [...newsKeys.list("public"), {isLoggedIn, userId: user?.id}],
     queryFn: async () => {
-      // Token is automatically sent via Authorization header by apiClient
       const response = await apiClient.get<NewsItem[]>("news/list");
       return response.data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes (reduced from 10 to be more responsive)
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+// Admin news hook — always fresh, separate cache key
+export function useAdminNews() {
+  return useQuery({
+    queryKey: newsKeys.list("admin"),
+    queryFn: async () => {
+      const response = await apiClient.get<NewsItem[]>("news/list");
+      return response.data ?? [];
+    },
+    staleTime: 0,
   });
 }
 
@@ -59,21 +70,14 @@ export function useUpdateNews() {
       return response.data;
     },
     onMutate: async (updatedNews) => {
-      // Cancel any in-flight refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({queryKey: newsKeys.lists()});
-
-      // Snapshot all matching news list caches
       const previousData = queryClient.getQueriesData<NewsItem[]>({queryKey: newsKeys.lists()});
-
-      // Optimistically update all cached news list variants
       queryClient.setQueriesData<NewsItem[]>({queryKey: newsKeys.lists()}, (old) =>
         old?.map((item) => (item.id === updatedNews.id ? {...item, ...updatedNews} : item))
       );
-
       return {previousData};
     },
     onError: (_err, _vars, context) => {
-      // Roll back to the snapshot on failure
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -81,7 +85,6 @@ export function useUpdateNews() {
       }
     },
     onSettled: () => {
-      // Always reconcile with the server after success or failure
       queryClient.invalidateQueries({queryKey: newsKeys.lists()});
     },
   });

@@ -21,8 +21,8 @@ export const memberKeys = {
   list: (filters?: {proxy_only?: boolean; role?: string}) => [...memberKeys.lists(), filters] as const,
 };
 
-// Fetch members list
-export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 0) {
+// Fetch members list — pass staleTime=0 for admin, default 2min for public pages
+export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 2 * 60 * 1000) {
   return useQuery({
     queryKey: memberKeys.list(filters),
     queryFn: async () => {

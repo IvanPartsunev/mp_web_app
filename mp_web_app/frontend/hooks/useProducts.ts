@@ -15,18 +15,29 @@ export interface Product {
 export const productKeys = {
   all: ["products"] as const,
   lists: () => [...productKeys.all, "list"] as const,
-  list: () => [...productKeys.lists()] as const,
+  list: (variant: "public" | "admin" = "public") => [...productKeys.lists(), variant] as const,
 };
 
-// Fetch products list
+const productQueryFn = async () => {
+  const response = await apiClient.get<Product[]>("products/list");
+  return response.data ?? [];
+};
+
+// Public products — 2 minute cache
 export function useProducts() {
   return useQuery({
-    queryKey: productKeys.list(),
-    queryFn: async () => {
-      const response = await apiClient.get<Product[]>("products/list");
-      return response.data ?? [];
-    },
-    staleTime: 60 * 60 * 1000, // 1 hour (products rarely change)
+    queryKey: productKeys.list("public"),
+    queryFn: productQueryFn,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+// Admin products — always fresh
+export function useAdminProducts() {
+  return useQuery({
+    queryKey: productKeys.list("admin"),
+    queryFn: productQueryFn,
+    staleTime: 0,
   });
 }
 
@@ -40,8 +51,7 @@ export function useCreateProduct() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate products list to refetch
-      queryClient.invalidateQueries({queryKey: productKeys.list()});
+      queryClient.invalidateQueries({queryKey: productKeys.lists()});
     },
   });
 }
@@ -56,7 +66,7 @@ export function useUpdateProduct() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: productKeys.list()});
+      queryClient.invalidateQueries({queryKey: productKeys.lists()});
     },
   });
 }
@@ -70,7 +80,7 @@ export function useDeleteProduct() {
       await apiClient.delete(`products/delete/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: productKeys.list()});
+      queryClient.invalidateQueries({queryKey: productKeys.lists()});
     },
   });
 }

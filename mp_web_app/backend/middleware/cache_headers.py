@@ -21,16 +21,17 @@ class CacheControlMiddleware(BaseHTTPMiddleware):
   #   dynamic     (5m)  — private, auth-gated, occasionally changing: news, files
   #   no-cache          — admin-only or sensitive: users/list
   CACHE_POLICIES: ClassVar[dict[str, str]] = {
-    # static tier (1 hour)
-    "gallery/list": "public, max-age=3600, stale-while-revalidate=7200",
-    "products/list": "public, max-age=3600, stale-while-revalidate=7200",
-    "users/board": "public, max-age=3600, stale-while-revalidate=7200",
-    "users/control": "public, max-age=3600, stale-while-revalidate=7200",
-    # semi-static tier (30 minutes) — private: response varies by auth token
-    "members/list": "private, max-age=1800, stale-while-revalidate=3600",
-    # dynamic tier (5 minutes) — private: response varies by auth token
-    "news/list": "private, max-age=300, stale-while-revalidate=600",
-    "files/list": "private, max-age=300, stale-while-revalidate=600",
+    # static tier (2 minutes) — public, infrequently changing
+    "gallery/list": "public, max-age=120, stale-while-revalidate=240",
+    "products/list": "public, max-age=120, stale-while-revalidate=240",
+    "users/board": "public, max-age=120, stale-while-revalidate=240",
+    "users/control": "public, max-age=120, stale-while-revalidate=240",
+    # semi-static tier (2 minutes) — private: response varies by auth token
+    "members/list": "private, max-age=120, stale-while-revalidate=240",
+    # dynamic tier (1 minute) — private: news varies by auth token
+    "news/list": "private, max-age=60, stale-while-revalidate=120",
+    # dynamic tier (2 minutes) — private: files
+    "files/list": "private, max-age=120, stale-while-revalidate=240",
     # no-cache tier — admin-only endpoint, must never be cached
     "users/list": "no-store",
   }

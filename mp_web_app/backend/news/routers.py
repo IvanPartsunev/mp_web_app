@@ -48,7 +48,7 @@ async def news_create(
 ):
   try:
     result = create_news(news_data=news_data, repo=news_repo, user_id=user.id)
-    background_tasks.add_task(notify_subscribed_users, result.id, request, user_repo)
+    background_tasks.add_task(notify_subscribed_users, request, user_repo)
     return result
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))

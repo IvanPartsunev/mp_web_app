@@ -17,11 +17,11 @@ import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
-import {useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product} from "@/hooks/useProducts";
+import {useAdminProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product} from "@/hooks/useProducts";
 import {TablePagination} from "@/components/table-pagination";
 
 export default function ProductsManagement() {
-  const {data: products = [], isLoading: loading} = useProducts();
+  const {data: products = [], isLoading: loading} = useAdminProducts();
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();

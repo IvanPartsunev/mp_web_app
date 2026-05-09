@@ -46,7 +46,7 @@ export function useBoardMembers() {
       const response = await apiClient.get<User[]>("users/board");
       return response.data ?? [];
     },
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
@@ -58,7 +58,7 @@ export function useControlMembers() {
       const response = await apiClient.get<User[]>("users/control");
       return response.data ?? [];
     },
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
