@@ -1,7 +1,6 @@
 // hooks/useGallery.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import apiClient, {adminApiClient} from "@/context/apiClient";
-import {API_BASE_URL} from "@/app-config";
 
 export interface GalleryImage {
   id: string;
@@ -21,9 +20,8 @@ export const galleryKeys = {
 };
 
 const galleryQueryFn = async () => {
-  const response = await fetch(`${API_BASE_URL}gallery/list`);
-  if (!response.ok) throw new Error("Failed to fetch gallery");
-  return ((await response.json()) || []) as GalleryImage[];
+  const response = await apiClient.get<GalleryImage[]>("gallery/list");
+  return response.data ?? [];
 };
 
 const adminGalleryQueryFn = async () => {

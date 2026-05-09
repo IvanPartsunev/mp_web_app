@@ -1,6 +1,6 @@
 // hooks/useMembers.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient from "@/context/apiClient";
+import apiClient, {adminApiClient} from "@/context/apiClient";
 
 export interface Member {
   member_code: string;
@@ -21,12 +21,13 @@ export const memberKeys = {
   list: (filters?: {proxy_only?: boolean; role?: string}) => [...memberKeys.lists(), filters] as const,
 };
 
-// Fetch members list — pass staleTime=0 for admin, default 5min for public pages
-export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 5 * 60 * 1000) {
+// Fetch members list — pass staleTime=0 and admin=true for admin panel, default 5min for public pages
+export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 5 * 60 * 1000, admin = false) {
+  const client = admin ? adminApiClient : apiClient;
   return useQuery({
     queryKey: memberKeys.list(filters),
     queryFn: async () => {
-      const response = await apiClient.get<Member[]>("members/list", {
+      const response = await client.get<Member[]>("members/list", {
         params: filters,
       });
       return response.data ?? [];
