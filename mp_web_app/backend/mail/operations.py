@@ -75,7 +75,7 @@ def send_verification_email(
   email: EmailStr | str,
   verification_link: str,
 ):
-  subject = "Verify your MySite account"
+  subject = "Потвърдете регистрацията си в ГПК Мурджов Пожар"
 
   html_body = f"""
     <!DOCTYPE html>
@@ -129,14 +129,14 @@ def send_news_notification(
 ):
   unsubscribe_link = construct_unsubscribe_link(user_id, email, request)
 
-  subject = "Какво ново в MySite"
+  subject = "ГПК Мурджов Пожар"
 
   html_body = f"""
     <!DOCTYPE html>
     <html lang="bg">
       <head>
         <meta charset="UTF-8">
-        <title>Нова новина в MySite</title>
+        <title>Нова новина в сайта на ГПК Мурджов Пожар</title>
       </head>
       <body style="margin:0;padding:0;background-color:#f8f9fa;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
@@ -177,7 +177,7 @@ def send_reset_email(
   email: EmailStr | str,
   verification_link: str,
 ):
-  subject = "Reset account password"
+  subject = "Рестартирайте паролата си в ГПК Мурджов Пожар"
 
   html_body = f"""
     <!DOCTYPE html>
@@ -225,14 +225,12 @@ def send_reset_email(
 
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_activation_token(user_id, email)
-  # AWS API Gateway adds /prod stage to the URL
-  base_url = str(request.base_url).rstrip("/") + "/prod"
+  base_url = str(request.base_url).rstrip("/")
   return f"{base_url}/api/users/activate-account?email={email}&token={token}"
 
 
 def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Request) -> str:
   token = generate_unsubscribe_token(user_id, email)
-  # Redirect to frontend page instead of backend endpoint
   return f"{FRONTEND_BASE_URL}/unsubscribe?email={email}&token={token}"
 
 
