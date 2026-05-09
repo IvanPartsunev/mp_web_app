@@ -18,8 +18,10 @@ export default function Home() {
   const {data: news = [], isLoading: loading, error: queryError} = useNews();
   const [page, setPage] = useState(1);
 
-  // Convert error to string for display
+  // Convert error to string for display - show actual error details for debugging
   const error = queryError ? "Неуспешно зареждане на новините" : null;
+  const errorDetail = queryError ? String((queryError as any)?.message || queryError) : null;
+  const errorStatus = queryError ? (queryError as any)?.response?.status : null;
 
   // Pagination helpers
   const total = news.length;
@@ -82,6 +84,12 @@ export default function Home() {
                 </svg>
               </div>
               <p className="text-red-800 dark:text-red-200 font-semibold">{error}</p>
+              {errorDetail && (
+                <p className="text-red-600 dark:text-red-400 text-xs font-mono break-all">
+                  {errorStatus ? `[${errorStatus}] ` : ""}
+                  {errorDetail}
+                </p>
+              )}
               <button
                 onClick={() => window.location.reload()}
                 className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
