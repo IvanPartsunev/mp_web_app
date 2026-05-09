@@ -40,7 +40,7 @@ export const fileKeys = {
 };
 
 // Fetch files by type (documents page — 5 minute cache)
-export function useFiles(fileType: FileType) {
+export function useFiles(fileType: FileType, options?: {enabled?: boolean}) {
   return useQuery({
     queryKey: fileKeys.list(fileType),
     queryFn: async () => {
@@ -51,6 +51,7 @@ export function useFiles(fileType: FileType) {
       return response.data ?? [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -99,6 +100,18 @@ export function useDeleteFile() {
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: fileKeys.all});
     },
+  });
+}
+
+// Fetch all files shared with the current user (any file_type where user is in allowed_to)
+export function useSharedWithMe() {
+  return useQuery({
+    queryKey: [...fileKeys.all, "shared-with-me"] as const,
+    queryFn: async () => {
+      const response = await apiClient.get<FileMetadata[]>("files/shared-with-me");
+      return response.data ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 
