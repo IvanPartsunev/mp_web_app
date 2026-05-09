@@ -169,8 +169,8 @@ export default function GalleryManagement() {
         }
         setUploading(false);
       },
-      onError: (err: ApiError) => {
-        const errorMessage = extractApiErrorDetails(err.response?.data || err);
+      onError: (err: Error) => {
+        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data || err);
         toast({
           title: "Грешка при качване",
           description: errorMessage || "Неуспешно качване на снимката",
@@ -195,8 +195,8 @@ export default function GalleryManagement() {
         setDeleteDialogOpen(false);
         setSelectedImage(null);
       },
-      onError: (err: ApiError) => {
-        const errorMessage = extractApiErrorDetails(err.response?.data || err);
+      onError: (err: Error) => {
+        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data || err);
         toast({
           title: "Грешка",
           description: errorMessage || "Неуспешно изтриване на снимката",

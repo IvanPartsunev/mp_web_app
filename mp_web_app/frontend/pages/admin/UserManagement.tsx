@@ -64,10 +64,11 @@ export default function UserManagement() {
           setSelectedUser(null);
           setFormData(null);
         },
-        onError: (err: ApiError) => {
+        onError: (err: Error) => {
+          const detail = (err as ApiError).response?.data?.detail;
           toast({
             title: "Грешка",
-            description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
+            description: detail || "Неуспешно обновяване на потребителя",
             variant: "destructive",
           });
         },
@@ -89,10 +90,11 @@ export default function UserManagement() {
         setDeleteDialogOpen(false);
         setSelectedUser(null);
       },
-      onError: (err: ApiError) => {
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
         toast({
           title: "Грешка",
-          description: err.response?.data?.detail || "Неуспешно изтриване на потребителя",
+          description: detail || "Неуспешно изтриване на потребителя",
           variant: "destructive",
         });
       },

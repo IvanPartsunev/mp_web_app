@@ -61,8 +61,9 @@ export default function ProductsManagement() {
         setCreateDialogOpen(false);
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
-      onError: (err: ApiError) => {
-        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно създаване на продукта";
+      onError: (err: Error) => {
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно създаване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });
@@ -92,8 +93,9 @@ export default function ProductsManagement() {
         setSelectedProduct(null);
         setFormData({name: "", width: "", height: "", length: "", description: ""});
       },
-      onError: (err: ApiError) => {
-        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно обновяване на продукта";
+      onError: (err: Error) => {
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно обновяване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });
@@ -108,8 +110,9 @@ export default function ProductsManagement() {
         setDeleteDialogOpen(false);
         setSelectedProduct(null);
       },
-      onError: (err: ApiError) => {
-        const errorMessage = extractApiErrorDetails(err.response?.data) || "Неуспешно изтриване на продукта";
+      onError: (err: Error) => {
+        const errorMessage =
+          extractApiErrorDetails((err as ApiError).response?.data) || "Неуспешно изтриване на продукта";
         toast({title: "Грешка", description: errorMessage, variant: "destructive"});
       },
     });

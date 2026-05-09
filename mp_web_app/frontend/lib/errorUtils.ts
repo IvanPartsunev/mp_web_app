@@ -99,16 +99,17 @@ export function extractApiErrorDetails(error: unknown): string {
   // If error is a string, just return the translated message
   if (typeof error === "string") return translate(error);
 
+  // Narrow to object for property access
+  const err = error as Record<string, unknown>;
+
   // If error has a 'detail' field
-  if (error.detail) {
-    if (typeof error.detail === "string") {
-      // HTTP error: show translated message
-      return translate(error.detail);
+  if (err.detail) {
+    if (typeof err.detail === "string") {
+      return translate(err.detail);
     }
-    if (Array.isArray(error.detail)) {
-      // FastAPI validation errors: show translated messages
-      return (error.detail as any[])
-        .map((d: any) => {
+    if (Array.isArray(err.detail)) {
+      return (err.detail as Record<string, string>[])
+        .map((d) => {
           if (typeof d === "string") return translate(d);
           if (d.msg) return translate(d.msg);
           if (d.message) return translate(d.message);
@@ -118,6 +119,6 @@ export function extractApiErrorDetails(error: unknown): string {
     }
   }
   // Fallback to error.message
-  if (error.message) return translate(error.message);
+  if (typeof err.message === "string") return translate(err.message);
   return "Възникна грешка.";
 }
