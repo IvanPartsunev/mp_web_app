@@ -10,6 +10,7 @@ import ProductsManagement from "./ProductsManagement";
 import DocumentsManagement from "./DocumentsManagement";
 import GalleryManagement from "./GalleryManagement";
 import MembersManagement from "./MembersManagement";
+import SharedFilesAudit from "./SharedFilesAudit";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -84,6 +85,7 @@ export default function AdminPanel() {
                 <SelectItem value="gallery">Галерия</SelectItem>
                 <SelectItem value="members">Членове</SelectItem>
                 <SelectItem value="documents">Документи</SelectItem>
+                <SelectItem value="shared-files">Споделени файлове</SelectItem>
               </SelectContent>
             </Select>
 
@@ -94,17 +96,19 @@ export default function AdminPanel() {
               {activeTab === "documents" && <DocumentsManagement />}
               {activeTab === "gallery" && <GalleryManagement />}
               {activeTab === "members" && <MembersManagement />}
+              {activeTab === "shared-files" && <SharedFilesAudit />}
             </div>
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="news">Новини</TabsTrigger>
               <TabsTrigger value="users">Потребители</TabsTrigger>
               <TabsTrigger value="products">Продукти</TabsTrigger>
               <TabsTrigger value="documents">Документи</TabsTrigger>
               <TabsTrigger value="gallery">Галерия</TabsTrigger>
               <TabsTrigger value="members">Членове</TabsTrigger>
+              <TabsTrigger value="shared-files">Споделени файлове</TabsTrigger>
             </TabsList>
 
             <TabsContent value="news" className="mt-6">
@@ -129,6 +133,10 @@ export default function AdminPanel() {
 
             <TabsContent value="members" className="mt-6">
               <MembersManagement />
+            </TabsContent>
+
+            <TabsContent value="shared-files" className="mt-6">
+              <SharedFilesAudit />
             </TabsContent>
           </Tabs>
         )}

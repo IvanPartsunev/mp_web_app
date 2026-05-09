@@ -17,8 +17,9 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {Lock, Globe} from "lucide-react";
-import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
+import {TablePagination} from "@/components/table-pagination";
 
 interface News extends NewsItem {
   id: string;
@@ -36,6 +37,10 @@ export default function NewsManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(news.length / DEFAULT_PAGE_SIZE));
+  const pagedNews = news.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -184,17 +189,19 @@ export default function NewsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%]`}>Заглавие</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] max-w-0`}>Заглавие</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[25%]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[25%]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {news.map((item, index) => (
+                {pagedNews.map((item, index) => (
                   <TableRow key={item.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
-                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{item.title}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
+                    <TableCell className="font-medium max-w-0 w-[35%] overflow-hidden">
+                      <span className="block truncate pr-4">{item.title}</span>
+                    </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       {item.news_type === "private" ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap w-fit bg-primary/10 text-primary border border-primary/20">
@@ -211,8 +218,8 @@ export default function NewsManagement() {
                     <TableCell className={TABLE_STYLES.cellBase}>
                       {item.created_at ? new Date(item.created_at).toLocaleDateString("bg-BG") : "-"}
                     </TableCell>
-                    <TableCell className={TABLE_STYLES.cellBase}>
-                      <div className="flex gap-2">
+                    <TableCell className={TABLE_STYLES.cellCenter}>
+                      <div className="flex justify-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
                           Редактирай
                         </Button>
@@ -227,6 +234,7 @@ export default function NewsManagement() {
             </Table>
           </div>
         )}
+        <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

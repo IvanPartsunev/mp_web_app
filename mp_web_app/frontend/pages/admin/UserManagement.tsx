@@ -9,7 +9,8 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useUsersList, useUpdateUser, useDeleteUser, User} from "@/hooks/useUsers";
-import {TABLE_STYLES, COLUMN_WIDTHS} from "@/lib/tableUtils";
+import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
+import {TablePagination} from "@/components/table-pagination";
 
 const roleTranslations: Record<string, string> = {
   regular: "Обикновен",
@@ -27,6 +28,10 @@ export default function UserManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / DEFAULT_PAGE_SIZE));
+  const pagedUsers = users.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const [formData, setFormData] = useState<{
     role: string;
@@ -113,13 +118,13 @@ export default function UserManagement() {
                   <TableHead className={`${TABLE_STYLES.headBase} w-[10%]`}>Роля</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Активен</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Абониран</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[15%]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user, index) => (
+                {pagedUsers.map((user, index) => (
                   <TableRow key={user.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>
                       {user.first_name} {user.last_name}
                     </TableCell>
@@ -132,8 +137,8 @@ export default function UserManagement() {
                       {(user.active ?? user.is_active) ? "Да" : "Не"}
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
-                    <TableCell className={TABLE_STYLES.cellBase}>
-                      <div className="flex gap-2">
+                    <TableCell className={TABLE_STYLES.cellCenter}>
+                      <div className="flex justify-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
                           Редактирай
                         </Button>
@@ -148,6 +153,7 @@ export default function UserManagement() {
             </Table>
           </div>
         )}
+        <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
         {/* Edit Dialog */}
         <Dialog
