@@ -78,3 +78,4 @@ class FrontendStack(Stack):
     # 5. Output the CloudFront URL and bucket name
     CfnOutput(self, "CloudFrontURL", value=self.frontend_url)
     CfnOutput(self, "SiteBucketName", value=site_bucket.bucket_name)
+    CfnOutput(self, "FrontendDistributionId", value=distribution.distribution_id, description="CloudFront distribution ID for cache invalidation")
