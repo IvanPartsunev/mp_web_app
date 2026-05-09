@@ -74,7 +74,13 @@ export default function DocumentsManagement() {
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold">Списък с документи</h3>
-          <Select value={selectedFileType} onValueChange={(v) => { setSelectedFileType(v); setPage(1); }}>
+          <Select
+            value={selectedFileType}
+            onValueChange={(v) => {
+              setSelectedFileType(v);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-[280px]">
               <SelectValue placeholder="Изберете тип документ" />
             </SelectTrigger>
@@ -113,7 +119,9 @@ export default function DocumentsManagement() {
               <TableBody>
                 {pagedFiles.map((file, index) => (
                   <TableRow key={file.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>

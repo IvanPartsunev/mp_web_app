@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 import os
 
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+
 from auth.operations import role_required
-from database.repositories import FileMetadataRepository
+from database.repositories import FileMetadataRepository, UserRepository
 from files.exceptions import (
   FileAccessDeniedError,
   FileNotFoundError,
@@ -22,13 +23,14 @@ from files.operations import (
   revoke_share,
   upload_file,
 )
-from database.repositories import UserRepository
 
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
 
 def get_users_repository():
   return UserRepository(USERS_TABLE_NAME)
+
+
 from users.roles import UserRole
 
 file_router = APIRouter(tags=["files"])

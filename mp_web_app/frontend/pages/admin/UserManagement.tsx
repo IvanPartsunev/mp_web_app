@@ -124,7 +124,9 @@ export default function UserManagement() {
               <TableBody>
                 {pagedUsers.map((user, index) => (
                   <TableRow key={user.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>
                       {user.first_name} {user.last_name}
                     </TableCell>

@@ -224,7 +224,9 @@ export default function ProductsManagement() {
               <TableBody>
                 {pagedProducts.map((product, index) => (
                   <TableRow key={product.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{product.name}</TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>{product.length ?? "-"}</TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>{product.width ?? "-"}</TableCell>

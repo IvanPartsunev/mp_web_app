@@ -198,7 +198,9 @@ export default function NewsManagement() {
               <TableBody>
                 {pagedNews.map((item, index) => (
                   <TableRow key={item.id}>
-                    <TableCell className={TABLE_STYLES.rowNumberCell}>{(page - 1) * DEFAULT_PAGE_SIZE + index + 1}</TableCell>
+                    <TableCell className={TABLE_STYLES.rowNumberCell}>
+                      {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
+                    </TableCell>
                     <TableCell className="font-medium max-w-0 w-[35%] overflow-hidden">
                       <span className="block truncate pr-4">{item.title}</span>
                     </TableCell>
