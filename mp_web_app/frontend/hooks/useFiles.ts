@@ -39,7 +39,7 @@ export const fileKeys = {
   sharedAudit: () => [...fileKeys.all, "shared-audit"] as const,
 };
 
-// Fetch files by type
+// Fetch files by type (documents page — 2 minute cache)
 export function useFiles(fileType: FileType) {
   return useQuery({
     queryKey: fileKeys.list(fileType),
@@ -50,7 +50,7 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes — aligned with dynamic tier HTTP max-age=300
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 

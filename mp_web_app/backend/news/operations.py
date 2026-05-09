@@ -137,7 +137,7 @@ def get_news(repo: NewsRepository, token: str | None = None):
   return items
 
 
-def notify_subscribed_users(news_id: str, request: Request, user_repo: UserRepository):
+def notify_subscribed_users(request: Request, user_repo: UserRepository):
   """Send email notifications to subscribed users about new news."""
   from mail.operations import send_news_notification
   from users.operations import get_subscribed_users

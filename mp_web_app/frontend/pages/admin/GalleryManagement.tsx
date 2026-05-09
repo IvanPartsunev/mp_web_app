@@ -7,13 +7,13 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {Trash2} from "lucide-react";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
-import {useGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
+import {useAdminGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
 import {TablePagination} from "@/components/table-pagination";
 
 const GALLERY_PAGE_SIZE = 20;
 
 export default function GalleryManagement() {
-  const {data: images = [], isLoading: loading} = useGallery();
+  const {data: images = [], isLoading: loading} = useAdminGallery();
   const createMutation = useCreateGalleryImage();
   const deleteMutation = useDeleteGalleryImage();
 

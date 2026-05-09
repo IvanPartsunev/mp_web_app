@@ -17,22 +17,30 @@ export interface GalleryImage {
 export const galleryKeys = {
   all: ["gallery"] as const,
   lists: () => [...galleryKeys.all, "list"] as const,
-  list: () => [...galleryKeys.lists()] as const,
+  list: (variant: "public" | "admin" = "public") => [...galleryKeys.lists(), variant] as const,
 };
 
-// Fetch gallery images
+const galleryQueryFn = async () => {
+  const response = await fetch(`${API_BASE_URL}gallery/list`);
+  if (!response.ok) throw new Error("Failed to fetch gallery");
+  return ((await response.json()) || []) as GalleryImage[];
+};
+
+// Public gallery — 2 minute cache
 export function useGallery() {
   return useQuery({
-    queryKey: galleryKeys.list(),
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}gallery/list`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch gallery");
-      }
-      const data = await response.json();
-      return (data || []) as GalleryImage[];
-    },
-    staleTime: 60 * 60 * 1000, // 1 hour (gallery rarely changes)
+    queryKey: galleryKeys.list("public"),
+    queryFn: galleryQueryFn,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+
+// Admin gallery — always fresh
+export function useAdminGallery() {
+  return useQuery({
+    queryKey: galleryKeys.list("admin"),
+    queryFn: galleryQueryFn,
+    staleTime: 0,
   });
 }
 
@@ -50,7 +58,7 @@ export function useCreateGalleryImage() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: galleryKeys.list()});
+      queryClient.invalidateQueries({queryKey: galleryKeys.lists()});
     },
   });
 }
@@ -64,7 +72,7 @@ export function useDeleteGalleryImage() {
       await apiClient.delete(`gallery/delete/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: galleryKeys.list()});
+      queryClient.invalidateQueries({queryKey: galleryKeys.lists()});
     },
   });
 }
