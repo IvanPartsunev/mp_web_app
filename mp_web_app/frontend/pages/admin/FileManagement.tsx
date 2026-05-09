@@ -6,6 +6,7 @@ import {Checkbox} from "@/components/ui/checkbox";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
+import type {ApiError} from "@/lib/errorUtils";
 
 export default function FileManagement() {
   const {data: files = [], isLoading: loading} = useAllFiles();
@@ -35,10 +36,11 @@ export default function FileManagement() {
       try {
         await deleteMutation.mutateAsync(file.id);
         deletedCount++;
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const apiErr = err as ApiError;
         toast({
           title: "Грешка",
-          description: err.message || "Неуспешно изтриване на файл",
+          description: apiErr.message || "Неуспешно изтриване на файл",
           variant: "destructive",
         });
       }

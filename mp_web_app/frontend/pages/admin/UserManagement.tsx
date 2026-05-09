@@ -9,6 +9,7 @@ import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useUsersList, useUpdateUser, useDeleteUser, User} from "@/hooks/useUsers";
+import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
 
@@ -63,7 +64,7 @@ export default function UserManagement() {
           setSelectedUser(null);
           setFormData(null);
         },
-        onError: (err: any) => {
+        onError: (err: ApiError) => {
           toast({
             title: "Грешка",
             description: err.response?.data?.detail || "Неуспешно обновяване на потребителя",
@@ -88,7 +89,7 @@ export default function UserManagement() {
         setDeleteDialogOpen(false);
         setSelectedUser(null);
       },
-      onError: (err: any) => {
+      onError: (err: ApiError) => {
         toast({
           title: "Грешка",
           description: err.response?.data?.detail || "Неуспешно изтриване на потребителя",

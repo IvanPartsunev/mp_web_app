@@ -1,4 +1,9 @@
-export function extractApiErrorDetails(error: any): string {
+import type {AxiosError} from "axios";
+
+/** Typed axios error with a FastAPI-style response body */
+export type ApiError = AxiosError<{detail?: string}>;
+
+export function extractApiErrorDetails(error: unknown): string {
   if (!error) return "Възникна грешка.";
 
   // Helper for Bulgarian translations of common validation error messages

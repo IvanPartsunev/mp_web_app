@@ -4,6 +4,7 @@ import {Button} from "@/components/ui/button";
 import {Card} from "@/components/ui/card";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
+import type {ApiError} from "@/lib/errorUtils";
 
 export default function MembersManagement() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -53,10 +54,11 @@ export default function MembersManagement() {
       toast({title: "Успех", description: "Членовете са синхронизирани успешно"});
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
       toast({
         title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешна синхронизация на членовете",
+        description: apiErr.response?.data?.detail || "Неуспешна синхронизация на членовете",
         variant: "destructive",
       });
     } finally {
@@ -76,10 +78,11 @@ export default function MembersManagement() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
       toast({
         title: "Грешка",
-        description: err.response?.data?.detail || "Неуспешно изтегляне",
+        description: apiErr.response?.data?.detail || "Неуспешно изтегляне",
         variant: "destructive",
       });
     } finally {

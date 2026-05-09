@@ -25,7 +25,9 @@ export function FilesTable({fileType, title = "Документи", files: exter
   const data = externalFiles ?? query.data ?? [];
   const loading = externalLoading ?? query.isLoading;
   const error = externalError !== undefined ? externalError : (query.error ? "Възникна грешка при зареждане." : null);
-  const pagination = usePagination(data); = async (file: FileMetadata) => {
+  const pagination = usePagination(data);
+
+  const handleDownload = async (file: FileMetadata) => {
     if (!file.id || !file.file_name) return;
     try {
       const res = await apiClient.post(
@@ -61,8 +63,9 @@ export function FilesTable({fileType, title = "Документи", files: exter
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      alert(e?.response?.data?.detail ?? "Неуспешно изтегляне.");
+    } catch (e: unknown) {
+      const apiErr = e as {response?: {data?: {detail?: string}}};
+      alert(apiErr?.response?.data?.detail ?? "Неуспешно изтегляне.");
     }
   };
 
