@@ -176,6 +176,8 @@ cdk-destroy: ## Destroy CDK stack from AWS
 frontend-deploy: frontend-build ## Build and deploy frontend to S3
 	@echo "$(BLUE)Deploying frontend to S3...$(NC)"
 	aws s3 sync mp_web_app/frontend/dist/ s3://frontendstack-frontendsitebucket127f9fa2-rfsnnx147bfx/ --delete
+	@echo "$(BLUE)Invalidating CloudFront cache...$(NC)"
+	aws cloudfront create-invalidation --distribution-id $$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Aliases.Items, 'murdjovpojar.com')].Id" --output text) --paths "/*"
 	@echo "$(GREEN)✓ Frontend deployed to S3$(NC)"
 
 frontend-deploy-all: frontend-deploy ## Build, deploy to S3
