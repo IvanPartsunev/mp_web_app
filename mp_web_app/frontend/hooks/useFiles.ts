@@ -38,7 +38,7 @@ export function useFiles(fileType: FileType) {
       });
       return response.data ?? [];
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minutes — aligned with dynamic tier HTTP max-age=300
   });
 }
 
