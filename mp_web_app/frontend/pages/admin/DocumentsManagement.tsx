@@ -4,6 +4,7 @@ import {Button} from "@/components/ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {ConfirmDialog} from "@/components/confirm-dialog";
+import {ShareFileDialog} from "@/components/share-file-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
@@ -28,6 +29,7 @@ export default function DocumentsManagement() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileMetadata | null>(null);
+  const [shareTarget, setShareTarget] = useState<FileMetadata | null>(null);
   const [selectedFileType, setSelectedFileType] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -115,7 +117,7 @@ export default function DocumentsManagement() {
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[210px]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} w-[100px]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[160px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -141,9 +143,14 @@ export default function DocumentsManagement() {
                         : "-"}
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
-                      <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(file)}>
-                        Изтрий
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setShareTarget(file)}>
+                          Сподели
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(file)}>
+                          Изтрий
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -163,6 +170,13 @@ export default function DocumentsManagement() {
           onConfirm={handleDelete}
           confirmText="Изтрий"
           variant="destructive"
+        />
+
+        {/* Share Dialog */}
+        <ShareFileDialog
+          open={!!shareTarget}
+          onOpenChange={(val) => !val && setShareTarget(null)}
+          file={shareTarget}
         />
       </div>
     </AdminLayout>
