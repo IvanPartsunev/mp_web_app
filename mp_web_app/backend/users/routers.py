@@ -46,7 +46,8 @@ async def board_members_list(user_repo: UserRepository = Depends(get_user_reposi
   """Public endpoint to get board members."""
   try:
     all_users = list_users(user_repo)
-    return [user for user in all_users if user.role == UserRole.BOARD]
+    members = [user for user in all_users if user.role == UserRole.BOARD]
+    return sorted(members, key=lambda u: (u.first_name.lower(), u.last_name.lower()))
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
@@ -56,7 +57,8 @@ async def control_members_list(user_repo: UserRepository = Depends(get_user_repo
   """Public endpoint to get control members."""
   try:
     all_users = list_users(user_repo)
-    return [user for user in all_users if user.role == UserRole.CONTROL]
+    members = [user for user in all_users if user.role == UserRole.CONTROL]
+    return sorted(members, key=lambda u: (u.first_name.lower(), u.last_name.lower()))
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
