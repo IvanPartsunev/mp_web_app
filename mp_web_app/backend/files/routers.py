@@ -172,10 +172,21 @@ async def revoke_file_share(
   repo: FileMetadataRepository = Depends(get_uploads_repository),
   user=Depends(role_required([UserRole.ADMIN])),
 ):
-  """Remove a specific user from a file's allowed_to list."""
+  """Remove a specific user from a file's allowed_to list.
+  If the file is a private document and has no remaining recipients, it is deleted.
+  """
   try:
-    revoke_share(file_id, user_id, repo)
+    updated_allowed_to = revoke_share(file_id, user_id, repo)
+
+    # Private documents with no remaining recipients are orphaned — delete them
+    response = repo.table.get_item(Key={"id": file_id})
+    if "Item" in response:
+      file_metadata = repo.convert_item_to_object_full(response["Item"])
+      if file_metadata.file_type == FileType.private_documents and not updated_allowed_to:
+        delete_file(file_id, repo)
   except FileNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except FileUploadError as e:
     raise HTTPException(status_code=500, detail=str(e))

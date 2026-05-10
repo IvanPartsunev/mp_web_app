@@ -332,8 +332,8 @@ def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserReposito
   return entries
 
 
-def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> None:
-  """Remove a specific user from a file's allowed_to list."""
+def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> list[str]:
+  """Remove a specific user from a file's allowed_to list. Returns the remaining allowed_to list."""
   try:
     response = repo.table.get_item(Key={"id": file_id})
   except Exception as e:
@@ -357,6 +357,9 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> No
     )
   except Exception as e:
     raise MetadataError(f"Failed to revoke share: {e}")
+
+  remaining = [u for u in allowed_to if u != user_id]
+  return remaining
 
 
 def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
