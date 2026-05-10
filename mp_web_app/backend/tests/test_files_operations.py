@@ -278,3 +278,70 @@ class TestNotifySharedUsers:
 
     download_link = mock_send.call_args.kwargs["download_link"]
     assert download_link.endswith("/mydocuments")
+
+
+class TestAddShare:
+  def _make_repo(self, item=None):
+    repo = Mock()
+    if item is None:
+      repo.table.get_item.return_value = {}
+    else:
+      repo.table.get_item.return_value = {"Item": item}
+    return repo
+
+  def test_appends_new_user_ids(self):
+    from files.operations import add_share
+
+    item = {"id": "file-1", "allowed_to": ["uid-a"]}
+    repo = self._make_repo(item)
+
+    result = add_share("file-1", ["uid-b", "uid-c"], repo)
+
+    repo.table.update_item.assert_called_once()
+    call_kwargs = repo.table.update_item.call_args.kwargs
+    assert call_kwargs["ExpressionAttributeValues"][":new_ids"] == ["uid-b", "uid-c"]
+    assert result == ["uid-a", "uid-b", "uid-c"]
+
+  def test_skips_duplicate_ids(self):
+    from files.operations import add_share
+
+    item = {"id": "file-1", "allowed_to": ["uid-a", "uid-b"]}
+    repo = self._make_repo(item)
+
+    result = add_share("file-1", ["uid-a", "uid-b"], repo)
+
+    repo.table.update_item.assert_not_called()
+    assert result == ["uid-a", "uid-b"]
+
+  def test_appends_only_new_ids_when_some_already_exist(self):
+    from files.operations import add_share
+
+    item = {"id": "file-1", "allowed_to": ["uid-a"]}
+    repo = self._make_repo(item)
+
+    result = add_share("file-1", ["uid-a", "uid-b"], repo)
+
+    call_kwargs = repo.table.update_item.call_args.kwargs
+    assert call_kwargs["ExpressionAttributeValues"][":new_ids"] == ["uid-b"]
+    assert result == ["uid-a", "uid-b"]
+
+  def test_raises_file_not_found_for_missing_file(self):
+    from files.exceptions import FileNotFoundError
+    from files.operations import add_share
+
+    repo = self._make_repo(item=None)
+
+    with pytest.raises(FileNotFoundError):
+      add_share("nonexistent-id", ["uid-a"], repo)
+
+  def test_handles_empty_allowed_to_on_existing_file(self):
+    from files.operations import add_share
+
+    item = {"id": "file-1"}  # no allowed_to key
+    repo = self._make_repo(item)
+
+    result = add_share("file-1", ["uid-a"], repo)
+
+    call_kwargs = repo.table.update_item.call_args.kwargs
+    assert call_kwargs["ExpressionAttributeValues"][":new_ids"] == ["uid-a"]
+    assert result == ["uid-a"]

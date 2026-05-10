@@ -105,7 +105,9 @@ def create_file_metadata(
   return repo.convert_item_to_object_full(file_metadata_item)
 
 
-def get_files_metadata(file_type: str, repo: FileMetadataRepository, user_id: str | None = None):
+def get_files_metadata(
+  file_type: str, repo: FileMetadataRepository, user_id: str | None = None, include_allowed_to: bool = False
+):
   try:
     response = repo.table.query(
       IndexName="file_type_created_at_index",
@@ -127,7 +129,10 @@ def get_files_metadata(file_type: str, repo: FileMetadataRepository, user_id: st
     if file_type == FileType.private_documents.value and user_id:
       items = [item for item in items if user_id in (item.get("allowed_to") or [])]
 
-    files_metadata = [repo.convert_item_to_object(item) for item in items]
+    if include_allowed_to:
+      files_metadata = [repo.convert_item_to_object_full(item) for item in items]
+    else:
+      files_metadata = [repo.convert_item_to_object(item) for item in items]
 
     # Enrich with user names
     _enrich_with_user_names(files_metadata)
@@ -332,8 +337,8 @@ def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserReposito
   return entries
 
 
-def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> None:
-  """Remove a specific user from a file's allowed_to list."""
+def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> list[str]:
+  """Remove a specific user from a file's allowed_to list. Returns the remaining allowed_to list."""
   try:
     response = repo.table.get_item(Key={"id": file_id})
   except Exception as e:
@@ -357,6 +362,9 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> No
     )
   except Exception as e:
     raise MetadataError(f"Failed to revoke share: {e}")
+
+  remaining = [u for u in allowed_to if u != user_id]
+  return remaining
 
 
 def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
@@ -404,3 +412,32 @@ def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> li
     return files_metadata
   except Exception as e:
     raise MetadataError(f"Failed to fetch shared files: {e}")
+
+
+def add_share(file_id: str, user_ids: list[str], repo: FileMetadataRepository) -> list[str]:
+  """Append new user IDs to a file's allowed_to list. Returns the updated allowed_to list."""
+  try:
+    response = repo.table.get_item(Key={"id": file_id})
+  except Exception as e:
+    raise MetadataError(f"Failed to fetch file: {e}")
+
+  if "Item" not in response:
+    raise FileNotFoundError(f"File with id {file_id} not found")
+
+  existing: list[str] = response["Item"].get("allowed_to") or []
+  new_ids = [uid for uid in user_ids if uid not in existing]
+
+  if not new_ids:
+    return existing
+
+  try:
+    repo.table.update_item(
+      Key={"id": file_id},
+      UpdateExpression="SET allowed_to = list_append(if_not_exists(allowed_to, :empty), :new_ids)",
+      ExpressionAttributeValues={":new_ids": new_ids, ":empty": []},
+      ConditionExpression="attribute_exists(id)",
+    )
+  except Exception as e:
+    raise MetadataError(f"Failed to update allowed_to: {e}")
+
+  return existing + new_ids

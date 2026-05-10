@@ -18,6 +18,7 @@ export interface FileMetadata {
   uploaded_by?: string | null;
   uploaded_by_name?: string | null;
   created_at?: string | null;
+  allowed_to?: string[] | null;
 }
 
 export interface SharedFileAuditEntry {
@@ -137,6 +138,23 @@ export function useRevokeShare() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: fileKeys.sharedAudit()});
+    },
+  });
+}
+
+// Share file mutation (admin only)
+export function useShareFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({fileId, userIds}: {fileId: string; userIds: string[]}) => {
+      const response = await adminApiClient.patch<{allowed_to: string[]}>(`files/${fileId}/share`, {
+        user_ids: userIds,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: fileKeys.all});
     },
   });
 }

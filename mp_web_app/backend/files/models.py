@@ -21,6 +21,7 @@ class FileMetadata(BaseModel):
   uploaded_by: str | None = None
   uploaded_by_name: str | None = None  # User's full name for display
   created_at: str = datetime.now().isoformat()
+  allowed_to: list[str] | None = None  # Populated for admin list calls
 
 
 class FileMetadataFull(FileMetadata):
@@ -38,3 +39,11 @@ class SharedFileAuditEntry(BaseModel):
   created_at: str
   shared_with_id: str
   shared_with_name: str | None = None
+
+
+class ShareFileRequest(BaseModel):
+  user_ids: list[str]
+
+
+class ShareFileResponse(BaseModel):
+  allowed_to: list[str]
