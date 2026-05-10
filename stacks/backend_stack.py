@@ -251,6 +251,14 @@ class BackendStack(Stack):
       )
     )
 
+    # Explicitly grant permission to query the Global Secondary Index on the gallery table
+    self.backend_lambda.add_to_role_policy(
+      iam.PolicyStatement(
+        actions=["dynamodb:Query"],
+        resources=[f"{self.table6.table_arn}/index/*"]
+      )
+    )
+
     # Grant Lambda access to SES
     self.backend_lambda.add_to_role_policy(
       iam.PolicyStatement(
