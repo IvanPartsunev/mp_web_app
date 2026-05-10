@@ -13,8 +13,16 @@ from files.exceptions import (
   MetadataError,
   MissingAllowedUsersError,
 )
-from files.models import FileMetadata, FileMetadataFull, FileType, SharedFileAuditEntry
+from files.models import (
+  FileMetadata,
+  FileMetadataFull,
+  FileType,
+  SharedFileAuditEntry,
+  ShareFileRequest,
+  ShareFileResponse,
+)
 from files.operations import (
+  add_share,
   delete_file,
   download_file,
   get_files_metadata,
@@ -88,7 +96,8 @@ async def files_list(
     if user.role == UserRole.REGULAR_USER.value and file_type == "accounting":
       raise HTTPException(status_code=403, detail="You don't have access to this document type")
 
-    return get_files_metadata(file_type, repo, user_id=user.id)
+    include_allowed_to = user.role == UserRole.ADMIN.value
+    return get_files_metadata(file_type, repo, user_id=user.id, include_allowed_to=include_allowed_to)
   except MetadataError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
@@ -189,4 +198,36 @@ async def revoke_file_share(
   except MetadataError as e:
     raise HTTPException(status_code=500, detail=str(e))
   except FileUploadError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+
+
+@file_router.patch("/{file_id}/share", response_model=ShareFileResponse, status_code=status.HTTP_200_OK)
+async def share_file(
+  file_id: str,
+  request: ShareFileRequest,
+  background_tasks: BackgroundTasks = BackgroundTasks(),
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user_repo: UserRepository = Depends(get_users_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Add users to a file's allowed_to list. Sends email notifications to newly added users."""
+  try:
+    updated_allowed_to = add_share(file_id, request.user_ids, repo)
+
+    # Determine which IDs are newly added to notify only them
+    existing_ids = set(updated_allowed_to) - set(request.user_ids)
+    new_ids = [uid for uid in request.user_ids if uid not in existing_ids]
+
+    if new_ids:
+      # Build a minimal FileMetadataFull with only the new recipients for notification
+      file_response = repo.table.get_item(Key={"id": file_id})
+      if "Item" in file_response:
+        file_meta = repo.convert_item_to_object_full(file_response["Item"])
+        file_meta.allowed_to = new_ids
+        background_tasks.add_task(notify_shared_users, file_meta, user_repo)
+
+    return ShareFileResponse(allowed_to=updated_allowed_to)
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except MetadataError as e:
     raise HTTPException(status_code=500, detail=str(e))
