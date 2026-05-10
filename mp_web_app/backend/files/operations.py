@@ -224,8 +224,10 @@ def get_db_metadata(file_metadata: FileMetadata, repo: FileMetadataRepository) -
 
 
 def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadataFull):
-  fields = file_metadata.model_fields.keys()
-  return file_metadata.model_dump() == db_meta_object.model_dump(include=fields)
+  # Exclude display-only and access-control fields not exposed to the frontend
+  exclude_fields = {"uploaded_by_name", "allowed_to"}
+  fields = set(file_metadata.model_fields.keys()) - exclude_fields
+  return file_metadata.model_dump(exclude=exclude_fields) == db_meta_object.model_dump(include=fields)
 
 
 def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_role: str) -> bool:
