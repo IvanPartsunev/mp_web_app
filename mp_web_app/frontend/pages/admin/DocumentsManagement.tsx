@@ -173,7 +173,7 @@ export default function DocumentsManagement() {
         />
 
         {/* Share Dialog */}
-        <ShareFileDialog open={!!shareTarget} onOpenChange={(val) => !val && setShareTarget(null)} file={shareTarget} />
+        <ShareFileDialog open={!!shareTarget} onOpenChange={(val: boolean) => !val && setShareTarget(null)} file={shareTarget} />
       </div>
     </AdminLayout>
   );
