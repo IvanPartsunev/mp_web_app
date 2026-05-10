@@ -9,7 +9,7 @@ The infrastructure is defined as code using **AWS CDK** (Cloud Development Kit) 
 ```
                                     +---------------------+
                                     |    Route 53 DNS      |
-                                    |  ivan-partsunev.com  |
+                                    |   murdjovpojar.com   |
                                     +------+------+--------+
                                            |      |
                               +------------+      +------------+
@@ -107,9 +107,9 @@ The main stack provisioning the API, database, and compute.
 
 | Component | Domain |
 |-----------|--------|
-| Frontend | `www.ivan-partsunev.com` |
-| API | `api.ivan-partsunev.com` |
-| DNS Zone | `ivan-partsunev.com` (Route 53) |
+| Frontend | `www.murdjovpojar.com` |
+| API | `api.murdjovpojar.com` |
+| DNS Zone | `murdjovpojar.com` (Route 53) |
 | SSL | ACM Certificate (us-east-1) |
 
 ---

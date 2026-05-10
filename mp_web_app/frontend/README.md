@@ -103,8 +103,8 @@ frontend/
 │       ├── DocumentsManagement.tsx# Document management
 │       ├── GalleryManagement.tsx  # Gallery upload/delete
 │       ├── MembersManagement.tsx  # Member management + CSV sync
-│       ├── FileManagement.tsx     # File management
-│       └── EmailsManagement.tsx   # Email management (hidden)
+│       ├── SharedFilesAudit.tsx   # Shared files audit (admin)
+│       └── EmailsManagement.tsx   # Email management
 │
 ├── hooks/                 # Custom React hooks
 │   ├── useNews.ts         # News data fetching

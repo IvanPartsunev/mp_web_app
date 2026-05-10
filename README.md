@@ -52,14 +52,14 @@ This web application replaces the cooperative's legacy WordPress site with a mod
 | **Auth** | JWT (access + refresh tokens), Argon2 password hashing |
 | **Email** | AWS SES |
 | **Infrastructure** | AWS CDK (Lambda, API Gateway, S3, CloudFront, Route 53) |
-| **CI/CD** | GitHub Actions (PR title validation) |
+| **CI/CD** | GitHub Actions (lint, tests, deploy) |
 
 ---
 
 ## Project Structure
 
 ```
-mp_web_site/
+mp_web_app/
 ├── mp_web_app/
 │   ├── frontend/          # React + TypeScript SPA
 │   │   ├── components/    # Reusable UI components (shadcn/ui)
@@ -87,11 +87,7 @@ mp_web_site/
 │   ├── frontend_stack.py  # S3 + CloudFront for SPA
 │   └── uploads_stack.py   # S3 + CloudFront for media
 │
-├── tests/                 # Test suite
-│   └── backend/           # Backend unit & integration tests
-│
 ├── Makefile               # Build orchestration (dev, test, deploy)
-├── docker-compose.yaml    # Local DynamoDB
 ├── app.py                 # CDK app entry point
 ├── setup.sh               # Automated dev setup
 └── pyproject.toml         # UV workspace config
@@ -106,7 +102,6 @@ mp_web_site/
 | **[Frontend README](mp_web_app/frontend/README.md)** | Deep dive into the React frontend - components, pages, hooks, routing, styling |
 | **[Backend README](mp_web_app/backend/README.md)** | Deep dive into the FastAPI backend - API endpoints, models, auth, database |
 | **[Infrastructure README](stacks/README.md)** | AWS CDK stacks - Lambda, DynamoDB, S3, CloudFront, Route 53 |
-| **[Tests README](tests/README.md)** | Testing strategy, setup, and running tests |
 
 ---
 
@@ -118,7 +113,6 @@ mp_web_site/
 - Python 3.12+
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
 - [pnpm](https://pnpm.io/) 8+ (Node package manager)
-- Docker (for local DynamoDB)
 
 ### Automated Setup
 
@@ -133,9 +127,6 @@ This installs `uv` and `pnpm` if missing, then runs `make install-dev`.
 ```bash
 # Install all dependencies
 make install-dev
-
-# Start local DynamoDB
-docker-compose up -d
 
 # Copy and configure environment variables
 cp mp_web_app/backend/.env.example mp_web_app/backend/.env
@@ -185,7 +176,7 @@ The platform implements 5 hierarchical user roles:
 
 ## Environment Variables
 
-See [`mp_web_app/backend/.env.example`](mp_web_app/backend/.env.example) for the full list. Key variables:
+Key variables required at runtime:
 
 | Variable | Purpose |
 |----------|---------|
@@ -204,8 +195,8 @@ See [`mp_web_app/backend/.env.example`](mp_web_app/backend/.env.example) for the
 
 The application deploys to AWS using CDK:
 
-- **Frontend:** S3 static hosting + CloudFront CDN at `www.ivan-partsunev.com`
-- **Backend:** Lambda function + API Gateway at `api.ivan-partsunev.com`
+- **Frontend:** S3 static hosting + CloudFront CDN at `www.murdjovpojar.com`
+- **Backend:** Lambda function + API Gateway at `api.murdjovpojar.com`
 - **Storage:** S3 buckets with CloudFront CDN for gallery and documents
 - **Database:** DynamoDB with auto-scaling write capacity
 

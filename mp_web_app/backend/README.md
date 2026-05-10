@@ -27,7 +27,6 @@ backend/
 ├── app_config.py          # Configuration classes (DynamoDB, JWT, SES, file extensions)
 ├── pyproject.toml         # Dependencies, Ruff config, pytest config
 ├── requirements.txt       # Pinned deps for Lambda deployment
-├── .env.example           # Environment variable template
 │
 ├── auth/                  # Authentication module
 │   ├── routers.py        # /api/auth/* endpoints (login, refresh, logout)
@@ -93,8 +92,7 @@ backend/
     ├── test_auth_operations.py
     ├── test_users_operations.py
     ├── test_files_operations.py
-    ├── test_news_operations.py
-    └── test_example.py
+    └── test_news_operations.py
 ```
 
 ---
@@ -157,7 +155,11 @@ backend/
 | POST | `/create` | Yes | Admin, Accountant | Upload document to S3 |
 | GET | `/list` | Yes | Varies by type | List files filtered by type |
 | DELETE | `/delete/{file_id}` | Yes | Admin, Accountant | Delete file |
-| POST | `/download` | Yes | Varies | Download file (streaming) |
+| POST | `/download` | Yes | Any authenticated | Download file (streaming) |
+| GET | `/shared-with-me` | Yes | Any authenticated | Files explicitly shared with current user |
+| GET | `/shared-audit` | Yes | Admin | All shared files expanded per recipient |
+| PATCH | `/{file_id}/share` | Yes | Admin | Add users to a file's allowed_to list |
+| DELETE | `/{file_id}/shared-with/{user_id}` | Yes | Admin | Remove a user from a file's allowed_to list |
 
 **Document Types & Access:**
 
@@ -341,8 +343,6 @@ Provider: **AWS SES** | Sender: `notifications@murdjovpojar.com` | Templates: Bu
 ---
 
 ## Configuration
-
-See [`.env.example`](.env.example) for the complete environment variable list.
 
 Key variables: `USERS_TABLE_NAME`, `UPLOADS_BUCKET`, `GALLERY_BUCKET`, `JWT_SECRET_ARN`, `FRONTEND_BASE_URL`, `MAIL_SENDER`, `COOKIE_DOMAIN`
 
