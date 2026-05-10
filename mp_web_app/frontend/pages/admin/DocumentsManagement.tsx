@@ -115,7 +115,7 @@ export default function DocumentsManagement() {
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Тип</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[210px]`}>Качен от</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[210px]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} w-[160px]`}>Действия</TableHead>
                 </TableRow>
@@ -130,7 +130,7 @@ export default function DocumentsManagement() {
                     <TableCell className={TABLE_STYLES.cellBase}>
                       <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
                     </TableCell>
-                    <TableCell className={TABLE_STYLES.cellBase}>
+                    <TableCell className={TABLE_STYLES.cellCenter}>
                       {file.uploaded_by_name || file.uploaded_by || "-"}
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
