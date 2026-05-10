@@ -206,6 +206,7 @@ class BackendStack(Stack):
       self, "BackendApi",
       handler=self.backend_lambda,
       proxy=True,
+      binary_media_types=["multipart/form-data", "*/*"],
       deploy_options=apigateway.StageOptions(
         stage_name="prod",
         logging_level=apigateway.MethodLoggingLevel.OFF,

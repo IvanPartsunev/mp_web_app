@@ -51,4 +51,4 @@ app.include_router(product_router, prefix="/api/products")
 
 from mangum import Mangum
 
-handler = Mangum(app, lifespan="off")
+handler = Mangum(app, lifespan="off", api_gateway_base_path="/")
