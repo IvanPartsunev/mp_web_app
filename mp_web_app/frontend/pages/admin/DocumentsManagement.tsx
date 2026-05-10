@@ -112,8 +112,8 @@ export default function DocumentsManagement() {
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[180px]`}>Тип</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[150px]`}>Качен от</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Тип</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[210px]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} w-[100px]`}>Действия</TableHead>
                 </TableRow>
