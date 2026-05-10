@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-.venv/
-node_modules/
-../frontend/
-../uploads/
-.git/
-cdk.out/
