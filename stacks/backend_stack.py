@@ -52,7 +52,10 @@ class BackendStack(Stack):
       self, "users_table",
       table_name="users_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN,
     )
     self.table1.add_global_secondary_index(
@@ -64,14 +67,20 @@ class BackendStack(Stack):
       self, "members_table",
       table_name="members_table",
       partition_key=dynamodb.Attribute(name="member_code", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN,
     )
     self.table3 = dynamodb.TableV2(
       self, "refresh_table",
       table_name="refresh_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.DESTROY,
       time_to_live_attribute="expires_at",
     )
@@ -80,7 +89,10 @@ class BackendStack(Stack):
       self, "uploads_table",
       table_name="uploads_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN,
     )
     self.table4.add_global_secondary_index(
@@ -94,7 +106,10 @@ class BackendStack(Stack):
       self, "news_table",
       table_name="news_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN,
     )
     self.table5.add_global_secondary_index(
@@ -108,7 +123,10 @@ class BackendStack(Stack):
       self, "gallery_table",
       table_name="gallery_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN,
     )
 
