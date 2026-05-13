@@ -34,7 +34,8 @@ def is_member_code_valid(member_code: str, repo: MemberRepository) -> Member | N
 async def convert_members_list(file: UploadFile) -> list[dict[str, Any]]:
   contents = await file.read()
   decoded = contents.decode("utf-8-sig")  # utf-8-sig strips BOM if present
-  reader = csv.DictReader(io.StringIO(decoded))
+  dialect = csv.Sniffer().sniff(decoded[:1024])  # sample the first 1KB
+  reader = csv.DictReader(io.StringIO(decoded), dialect=dialect)
   return list(reader)
 
 
