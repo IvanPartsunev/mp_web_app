@@ -141,7 +141,10 @@ class BackendStack(Stack):
       self, "products_table",
       table_name="products_table",
       partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
-      billing=dynamodb.Billing.on_demand(),
+      billing=dynamodb.Billing.provisioned(
+        read_capacity=dynamodb.Capacity.fixed(2),
+        write_capacity=dynamodb.Capacity.autoscaled(min_capacity=1, max_capacity=2),
+      ),
       removal_policy=RemovalPolicy.RETAIN
     )
 
