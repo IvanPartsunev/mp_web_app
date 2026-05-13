@@ -46,6 +46,7 @@ def sync_members_list(new_members_list: list[dict[str, Any]], repo: MemberReposi
   - Restore previously soft-deleted members that reappear in the CSV
   - Soft-delete members absent from the new list (is_deleted=True)
   - Update fields for existing active members
+  Uses batch_writer for all puts to avoid per-item throttling.
   """
   table = repo.table
   existing_items = _get_members_from_db(repo)
@@ -55,15 +56,13 @@ def sync_members_list(new_members_list: list[dict[str, Any]], repo: MemberReposi
   existing_by_code = {item["member_code"]: item for item in existing_items}
   new_codes = {nm["member_code"] for nm in new_members_list}
 
-  # Soft-delete members absent from the uploaded CSV
+  # Collect items to write in one batch
+  items_to_put: list[dict[str, Any]] = []
+
+  # Soft-delete members absent from the uploaded CSV (mark and include in batch)
   for code, item in existing_by_code.items():
     if code not in new_codes and not item.get("is_deleted", False):
-      table.update_item(
-        Key={"member_code": code},
-        UpdateExpression="SET #is_deleted = :val",
-        ExpressionAttributeNames={"#is_deleted": "is_deleted"},
-        ExpressionAttributeValues={":val": True},
-      )
+      items_to_put.append({**item, "is_deleted": True})
 
   # Create, restore, or update members from the CSV
   for member in new_members_list:
@@ -71,11 +70,14 @@ def sync_members_list(new_members_list: list[dict[str, Any]], repo: MemberReposi
     existing = existing_by_code.get(code)
 
     if existing is None or existing.get("is_deleted", False):
-      # New member or restore previously deleted — put full item
-      table.put_item(Item=member)
+      items_to_put.append(member)
     else:
-      # Update existing active member's fields
-      table.put_item(Item={**existing, **member, "is_deleted": False})
+      items_to_put.append({**existing, **member, "is_deleted": False})
+
+  # Write everything in batches of 25 (DynamoDB batch_writer handles chunking automatically)
+  with table.batch_writer() as batch:
+    for item in items_to_put:
+      batch.put_item(Item=item)
 
 
 def update_member_code(member_code: str, repo: MemberRepository) -> None:
