@@ -161,7 +161,7 @@ cdk-synth: ## Synthesize CloudFormation template
 
 cdk-deploy: ## Deploy CDK stack to AWS
 	@echo "$(BLUE)Deploying CDK stack...$(NC)"
-	uv run cdk deploy --all --require-approval never --no-rollback
+	uv run cdk deploy --all --require-approval never
 
 cdk-diff: ## Show differences between local and deployed stack
 	@echo "$(BLUE)Showing CDK diff...$(NC)"
