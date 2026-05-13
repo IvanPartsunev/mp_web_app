@@ -222,7 +222,7 @@ make frontend-deploy
 | **Prettier** | Frontend code formatting | `.prettierrc.json` |
 | **GitHub Actions** | PR title validation (conventional commits) | `.github/workflows/` |
 
-Conventional commit types enforced: `feat:`, `fix:`, `chore:`
+Conventional commit types enforced: `feat:`, `fix:`, `chore:`, `docs:`
 
 ---
 
