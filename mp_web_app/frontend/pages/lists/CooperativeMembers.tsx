@@ -88,7 +88,9 @@ export default function CooperativeMembers() {
                     <TableBody>
                       {pagination.pageItems.map((member, index) => (
                         <TableRow key={index}>
-                          <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + index + 1}</TableCell>
+                          <TableCell className={TABLE_STYLES.rowNumberCell}>
+                            {pagination.startIdx + index + 1}
+                          </TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.first_name}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.middle_name || "-"}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.last_name}</TableCell>
