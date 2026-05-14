@@ -9,14 +9,7 @@ import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {
-  useUsersList,
-  useUpdateUser,
-  useDeleteUser,
-  useRedactUserPhone,
-  useRedactUserNames,
-  User,
-} from "@/hooks/useUsers";
+import {useUsersList, useUpdateUser, useDeleteUser, useRedactUserPhone, User} from "@/hooks/useUsers";
 import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
@@ -34,7 +27,6 @@ export default function UserManagement() {
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
   const redactPhoneMutation = useRedactUserPhone();
-  const redactNamesMutation = useRedactUserNames();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -114,26 +106,6 @@ export default function UserManagement() {
         toast({
           title: "Грешка",
           description: detail || "Неуспешно заличаване на телефона",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
-  const handleRedactNames = () => {
-    if (!selectedUser?.id) return;
-
-    redactNamesMutation.mutate(selectedUser.id, {
-      onSuccess: () => {
-        toast({title: "Успех", description: "Имената са заличени успешно"});
-        setFormData((prev) => (prev ? {...prev, first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"} : prev));
-        setSelectedUser((prev) => (prev ? {...prev, first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"} : prev));
-      },
-      onError: (err: Error) => {
-        const detail = (err as ApiError).response?.data?.detail;
-        toast({
-          title: "Грешка",
-          description: detail || "Неуспешно заличаване на имената",
           variant: "destructive",
         });
       },
