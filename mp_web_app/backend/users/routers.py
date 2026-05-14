@@ -16,6 +16,8 @@ from users.operations import (
   get_user_by_id,
   get_user_repository,
   list_users,
+  redact_user_names,
+  redact_user_phone,
   update_user,
   update_user_password,
 )
@@ -144,6 +146,38 @@ async def user_activate_account(
       raise HTTPException(status_code=500, detail=str(e))
 
   raise HTTPException(status_code=403, detail="Invalid or expired token")
+
+
+@user_router.patch("/redact-names/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
+async def user_redact_names(
+  user_id: str,
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Redact (clear) a user's first and last name (ADMIN only)."""
+  try:
+    existing_user = get_user_by_id(user_id, user_repo)
+    return redact_user_names(user_id, existing_user.email, user_repo)
+  except UserNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+
+
+@user_router.patch("/redact-phone/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
+async def user_redact_phone(
+  user_id: str,
+  user_repo: UserRepository = Depends(get_user_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Redact (clear) a user's phone number (ADMIN only)."""
+  try:
+    existing_user = get_user_by_id(user_id, user_repo)
+    return redact_user_phone(user_id, existing_user.email, user_repo)
+  except UserNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 @user_router.put("/update/{user_id}", response_model=User, status_code=status.HTTP_200_OK)

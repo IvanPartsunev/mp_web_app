@@ -1,6 +1,8 @@
+import {useState, useMemo} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {User as UserIcon, Mail, Phone, CheckCircle} from "lucide-react";
+import {User as UserIcon, Mail, Phone, CheckCircle, Search} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useMembers} from "@/hooks/useMembers";
 import {useAuth} from "@/context/AuthContext";
@@ -15,7 +17,28 @@ export default function CooperativeMembers() {
   const isAdmin = user?.role === "admin";
   const isBoardOrControl = user?.role === "board" || user?.role === "control";
   const canSeeContactInfo = isAdmin || isBoardOrControl;
-  const pagination = usePagination(members, 50, true);
+
+  const [search, setSearch] = useState("");
+
+  const filteredMembers = useMemo(() => {
+    const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return members;
+    return members.filter((m) => {
+      const nameParts = [m.first_name, m.middle_name, m.last_name].filter(Boolean).map((p) => p!.toLowerCase());
+      // Every query word must match the start of at least one distinct name part
+      const usedIndices = new Set<number>();
+      return words.every((word) => {
+        const idx = nameParts.findIndex((part, i) => !usedIndices.has(i) && part.startsWith(word));
+        if (idx !== -1) {
+          usedIndices.add(idx);
+          return true;
+        }
+        return false;
+      });
+    });
+  }, [members, search]);
+
+  const pagination = usePagination(filteredMembers, 50, true);
 
   if (loading) {
     return (
@@ -39,7 +62,24 @@ export default function CooperativeMembers() {
       <section className={SECTION_STYLES.fullWidth}>
         <Card>
           <CardHeader>
-            <CardTitle>Списък на член кооператорите ({members.length})</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <CardTitle>
+                Списък на член кооператорите ({filteredMembers.length}
+                {search && ` от ${members.length}`})
+              </CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Търсене..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    pagination.goToPage(1);
+                  }}
+                  className="pl-8"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="px-0">
             {members.length === 0 ? (

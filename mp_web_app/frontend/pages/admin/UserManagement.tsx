@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -8,7 +9,14 @@ import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {useUsersList, useUpdateUser, useDeleteUser, User} from "@/hooks/useUsers";
+import {
+  useUsersList,
+  useUpdateUser,
+  useDeleteUser,
+  useRedactUserPhone,
+  useRedactUserNames,
+  User,
+} from "@/hooks/useUsers";
 import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
@@ -25,6 +33,8 @@ export default function UserManagement() {
   const {data: users = [], isLoading: loading} = useUsersList();
   const updateMutation = useUpdateUser();
   const deleteMutation = useDeleteUser();
+  const redactPhoneMutation = useRedactUserPhone();
+  const redactNamesMutation = useRedactUserNames();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -38,6 +48,9 @@ export default function UserManagement() {
     role: string;
     active: boolean;
     subscribed: boolean;
+    phone: string | null;
+    first_name: string;
+    last_name: string;
   } | null>(null);
 
   const {toast} = useToast();
@@ -48,6 +61,9 @@ export default function UserManagement() {
       role: user.role ?? "regular",
       active: user.active ?? user.is_active ?? false,
       subscribed: user.subscribed ?? false,
+      phone: user.phone ?? null,
+      first_name: user.first_name ?? "",
+      last_name: user.last_name ?? "",
     });
     setEditDialogOpen(true);
   };
@@ -56,7 +72,15 @@ export default function UserManagement() {
     if (!selectedUser?.id || !formData) return;
 
     updateMutation.mutate(
-      {id: selectedUser.id, ...formData},
+      {
+        id: selectedUser.id,
+        role: formData.role,
+        active: formData.active,
+        subscribed: formData.subscribed,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone ?? undefined,
+      },
       {
         onSuccess: () => {
           toast({title: "Успех", description: "Потребителят е обновен успешно"});
@@ -74,6 +98,46 @@ export default function UserManagement() {
         },
       }
     );
+  };
+
+  const handleRedactPhone = () => {
+    if (!selectedUser?.id) return;
+
+    redactPhoneMutation.mutate(selectedUser.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Телефонът е заличен успешно"});
+        setFormData((prev) => (prev ? {...prev, phone: null} : prev));
+        setSelectedUser((prev) => (prev ? {...prev, phone: undefined} : prev));
+      },
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
+        toast({
+          title: "Грешка",
+          description: detail || "Неуспешно заличаване на телефона",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleRedactNames = () => {
+    if (!selectedUser?.id) return;
+
+    redactNamesMutation.mutate(selectedUser.id, {
+      onSuccess: () => {
+        toast({title: "Успех", description: "Имената са заличени успешно"});
+        setFormData((prev) => (prev ? {...prev, first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"} : prev));
+        setSelectedUser((prev) => (prev ? {...prev, first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"} : prev));
+      },
+      onError: (err: Error) => {
+        const detail = (err as ApiError).response?.data?.detail;
+        toast({
+          title: "Грешка",
+          description: detail || "Неуспешно заличаване на имената",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const openDeleteDialog = (user: User) => {
@@ -178,6 +242,41 @@ export default function UserManagement() {
             </DialogHeader>
             {formData && (
               <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Име</label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Фамилия</label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Телефон</label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      value={formData.phone ?? ""}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value || null})}
+                      placeholder="Няма телефон"
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRedactPhone}
+                      disabled={formData.phone === null || redactPhoneMutation.isPending}
+                    >
+                      Заличи
+                    </Button>
+                  </div>
+                </div>
                 <div>
                   <label className="text-sm font-medium">Роля</label>
                   <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
