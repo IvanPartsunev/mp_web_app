@@ -38,9 +38,14 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
 
 
 def validate_phone(phone: str) -> str:
+  # Strip whitespace
+  phone = phone.strip()
   # Normalise: Excel strips the leading '+', restore it
   if phone.startswith("359") and not phone.startswith("+359"):
     phone = "+" + phone
+  # Excel also strips the leading '0', leaving 9 digits — prepend +359
+  if re.match(r"^[89]\d{8}$", phone):
+    phone = "+359" + phone
   if len(phone) != 10 and len(phone) != 13:
     raise ValueError("Phone number must be 10 or 13 digits")
   if not phone.startswith(("0", "+359")):

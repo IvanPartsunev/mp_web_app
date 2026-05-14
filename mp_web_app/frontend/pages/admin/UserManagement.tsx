@@ -9,7 +9,14 @@ import {Switch} from "@/components/ui/switch";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {useUsersList, useUpdateUser, useDeleteUser, useRedactUserPhone, useRedactUserNames, User} from "@/hooks/useUsers";
+import {
+  useUsersList,
+  useUpdateUser,
+  useDeleteUser,
+  useRedactUserPhone,
+  useRedactUserNames,
+  User,
+} from "@/hooks/useUsers";
 import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
@@ -65,7 +72,15 @@ export default function UserManagement() {
     if (!selectedUser?.id || !formData) return;
 
     updateMutation.mutate(
-      {id: selectedUser.id, role: formData.role, active: formData.active, subscribed: formData.subscribed, first_name: formData.first_name, last_name: formData.last_name, phone: formData.phone ?? undefined},
+      {
+        id: selectedUser.id,
+        role: formData.role,
+        active: formData.active,
+        subscribed: formData.subscribed,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone ?? undefined,
+      },
       {
         onSuccess: () => {
           toast({title: "Успех", description: "Потребителят е обновен успешно"});
