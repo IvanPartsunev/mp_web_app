@@ -90,3 +90,33 @@ export function useDeleteUser() {
     },
   });
 }
+
+// Redact user phone mutation
+export function useRedactUserPhone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.patch(`users/redact-phone/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: userKeys.all});
+    },
+  });
+}
+
+// Redact user names mutation
+export function useRedactUserNames() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiClient.patch(`users/redact-names/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: userKeys.all});
+    },
+  });
+}

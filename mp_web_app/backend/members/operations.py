@@ -122,7 +122,7 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
     normalized_members_list.append(
       {
         "first_name": member["first_name"].capitalize(),
-        "middle_name": member.get("middle_name") or None,
+        "middle_name": member["middle_name"].capitalize(),
         "last_name": member["last_name"].capitalize(),
         "phone": phone,
         "email": email,
