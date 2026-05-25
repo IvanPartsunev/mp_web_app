@@ -128,7 +128,7 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
         "email": email,
         "member_code": member["member_code"],
         "member_code_valid": True,
-        "proxy": member["proxy"] in ["1", "yes", "true"],
+        "proxy": member["proxy"].lower() in ["1", "yes", "true"],
         "is_deleted": False,
       }
     )
