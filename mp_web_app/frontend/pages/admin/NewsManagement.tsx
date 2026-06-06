@@ -193,7 +193,7 @@ export default function NewsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] max-w-0`}>Заглавие</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] min-w-[200px]`}>Заглавие</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} w-[25%]`}>Действия</TableHead>
@@ -205,7 +205,7 @@ export default function NewsManagement() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className="font-medium max-w-0 w-[35%] overflow-hidden">
+                    <TableCell className="font-medium w-[35%] min-w-[200px]">
                       <span className="block truncate pr-4">{item.title}</span>
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
