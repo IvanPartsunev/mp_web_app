@@ -42,7 +42,7 @@ function NavigationMenuItem({className, ...props}: React.ComponentProps<typeof N
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+  "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all focus:outline-none disabled:pointer-events-none disabled:opacity-50"
 );
 
 function NavigationMenuTrigger({
@@ -53,7 +53,11 @@ function NavigationMenuTrigger({
   return (
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
-      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      className={cn(
+        navigationMenuTriggerStyle(),
+        "group border border-transparent hover:border-border hover:shadow-md data-[state=open]:border-border data-[state=open]:shadow-md",
+        className
+      )}
       {...props}
     >
       {children}{" "}
@@ -99,7 +103,7 @@ function NavigationMenuLink({className, ...props}: React.ComponentProps<typeof N
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all border border-transparent hover:border-border hover:shadow-md focus:outline-none",
         className
       )}
       {...props}

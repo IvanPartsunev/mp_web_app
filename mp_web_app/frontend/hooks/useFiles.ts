@@ -90,6 +90,21 @@ export function useAllFiles() {
   });
 }
 
+// Update file metadata mutation (admin only)
+export function useUpdateFileMetadata() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({id, file_name, file_type}: {id: string; file_name: string; file_type: FileType}) => {
+      const response = await adminApiClient.patch<FileMetadata>(`files/${id}/metadata`, {file_name, file_type});
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: fileKeys.all});
+    },
+  });
+}
+
 // Delete file mutation
 export function useDeleteFile() {
   const queryClient = useQueryClient();

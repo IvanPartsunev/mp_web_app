@@ -251,7 +251,7 @@ export default function UploadFile() {
                       return (
                         <label
                           key={u.id}
-                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer"
+                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer hover:bg-accent"
                           title={full}
                         >
                           <input
