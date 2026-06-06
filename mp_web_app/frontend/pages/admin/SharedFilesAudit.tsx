@@ -57,7 +57,7 @@ export default function SharedFilesAudit() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] max-w-0`}>Файл</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] min-w-[200px]`}>Файл</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Споделен с</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.small}`}>Дата</TableHead>
@@ -70,7 +70,7 @@ export default function SharedFilesAudit() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className="font-medium w-[35%] max-w-0 overflow-hidden">
+                    <TableCell className="font-medium w-[35%] min-w-[200px]">
                       <span className="block truncate pr-4">{entry.file_name ?? "-"}</span>
                     </TableCell>
                     <TableCell className="w-[20%] whitespace-nowrap">

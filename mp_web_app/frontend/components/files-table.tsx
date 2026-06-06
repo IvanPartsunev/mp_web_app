@@ -132,7 +132,7 @@ export function FilesTable({
                     pagination.pageItems.map((file: FileMetadata, idx: number) => (
                       <TableRow key={file.id ?? `${file.file_name}-${pagination.startIdx + idx}`}>
                         <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
-                        <TableCell className="py-2 max-w-0 w-[55%]">
+                        <TableCell className="py-2 w-[55%] min-w-[280px]">
                           <span className="block truncate" title={file.file_name ?? ""}>
                             {file.file_name}
                           </span>

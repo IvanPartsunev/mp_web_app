@@ -165,7 +165,7 @@ export default function DocumentsManagement() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium max-w-0 w-[280px] overflow-hidden`}>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium w-[280px] min-w-[200px]`}>
                       <span className="block truncate pr-4">{file.file_name}</span>
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
