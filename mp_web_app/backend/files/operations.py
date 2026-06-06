@@ -504,7 +504,9 @@ def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> li
     raise MetadataError(f"Failed to fetch shared files: {e}")
 
 
-def add_share(file_id: str, user_ids: list[str], repo: FileMetadataRepository, actor_id: str | None = None) -> list[str]:
+def add_share(
+  file_id: str, user_ids: list[str], repo: FileMetadataRepository, actor_id: str | None = None
+) -> list[str]:
   """Append new user IDs to a file's allowed_to list. Returns the updated allowed_to list."""
   try:
     response = repo.table.get_item(Key={"id": file_id})

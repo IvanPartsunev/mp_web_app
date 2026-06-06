@@ -223,7 +223,8 @@ export default function ProductsManagement() {
                   <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Ширина (см)</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Височина (см)</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.description}`}>Описание</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>                </TableRow>
+                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>{" "}
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {pagedProducts.map((product, index) => (

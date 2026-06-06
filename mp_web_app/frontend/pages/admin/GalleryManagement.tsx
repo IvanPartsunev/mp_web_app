@@ -89,11 +89,24 @@ export default function GalleryManagement() {
 
   // ── drag & drop ────────────────────────────────────────────────────────────
 
-  const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDragOver  = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
     if (e.dataTransfer.files.length) addFiles(Array.from(e.dataTransfer.files));
   };
 
@@ -178,18 +191,17 @@ export default function GalleryManagement() {
   return (
     <AdminLayout title="Управление на галерия">
       <div className="space-y-8">
-
         {/* ── Upload Card ────────────────────────────────────────────────── */}
         <Card>
           <CardHeader>
             <CardTitle>Качи снимки</CardTitle>
             <CardDescription>
-              Изберете категория и добавете снимки чрез кликане или плъзгане. Разрешени формати: JPG, PNG, GIF, WEBP до 15 MB.
+              Изберете категория и добавете снимки чрез кликане или плъзгане. Разрешени формати: JPG, PNG, GIF, WEBP до
+              15 MB.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpload} className="flex flex-col gap-6">
-
               {/* Category */}
               <div className="grid gap-2">
                 <Label htmlFor="gallery-category">Категория</Label>
@@ -232,9 +244,18 @@ export default function GalleryManagement() {
                   onClick={() => !uploading && fileInputRef.current?.click()}
                 >
                   <div className="flex flex-col items-center gap-2">
-                    <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg
+                      className="w-12 h-12 text-muted-foreground"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
                     </svg>
                     {files.length > 0 ? (
                       <div className="space-y-1 w-full">

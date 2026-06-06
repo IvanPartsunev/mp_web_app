@@ -65,9 +65,7 @@ async def file_create(
 
     results = []
     for file in files:
-      file_metadata = FileMetadataFull(
-        file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id
-      )
+      file_metadata = FileMetadataFull(file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
       result = upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
       if result.allowed_to:
         background_tasks.add_task(notify_shared_users, result, user_repo)

@@ -21,9 +21,7 @@ export function CategoryComboField({
 }: CategoryComboFieldProps) {
   // Determine if the current value is a known existing category
   const isExisting = existingCategories.includes(value);
-  const [mode, setMode] = useState<"select" | "new">(
-    value === "" || isExisting ? "select" : "new"
-  );
+  const [mode, setMode] = useState<"select" | "new">(value === "" || isExisting ? "select" : "new");
 
   const handleSelectChange = (v: string) => {
     if (v === NEW_CATEGORY_SENTINEL) {
@@ -51,7 +49,10 @@ export function CategoryComboField({
             type="button"
             disabled={disabled}
             className="shrink-0 text-xs text-muted-foreground underline hover:text-foreground"
-            onClick={() => { setMode("select"); onChange(""); }}
+            onClick={() => {
+              setMode("select");
+              onChange("");
+            }}
           >
             Избери
           </button>
@@ -67,7 +68,9 @@ export function CategoryComboField({
       </SelectTrigger>
       <SelectContent>
         {existingCategories.map((cat) => (
-          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+          <SelectItem key={cat} value={cat}>
+            {cat}
+          </SelectItem>
         ))}
         <SelectItem value={NEW_CATEGORY_SENTINEL}>+ Нова категория</SelectItem>
       </SelectContent>

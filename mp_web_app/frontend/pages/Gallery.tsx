@@ -81,12 +81,17 @@ export default function Gallery() {
           </div>
         )}
 
-        {!loading && !error && groups.length > 0 &&
+        {!loading &&
+          !error &&
+          groups.length > 0 &&
           groups.map(([categoryName, groupImages]) => (
             <section key={categoryName}>
               <h2
                 className="text-2xl font-bold mb-4 pb-2 border-b bg-clip-text text-transparent"
-                style={{backgroundImage: "linear-gradient(to right, oklch(0.42 0.15 154.56), oklch(0.65 0.18 154.56), oklch(0.42 0.15 154.56))"}}
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, oklch(0.42 0.15 154.56), oklch(0.65 0.18 154.56), oklch(0.42 0.15 154.56))",
+                }}
               >
                 {categoryName}
               </h2>
@@ -113,8 +118,8 @@ export default function Gallery() {
       <GalleryModal
         isOpen={selectedGroup !== null && selectedIndex !== null}
         onClose={closeModal}
-        imageUrl={selectedIndex !== null ? activeGroupImages[selectedIndex]?.url ?? "" : ""}
-        imageName={selectedIndex !== null ? activeGroupImages[selectedIndex]?.image_name ?? "" : ""}
+        imageUrl={selectedIndex !== null ? (activeGroupImages[selectedIndex]?.url ?? "") : ""}
+        imageName={selectedIndex !== null ? (activeGroupImages[selectedIndex]?.image_name ?? "") : ""}
         currentIndex={selectedIndex !== null ? selectedIndex + 1 : 0}
         totalImages={activeGroupImages.length}
         onNext={() => {

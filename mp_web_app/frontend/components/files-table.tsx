@@ -137,9 +137,7 @@ export function FilesTable({
                             {file.file_name}
                           </span>
                         </TableCell>
-                        <TableCell className="py-2 whitespace-nowrap w-[18%]">
-                          {file.uploaded_by_name ?? "-"}
-                        </TableCell>
+                        <TableCell className="py-2 whitespace-nowrap w-[18%]">{file.uploaded_by_name ?? "-"}</TableCell>
                         <TableCell className="py-2 whitespace-nowrap w-[12%]">
                           {file.created_at
                             ? new Date(file.created_at).toLocaleDateString("bg-BG", {
