@@ -20,6 +20,7 @@ from files.models import (
   SharedFileAuditEntry,
   ShareFileRequest,
   ShareFileResponse,
+  UpdateFileMetadataRequest,
 )
 from files.operations import (
   add_share,
@@ -31,6 +32,7 @@ from files.operations import (
   get_uploads_repository,
   notify_shared_users,
   revoke_share,
+  update_file_metadata,
   upload_file,
 )
 
@@ -185,7 +187,7 @@ async def revoke_file_share(
   If the file is a private document and has no remaining recipients, it is deleted.
   """
   try:
-    updated_allowed_to = revoke_share(file_id, user_id, repo)
+    updated_allowed_to = revoke_share(file_id, user_id, repo, actor_id=user.id)
 
     # Private documents with no remaining recipients are orphaned — delete them
     response = repo.table.get_item(Key={"id": file_id})
@@ -212,7 +214,7 @@ async def share_file(
 ):
   """Add users to a file's allowed_to list. Sends email notifications to newly added users."""
   try:
-    updated_allowed_to = add_share(file_id, request.user_ids, repo)
+    updated_allowed_to = add_share(file_id, request.user_ids, repo, actor_id=user.id)
 
     # Determine which IDs are newly added to notify only them
     existing_ids = set(updated_allowed_to) - set(request.user_ids)
@@ -227,6 +229,22 @@ async def share_file(
         background_tasks.add_task(notify_shared_users, file_meta, user_repo)
 
     return ShareFileResponse(allowed_to=updated_allowed_to)
+  except FileNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+
+
+@file_router.patch("/{file_id}/metadata", response_model=FileMetadata, status_code=status.HTTP_200_OK)
+async def update_file_metadata_route(
+  file_id: str,
+  request: UpdateFileMetadataRequest,
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Update file_name and file_type of an existing file (ADMIN only)."""
+  try:
+    return update_file_metadata(file_id, request, user.id, repo)
   except FileNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except MetadataError as e:

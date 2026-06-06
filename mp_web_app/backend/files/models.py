@@ -21,6 +21,9 @@ class FileMetadata(BaseModel):
   uploaded_by: str | None = None
   uploaded_by_name: str | None = None  # User's full name for display
   created_at: str = datetime.now().isoformat()
+  updated_at: str | None = None
+  updated_by: str | None = None
+  updated_by_name: str | None = None
   allowed_to: list[str] | None = None  # Populated for admin list calls
 
 
@@ -28,6 +31,11 @@ class FileMetadataFull(FileMetadata):
   bucket: str | None = None
   key: str | None = None
   allowed_to: list[str] | None = None
+
+
+class UpdateFileMetadataRequest(BaseModel):
+  file_name: str
+  file_type: FileType
 
 
 class SharedFileAuditEntry(BaseModel):

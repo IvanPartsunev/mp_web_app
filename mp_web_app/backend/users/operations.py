@@ -38,8 +38,10 @@ def verify_password(password_hash: str, password: str, salt: str) -> bool:
 
 
 def validate_phone(phone: str) -> str:
-  # Strip whitespace
-  phone = phone.strip()
+  # Strip whitespace and remove Excel text-force formula wrapper (="...")
+  phone = phone.strip().replace(" ", "")
+  if phone.startswith('="') and phone.endswith('"'):
+    phone = phone[2:-1]
   # Normalise: Excel strips the leading '+', restore it
   if phone.startswith("359") and not phone.startswith("+359"):
     phone = "+" + phone

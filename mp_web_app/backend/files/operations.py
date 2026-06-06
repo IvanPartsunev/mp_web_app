@@ -20,7 +20,7 @@ from files.exceptions import (
   MetadataError,
   MissingAllowedUsersError,
 )
-from files.models import FileMetadata, FileMetadataFull, FileType, SharedFileAuditEntry
+from files.models import FileMetadata, FileMetadataFull, FileType, SharedFileAuditEntry, UpdateFileMetadataRequest
 from users.models import User
 from users.roles import UserRole
 from utils.decorators import retry
@@ -97,6 +97,8 @@ def create_file_metadata(
     "uploaded_by": user_id,
     "allowed_to": allowed_to,
     "created_at": file_metadata.created_at,
+    "updated_at": file_metadata.created_at,
+    "updated_by": user_id,
   }
   try:
     repo.table.put_item(Item=file_metadata_item)
@@ -126,7 +128,8 @@ def get_files_metadata(
       items.extend(response["Items"])
 
     # Private documents are only visible to users explicitly listed in allowed_to
-    if file_type == FileType.private_documents.value and user_id:
+    # Admins (include_allowed_to=True) bypass this filter and see all private documents
+    if file_type == FileType.private_documents.value and user_id and not include_allowed_to:
       items = [item for item in items if user_id in (item.get("allowed_to") or [])]
 
     if include_allowed_to:
@@ -141,6 +144,89 @@ def get_files_metadata(
 
   except Exception as e:
     raise MetadataError(f"Failed to fetch files metadata: {e}")
+
+
+def update_file_metadata(
+  file_id: str, request: UpdateFileMetadataRequest, user_id: str, repo: FileMetadataRepository
+) -> FileMetadata:
+  """Update file_name and file_type of an existing file record."""
+  try:
+    response = repo.table.get_item(Key={"id": file_id})
+  except Exception as e:
+    raise MetadataError(f"Failed to fetch file: {e}")
+
+  if "Item" not in response:
+    raise FileNotFoundError(f"File with id {file_id} not found")
+
+  now = datetime.now().isoformat()
+  # If file_type changes we must also update the S3 key prefix
+  item = response["Item"]
+  old_file_type = item.get("file_type")
+  old_key: str = item.get("key", "")
+  new_file_type = request.file_type.value
+
+  if old_file_type != new_file_type and old_key:
+    s3 = boto3.client("s3")
+    # Build new key: replace first path segment with new file_type
+    key_parts = old_key.split("/", 1)
+    new_key = f"{new_file_type}/{key_parts[1]}" if len(key_parts) == 2 else f"{new_file_type}/{old_key}"
+    try:
+      s3.copy_object(Bucket=BUCKET, CopySource={"Bucket": BUCKET, "Key": old_key}, Key=new_key)
+      s3.delete_object(Bucket=BUCKET, Key=old_key)
+    except Exception as e:
+      raise MetadataError(f"Failed to move S3 object: {e}")
+
+    repo.table.update_item(
+      Key={"id": file_id},
+      UpdateExpression="SET file_name = :fn, file_type = :ft, #k = :key, updated_at = :ua, updated_by = :ub",
+      ExpressionAttributeNames={"#k": "key"},
+      ExpressionAttributeValues={
+        ":fn": request.file_name,
+        ":ft": new_file_type,
+        ":key": new_key,
+        ":ua": now,
+        ":ub": user_id,
+      },
+    )
+  else:
+    repo.table.update_item(
+      Key={"id": file_id},
+      UpdateExpression="SET file_name = :fn, file_type = :ft, updated_at = :ua, updated_by = :ub",
+      ExpressionAttributeValues={
+        ":fn": request.file_name,
+        ":ft": new_file_type,
+        ":ua": now,
+        ":ub": user_id,
+      },
+    )
+
+  updated = repo.table.get_item(Key={"id": file_id})["Item"]
+  result = repo.convert_item_to_object(updated)
+  _enrich_with_user_names([result])
+  _enrich_updated_by_names([result])
+  return result
+
+
+def _enrich_updated_by_names(files_metadata: list[FileMetadata]):
+  """Enrich file metadata with updater names."""
+  if not files_metadata:
+    return
+  user_ids = {fm.updated_by for fm in files_metadata if fm.updated_by}
+  if not user_ids:
+    return
+  user_repo = UserRepository(USERS_TABLE_NAME)
+  users_map = {}
+  for user_id in user_ids:
+    try:
+      response = user_repo.table.get_item(Key={"id": user_id})
+      if "Item" in response:
+        user = user_repo.convert_item_to_object(response["Item"])
+        users_map[user.id] = f"{user.first_name} {user.last_name}"
+    except Exception:
+      continue
+  for fm in files_metadata:
+    if fm.updated_by:
+      fm.updated_by_name = users_map.get(fm.updated_by, fm.updated_by)
 
 
 def delete_file(file_id: str, repo: FileMetadataRepository) -> bool:
@@ -339,7 +425,7 @@ def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserReposito
   return entries
 
 
-def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> list[str]:
+def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository, actor_id: str | None = None) -> list[str]:
   """Remove a specific user from a file's allowed_to list. Returns the remaining allowed_to list."""
   try:
     response = repo.table.get_item(Key={"id": file_id})
@@ -355,13 +441,24 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository) -> li
     raise FileNotFoundError(f"User {user_id} is not in the allowed_to list for file {file_id}")
 
   index = allowed_to.index(user_id)
+  now = datetime.now().isoformat()
 
   try:
-    repo.table.update_item(
-      Key={"id": file_id},
-      UpdateExpression=f"REMOVE allowed_to[{index}]",
-      ConditionExpression="attribute_exists(id)",
-    )
+    update_expr = f"REMOVE allowed_to[{index}]"
+    expr_values = {}
+    if actor_id:
+      update_expr += " SET updated_at = :ua, updated_by = :ub"
+      expr_values = {":ua": now, ":ub": actor_id}
+
+    kwargs: dict = {
+      "Key": {"id": file_id},
+      "UpdateExpression": update_expr,
+      "ConditionExpression": "attribute_exists(id)",
+    }
+    if expr_values:
+      kwargs["ExpressionAttributeValues"] = expr_values
+
+    repo.table.update_item(**kwargs)
   except Exception as e:
     raise MetadataError(f"Failed to revoke share: {e}")
 
@@ -416,7 +513,7 @@ def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> li
     raise MetadataError(f"Failed to fetch shared files: {e}")
 
 
-def add_share(file_id: str, user_ids: list[str], repo: FileMetadataRepository) -> list[str]:
+def add_share(file_id: str, user_ids: list[str], repo: FileMetadataRepository, actor_id: str | None = None) -> list[str]:
   """Append new user IDs to a file's allowed_to list. Returns the updated allowed_to list."""
   try:
     response = repo.table.get_item(Key={"id": file_id})
@@ -432,11 +529,20 @@ def add_share(file_id: str, user_ids: list[str], repo: FileMetadataRepository) -
   if not new_ids:
     return existing
 
+  now = datetime.now().isoformat()
+
   try:
+    expr_values: dict = {":new_ids": new_ids, ":empty": []}
+    update_expr = "SET allowed_to = list_append(if_not_exists(allowed_to, :empty), :new_ids)"
+    if actor_id:
+      update_expr += ", updated_at = :ua, updated_by = :ub"
+      expr_values[":ua"] = now
+      expr_values[":ub"] = actor_id
+
     repo.table.update_item(
       Key={"id": file_id},
-      UpdateExpression="SET allowed_to = list_append(if_not_exists(allowed_to, :empty), :new_ids)",
-      ExpressionAttributeValues={":new_ids": new_ids, ":empty": []},
+      UpdateExpression=update_expr,
+      ExpressionAttributeValues=expr_values,
       ConditionExpression="attribute_exists(id)",
     )
   except Exception as e:
