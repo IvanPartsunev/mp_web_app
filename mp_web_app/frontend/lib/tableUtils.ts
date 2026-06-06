@@ -94,18 +94,18 @@ export const COLUMN_WIDTHS = {
   small: "w-[80px]",
   /** Phone column - 110px */
   phone: "w-[110px]",
-  /** Name column - 120px */
-  name: "w-[120px]",
-  /** Actions column (single button) - 140px */
-  actions: "w-[140px]",
-  /** Name with icon column / product name - 150px */
-  nameWithIcon: "w-[150px]",
-  /** Large column (names in tables) - 160px */
-  large: "w-[160px]",
-  /** Email column - 200px */
-  email: "w-[200px]",
-  /** Description column - 200px */
-  description: "w-[200px]",
+  /** Name column - 150px */
+  name: "w-[150px]",
+  /** Actions column (single button) - 90px */
+  actions: "w-[90px]",
+  /** Name with icon column / product name - 180px */
+  nameWithIcon: "w-[180px]",
+  /** Large column (names in tables) - 200px */
+  large: "w-[200px]",
+  /** Email column - 240px */
+  email: "w-[240px]",
+  /** Description column - 240px */
+  description: "w-[240px]",
 } as const;
 
 /**

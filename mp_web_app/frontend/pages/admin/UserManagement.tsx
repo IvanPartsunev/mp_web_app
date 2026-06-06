@@ -13,6 +13,7 @@ import {useUsersList, useUpdateUser, useDeleteUser, useRedactUserPhone, User} fr
 import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
+import {Pencil, Trash2} from "lucide-react";
 
 const roleTranslations: Record<string, string> = {
   regular: "Обикновен",
@@ -157,7 +158,7 @@ export default function UserManagement() {
                   <TableHead className={`${TABLE_STYLES.headBase} w-[10%]`}>Роля</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Активен</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[8%]`}>Абониран</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} w-[15%]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[90px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -180,12 +181,20 @@ export default function UserManagement() {
                     <TableCell className={TABLE_STYLES.cellBase}>{user.subscribed ? "Да" : "Не"}</TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
                       <div className="flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-                          Редактирай
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
-                          Изтрий
-                        </Button>
+                        <button
+                          title="Редактирай"
+                          onClick={() => openEditDialog(user)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          title="Изтрий"
+                          onClick={() => openDeleteDialog(user)}
+                          className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>

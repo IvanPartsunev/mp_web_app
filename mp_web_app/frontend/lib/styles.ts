@@ -57,7 +57,7 @@ export const SECTION_STYLES = {
   /** Standard page section */
   standard: "container mx-auto px-4 py-12",
   /** Full width section with responsive padding */
-  fullWidth: "w-full px-2 xl:container xl:mx-auto xl:px-4 py-8",
+  fullWidth: "w-full px-2 mx-auto max-w-[1692px] px-4 py-8",
 } as const;
 
 /**

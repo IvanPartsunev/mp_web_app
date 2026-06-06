@@ -6,7 +6,7 @@ import {Loader2} from "lucide-react";
 import {cn} from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 overflow-hidden group",
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 overflow-hidden group",
   {
     variants: {
       variant: {
@@ -23,8 +23,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-9 px-[1.425rem] py-2 has-[>svg]:px-[0.95rem]",
-        sm: "h-8 rounded-lg gap-1.5 px-[0.95rem] has-[>svg]:px-[0.713rem] text-xs",
-        lg: "h-11 rounded-xl px-[2.375rem] has-[>svg]:px-[1.9rem] text-base",
+        sm: "h-8 rounded-md gap-1.5 px-[0.95rem] has-[>svg]:px-[0.713rem] text-xs",
+        lg: "h-11 rounded-md px-[2.375rem] has-[>svg]:px-[1.9rem] text-base",
         icon: "size-9",
         "icon-sm": "size-8",
         "icon-lg": "size-11",

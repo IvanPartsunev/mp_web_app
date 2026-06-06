@@ -16,7 +16,7 @@ import {
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
-import {Lock, Globe} from "lucide-react";
+import {Lock, Globe, Pencil, Trash2} from "lucide-react";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAdminNews, useCreateNews, useUpdateNews, useDeleteNews, NewsItem} from "@/hooks/useNews";
 import type {ApiError} from "@/lib/errorUtils";
@@ -193,10 +193,10 @@ export default function NewsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[35%] min-w-[200px]`}>Заглавие</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[45%] min-w-[200px]`}>Заглавие</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[20%]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[15%]`}>Дата</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} w-[25%]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[90px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -205,7 +205,7 @@ export default function NewsManagement() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className="font-medium w-[35%] min-w-[200px]">
+                    <TableCell className="font-medium w-[45%] min-w-[200px]">
                       <span className="block truncate pr-4">{item.title}</span>
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
@@ -226,12 +226,20 @@ export default function NewsManagement() {
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
                       <div className="flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(item as News)}>
-                          Редактирай
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(item as News)}>
-                          Изтрий
-                        </Button>
+                        <button
+                          title="Редактирай"
+                          onClick={() => openEditDialog(item as News)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          title="Изтрий"
+                          onClick={() => openDeleteDialog(item as News)}
+                          className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
