@@ -8,7 +8,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({title, children}: AdminLayoutProps) {
   return (
-    <div className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{title}</CardTitle>

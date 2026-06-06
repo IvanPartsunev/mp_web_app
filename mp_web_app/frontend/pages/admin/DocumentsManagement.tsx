@@ -1,16 +1,19 @@
 import {useState, useMemo} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from "@/components/ui/dialog";
 import {ConfirmDialog} from "@/components/confirm-dialog";
 import {ShareFileDialog} from "@/components/share-file-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
-import {useAllFiles, useDeleteFile, FileMetadata} from "@/hooks/useFiles";
+import {useAllFiles, useDeleteFile, useUpdateFileMetadata, FileMetadata, FileType} from "@/hooks/useFiles";
 import type {ApiError} from "@/lib/errorUtils";
 import {TablePagination} from "@/components/table-pagination";
+import {Pencil, Trash2, Forward} from "lucide-react";
 
 const FILE_TYPES = [
   {value: "all", label: "Всички документи"},
@@ -23,12 +26,17 @@ const FILE_TYPES = [
   {value: "others", label: "Други"},
 ];
 
+const EDITABLE_FILE_TYPES = FILE_TYPES.filter((t) => t.value !== "all");
+
 export default function DocumentsManagement() {
   const {data: files = [], isLoading: loading} = useAllFiles();
   const deleteMutation = useDeleteFile();
+  const updateMutation = useUpdateFileMetadata();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileMetadata | null>(null);
+  const [editForm, setEditForm] = useState({file_name: "", file_type: "" as FileType});
   const [shareTarget, setShareTarget] = useState<FileMetadata | null>(null);
   const [selectedFileType, setSelectedFileType] = useState("all");
   const [page, setPage] = useState(1);
@@ -36,8 +44,16 @@ export default function DocumentsManagement() {
   const {toast} = useToast();
 
   const filteredFiles = useMemo(() => {
-    if (selectedFileType === "all") return files;
-    return files.filter((f) => f.file_type === selectedFileType);
+    const sorted = [...files].sort((a, b) => {
+      if (!a.created_at) return 1;
+      if (!b.created_at) return -1;
+      const dateDiff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      // Secondary sort by id for stability when created_at values are equal
+      return (a.id ?? "").localeCompare(b.id ?? "");
+    });
+    if (selectedFileType === "all") return sorted;
+    return sorted.filter((f) => f.file_type === selectedFileType);
   }, [selectedFileType, files]);
 
   const totalPages = Math.max(1, Math.ceil(filteredFiles.length / DEFAULT_PAGE_SIZE));
@@ -46,6 +62,30 @@ export default function DocumentsManagement() {
   const openDeleteDialog = (file: FileMetadata) => {
     setSelectedFile(file);
     setDeleteDialogOpen(true);
+  };
+
+  const openEditDialog = (file: FileMetadata) => {
+    setSelectedFile(file);
+    setEditForm({file_name: file.file_name ?? "", file_type: file.file_type as FileType});
+    setEditDialogOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (!selectedFile?.id) return;
+    updateMutation.mutate(
+      {id: selectedFile.id, file_name: editForm.file_name, file_type: editForm.file_type},
+      {
+        onSuccess: () => {
+          toast({title: "Успех", description: "Документът е обновен успешно"});
+          setEditDialogOpen(false);
+          setSelectedFile(null);
+        },
+        onError: (err: Error) => {
+          const detail = (err as ApiError).response?.data?.detail;
+          toast({title: "Грешка", description: detail || "Неуспешно обновяване на документа", variant: "destructive"});
+        },
+      }
+    );
   };
 
   const handleDelete = async () => {
@@ -85,7 +125,7 @@ export default function DocumentsManagement() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[280px]">
+            <SelectTrigger className="w-[320px]">
               <SelectValue placeholder="Изберете тип документ" />
             </SelectTrigger>
             <SelectContent sideOffset={5}>
@@ -113,11 +153,11 @@ export default function DocumentsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[280px]`}>Име на файл</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[320px]`}>Файл</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Тип</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} w-[210px]`}>Качен от</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} w-[160px]`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[90px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -126,7 +166,9 @@ export default function DocumentsManagement() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium`}>{file.file_name}</TableCell>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium w-[320px] min-w-[200px]`}>
+                      <span className="block truncate pr-4">{file.file_name}</span>
+                    </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
                     </TableCell>
@@ -144,12 +186,27 @@ export default function DocumentsManagement() {
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
                       <div className="flex items-center justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setShareTarget(file)}>
-                          Сподели
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(file)}>
-                          Изтрий
-                        </Button>
+                        <button
+                          title="Редактирай"
+                          onClick={() => openEditDialog(file)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          title="Сподели"
+                          onClick={() => setShareTarget(file)}
+                          className="p-1.5 rounded-md text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                        >
+                          <Forward className="h-4 w-4" />
+                        </button>
+                        <button
+                          title="Изтрий"
+                          onClick={() => openDeleteDialog(file)}
+                          className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -160,6 +217,46 @@ export default function DocumentsManagement() {
         )}
 
         <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Редактирай документ</DialogTitle>
+              <DialogDescription>Променете името или типа на документа</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Име на файл</label>
+                <Input
+                  value={editForm.file_name}
+                  onChange={(e) => setEditForm({...editForm, file_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Тип на документ</label>
+                <Select
+                  value={editForm.file_type}
+                  onValueChange={(v) => setEditForm({...editForm, file_type: v as FileType})}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EDITABLE_FILE_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleEdit} className="w-full" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Запазване..." : "Запази"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation */}
         <ConfirmDialog

@@ -20,6 +20,7 @@ import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {useAdminProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, Product} from "@/hooks/useProducts";
 import {TablePagination} from "@/components/table-pagination";
+import {Pencil, Trash2} from "lucide-react";
 
 export default function ProductsManagement() {
   const {data: products = [], isLoading: loading} = useAdminProducts();
@@ -222,7 +223,7 @@ export default function ProductsManagement() {
                   <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Ширина (см)</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Височина (см)</TableHead>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.description}`}>Описание</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.actions}`}>Действия</TableHead>{" "}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -238,12 +239,20 @@ export default function ProductsManagement() {
                     <TableCell className={TABLE_STYLES.cellBase}>{product.description || "-"}</TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
                       <div className="flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(product)}>
-                          Редактирай
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(product)}>
-                          Изтрий
-                        </Button>
+                        <button
+                          title="Редактирай"
+                          onClick={() => openEditDialog(product)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          title="Изтрий"
+                          onClick={() => openDeleteDialog(product)}
+                          className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </TableCell>
                   </TableRow>

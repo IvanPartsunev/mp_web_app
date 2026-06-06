@@ -5,6 +5,7 @@ import apiClient, {adminApiClient} from "@/context/apiClient";
 export interface GalleryImage {
   id: string;
   image_name: string;
+  category: string;
   s3_key: string;
   s3_bucket: string;
   uploaded_by: string;
@@ -73,6 +74,21 @@ export function useDeleteGalleryImage() {
   return useMutation({
     mutationFn: async (id: string) => {
       await apiClient.delete(`gallery/delete/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: galleryKeys.lists()});
+    },
+  });
+}
+
+// Update gallery image metadata mutation
+export function useUpdateGalleryImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({id, image_name, category}: {id: string; image_name: string; category: string}) => {
+      const response = await apiClient.patch<GalleryImage>(`gallery/${id}/metadata`, {image_name, category});
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: galleryKeys.lists()});

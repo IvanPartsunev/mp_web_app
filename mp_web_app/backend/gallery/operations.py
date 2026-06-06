@@ -15,7 +15,7 @@ from gallery.exceptions import (
   InvalidImageFormatError,
   PresignedUrlError,
 )
-from gallery.models import GalleryImageMetadata
+from gallery.models import GalleryImageMetadata, UpdateGalleryImageMetadataRequest
 
 GALLERY_BUCKET = os.environ.get("UPLOADS_BUCKET")
 GALLERY_TABLE_NAME = os.environ.get("GALLERY_TABLE_NAME")
@@ -33,7 +33,7 @@ def get_gallery_repository() -> GalleryRepository:
 
 
 def upload_gallery_image(
-  file: UploadFile, image_name: str, user_id: str, repo: GalleryRepository
+  file: UploadFile, image_name: str, user_id: str, repo: GalleryRepository, category: str = ""
 ) -> GalleryImageMetadata:
   """Upload gallery image to S3 and store metadata in DynamoDB."""
   # Validate file extension
@@ -72,6 +72,7 @@ def upload_gallery_image(
     "id": image_id,
     "gallery": "gallery",
     "image_name": image_name or file.filename,
+    "category": category,
     "s3_key": s3_key,
     "s3_bucket": GALLERY_BUCKET,
     "uploaded_by": user_id,
@@ -181,3 +182,36 @@ def generate_presigned_url(s3_key: str, bucket: str, expiration: int = 3600) -> 
     return url
   except ClientError as e:
     raise PresignedUrlError(f"Failed to generate presigned URL: {e.response['Error']['Message']}")
+
+
+def update_gallery_image_metadata(
+  image_id: str, request: UpdateGalleryImageMetadataRequest, repo: GalleryRepository
+) -> GalleryImageMetadata:
+  """Update image_name and category of an existing gallery image."""
+  try:
+    response = repo.table.get_item(Key={"id": image_id})
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+  if "Item" not in response:
+    raise ImageNotFoundError("Image not found")
+
+  try:
+    repo.table.update_item(
+      Key={"id": image_id},
+      UpdateExpression="SET image_name = :name, category = :cat",
+      ExpressionAttributeValues={
+        ":name": request.image_name,
+        ":cat": request.category,
+      },
+    )
+  except ClientError as e:
+    raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
+
+  updated = repo.table.get_item(Key={"id": image_id})["Item"]
+  image = repo.convert_item_to_object(updated)
+  try:
+    image.url = generate_presigned_url(s3_key=image.s3_key, bucket=image.s3_bucket)
+  except Exception:
+    image.url = None
+  return image

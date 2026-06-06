@@ -2,7 +2,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useNavigate} from "react-router-dom";
 import {useToast} from "@/components/ui/use-toast";
@@ -34,9 +33,8 @@ export default function UploadFile() {
   );
 
   const {toast} = useToast();
-  const [fileName, setFileName] = useState("");
   const [fileType, setFileType] = useState(fileTypeOptions[0]?.value ?? "");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -103,10 +101,10 @@ export default function UploadFile() {
     e.preventDefault();
 
     const isPrivate = fileType === "private_documents";
-    if (!file || !fileName || !fileType) {
+    if (files.length === 0 || !fileType) {
       toast({
         title: "Грешка",
-        description: "Моля, попълнете всички задължителни полета и изберете файл.",
+        description: "Моля, изберете поне един файл и тип на документа.",
         variant: "destructive",
       });
       return;
@@ -123,23 +121,20 @@ export default function UploadFile() {
     try {
       setSubmitting(true);
       const fd = new FormData();
-      fd.append("file_name", fileName);
       fd.append("file_type", fileType);
       selectedUserIds.forEach((id) => fd.append("allowed_to", id));
-      fd.append("file", file);
+      files.forEach((f) => fd.append("files", f));
 
       await apiClient.post(`files/create`, fd, {
-        // Let axios set multipart/form-data with boundary automatically
         withCredentials: true,
       });
 
       toast({
         title: "Успех",
-        description: "Файлът беше качен успешно",
+        description: files.length > 1 ? "Файловете бяха качени успешно." : "Файлът беше качен успешно.",
       });
 
-      setFile(null);
-      setFileName("");
+      setFiles([]);
       setFileType(fileTypeOptions[0]?.value ?? "");
       setSelectedUserIds([]);
     } catch (err: any) {
@@ -179,9 +174,9 @@ export default function UploadFile() {
     e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      setFile(files[0]);
+    const dropped = e.dataTransfer.files;
+    if (dropped && dropped.length > 0) {
+      setFiles((prev) => [...prev, ...Array.from(dropped)]);
     }
   };
 
@@ -198,18 +193,6 @@ export default function UploadFile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="file_name">Име на файл</Label>
-                <Input
-                  id="file_name"
-                  placeholder="Пример: Годишен отчет 2025"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  required
-                  disabled={submitting}
-                />
-              </div>
-
               <div className="grid gap-3">
                 <Label htmlFor="file_type">Тип на документ</Label>
                 <select
@@ -251,7 +234,7 @@ export default function UploadFile() {
                       return (
                         <label
                           key={u.id}
-                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer"
+                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer hover:bg-accent"
                           title={full}
                         >
                           <input
@@ -279,14 +262,18 @@ export default function UploadFile() {
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="file">Файл</Label>
+                <Label htmlFor="file">Файл(ове)</Label>
                 <input
                   id="file"
                   type="file"
+                  multiple
                   className="sr-only"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                    }
+                  }}
                   disabled={submitting}
-                  required
                 />
 
                 {/* Drag and drop zone */}
@@ -316,20 +303,29 @@ export default function UploadFile() {
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                       />
                     </svg>
-                    {file ? (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-foreground">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {file.size >= 1024 * 1024
-                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                            : `${(file.size / 1024).toFixed(2)} KB`}
-                        </p>
-                        <p className="text-xs text-primary">Кликни или пусни файл за промяна</p>
+                    {files.length > 0 ? (
+                      <div className="space-y-1 w-full">
+                        {files.map((f, i) => (
+                          <div key={i} className="flex items-center justify-between px-2 py-0.5">
+                            <p className="text-sm font-medium text-foreground truncate">{f.name}</p>
+                            <button
+                              type="button"
+                              className="ml-2 text-xs text-destructive hover:underline shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFiles((prev) => prev.filter((_, idx) => idx !== i));
+                              }}
+                            >
+                              Премахни
+                            </button>
+                          </div>
+                        ))}
+                        <p className="text-xs text-primary pt-1">Кликни или пусни файлове за добавяне</p>
                       </div>
                     ) : (
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">
-                          {isDragging ? "Пусни файла тук" : "Кликни или пусни файл"}
+                          {isDragging ? "Пусни файловете тук" : "Кликни или пусни файлове"}
                         </p>
                       </div>
                     )}

@@ -39,19 +39,19 @@ export const TABLE_STYLES = {
   scrollWrapper: "overflow-x-auto",
 
   /** Base table styling - default (alias for tableMedium) */
-  tableBase: "w-full min-w-[700px]",
+  tableBase: "w-full min-w-[560px]",
 
   /** Base table styling - small tables (3-4 columns) */
-  tableSmall: "w-full min-w-[500px]",
+  tableSmall: "w-full min-w-[380px]",
 
   /** Base table styling - medium tables (5-6 columns) */
-  tableMedium: "w-full min-w-[700px]",
+  tableMedium: "w-full min-w-[560px]",
 
   /** Base table styling - large tables (7+ columns) */
-  tableLarge: "w-full min-w-[900px]",
+  tableLarge: "w-full min-w-[720px]",
 
   /** Base table styling - extra large tables (many columns with actions) */
-  tableXLarge: "w-full min-w-[1000px]",
+  tableXLarge: "w-full min-w-[860px]",
 
   /** Row number column header - narrow fixed width */
   rowNumberHead: "whitespace-nowrap w-[50px]",
@@ -88,24 +88,24 @@ export const TABLE_STYLES = {
  * Common column width presets (pixel-based for consistent sizing)
  */
 export const COLUMN_WIDTHS = {
-  /** Row number column - 50px */
-  rowNumber: "w-[50px]",
-  /** Small column (code, status, dimension) - 100px */
-  small: "w-[100px]",
-  /** Phone column - 130px */
-  phone: "w-[130px]",
+  /** Row number column - 40px */
+  rowNumber: "w-[40px]",
+  /** Small column (code, status, dimension) - 80px */
+  small: "w-[80px]",
+  /** Phone column - 110px */
+  phone: "w-[110px]",
   /** Name column - 150px */
   name: "w-[150px]",
-  /** Actions column (single button) - 170px */
-  actions: "w-[170px]",
+  /** Actions column (single button) - 90px */
+  actions: "w-[90px]",
   /** Name with icon column / product name - 180px */
   nameWithIcon: "w-[180px]",
   /** Large column (names in tables) - 200px */
   large: "w-[200px]",
-  /** Email column - 250px */
-  email: "w-[250px]",
-  /** Description column - 250px */
-  description: "w-[250px]",
+  /** Email column - 240px */
+  email: "w-[240px]",
+  /** Description column - 240px */
+  description: "w-[240px]",
 } as const;
 
 /**

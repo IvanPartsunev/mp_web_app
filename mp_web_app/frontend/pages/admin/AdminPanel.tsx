@@ -71,7 +71,7 @@ export default function AdminPanel() {
         </div>
       </section>
 
-      <div className="w-full px-2 xl:container xl:mx-auto xl:px-4 py-8">
+      <div className="w-full px-2 mx-auto max-w-[1692px] px-4 py-8">
         {isMobile ? (
           <div className="w-full">
             <Select value={activeTab} onValueChange={setActiveTab}>

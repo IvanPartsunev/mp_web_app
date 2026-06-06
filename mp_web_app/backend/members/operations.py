@@ -255,7 +255,7 @@ def members_list_to_csv(repo: MemberRepository) -> io.BytesIO:
         "middle_name": item.get("middle_name") or "",
         "last_name": item.get("last_name", ""),
         "email": item.get("email") or "",
-        "phone": item.get("phone") or "",
+        "phone": (item.get("phone") or "").replace("+359", "0"),
         "proxy": "true" if item.get("proxy") else "false",
       }
     )
