@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -15,71 +14,43 @@ from files.operations import (
 
 class TestCreateFileName:
   @patch("files.operations.get_allowed_file_extensions")
-  @patch("files.operations.uuid4")
-  @patch("files.operations.datetime")
-  def test_creates_valid_filename_with_custom_name(self, mock_datetime, mock_uuid, mock_extensions):
-    # Setup mocks
-    mock_datetime.now.return_value = datetime(2024, 1, 15)
-    mock_uuid_obj = Mock()
-    mock_uuid_obj.__getitem__ = Mock(return_value="abcd1234")
-    mock_uuid.return_value = mock_uuid_obj
+  def test_creates_filename_from_original_name(self, mock_extensions):
     mock_extensions.return_value = ["pdf", "doc", "txt"]
 
-    result = _create_file_name("My Document", "original.pdf")
+    result = _create_file_name("My Document.pdf")
 
-    assert result.startswith("2024_01_15_")
-    # Implementation preserves original casing, spaces become underscores
-    assert "My_Document" in result
-    assert result.endswith(".pdf")
+    assert result == "My_Document.pdf"
 
   @patch("files.operations.get_allowed_file_extensions")
-  @patch("files.operations.uuid4")
-  @patch("files.operations.datetime")
-  def test_uses_original_name_when_no_custom_name(self, mock_datetime, mock_uuid, mock_extensions):
-    mock_datetime.now.return_value = datetime(2024, 1, 15)
-    mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[: key.stop])
-    mock_extensions.return_value = ["pdf", "doc", "txt"]
+  def test_replaces_spaces_with_underscores(self, mock_extensions):
+    mock_extensions.return_value = ["pdf"]
 
-    result = _create_file_name("", "report.pdf")
+    result = _create_file_name("Annual Report 2025.pdf")
 
-    assert "report" in result
-    assert result.endswith(".pdf")
+    assert result == "Annual_Report_2025.pdf"
+
+  @patch("files.operations.get_allowed_file_extensions")
+  def test_preserves_name_without_spaces(self, mock_extensions):
+    mock_extensions.return_value = ["pdf"]
+
+    result = _create_file_name("report.pdf")
+
+    assert result == "report.pdf"
 
   @patch("files.operations.get_allowed_file_extensions")
   def test_raises_error_for_invalid_extension(self, mock_extensions):
     mock_extensions.return_value = ["pdf", "doc", "txt"]
 
     with pytest.raises(InvalidFileExtensionError):
-      _create_file_name("My File", "virus.exe")
+      _create_file_name("virus.exe")
 
   @patch("files.operations.get_allowed_file_extensions")
-  @patch("files.operations.uuid4")
-  @patch("files.operations.datetime")
-  def test_cleans_special_characters(self, mock_datetime, mock_uuid, mock_extensions):
-    mock_datetime.now.return_value = datetime(2024, 1, 15)
-    mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[: key.stop])
+  def test_preserves_dashes_and_other_chars(self, mock_extensions):
     mock_extensions.return_value = ["pdf"]
 
-    result = _create_file_name("My@#$%Document!", "file.pdf")
+    result = _create_file_name("My-Document_Name.pdf")
 
-    # Only S3-breaking chars like < > : " / \ | ? * are stripped from input
-    # The uuid suffix may contain mock repr; just verify the date prefix and extension
-    assert result.startswith("2024_01_15_")
-    assert result.endswith(".pdf")
-    assert "My@#$%Document!" in result or "My@#$%Document" in result
-
-  @patch("files.operations.get_allowed_file_extensions")
-  @patch("files.operations.uuid4")
-  @patch("files.operations.datetime")
-  def test_handles_spaces_and_dashes(self, mock_datetime, mock_uuid, mock_extensions):
-    mock_datetime.now.return_value = datetime(2024, 1, 15)
-    mock_uuid.return_value = Mock(__getitem__=lambda self, key: "abcd1234"[: key.stop])
-    mock_extensions.return_value = ["pdf"]
-
-    result = _create_file_name("My-Document Name", "file.pdf")
-
-    # Spaces become underscores; dashes are preserved
-    assert "My-Document_Name" in result
+    assert result == "My-Document_Name.pdf"
 
 
 class TestValidateMetadata:

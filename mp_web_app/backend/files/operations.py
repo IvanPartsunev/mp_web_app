@@ -1,5 +1,4 @@
 import os
-import re
 from datetime import datetime
 from functools import lru_cache
 from uuid import uuid4
@@ -74,7 +73,7 @@ def get_uploads_repository():
 def upload_file(file_metadata: FileMetadata, file: UploadFile, user_id: str, repo: FileMetadataRepository):
   s3 = boto3.client("s3")
   try:
-    file_name = _create_file_name(file_metadata.file_name, file.filename)
+    file_name = _create_file_name(file.filename)
     key = f"{file_metadata.file_type.value}/{file_name}"
     s3.upload_fileobj(file.file, BUCKET, key)
     return create_file_metadata(file_metadata, file_name, key, user_id, repo)
@@ -249,20 +248,13 @@ def delete_file(file_id: str, repo: FileMetadataRepository) -> bool:
     raise FileUploadError(f"Error when deleting the file: {e}")
 
 
-def _create_file_name(file_name: str, original_name: str):
-  if not file_name:
-    file_name = original_name
-  now = datetime.now()
+def _create_file_name(original_name: str) -> str:
   allowed = get_allowed_file_extensions()
   extension = original_name.split(".")[-1]
   if extension not in allowed:
     raise InvalidFileExtensionError(extension, allowed)
-  # Keep Cyrillic and other Unicode characters, only remove special chars that break S3
-  cleaned_file_name = re.sub(r'[<>:"/\\|?*]', "", file_name).strip()
-  # Replace spaces with underscores for cleaner URLs
-  cleaned_file_name = cleaned_file_name.replace(" ", "_")
-  date_tag = f"{now.year!s}_{str(now.month).zfill(2)}_{str(now.day).zfill(2)}"
-  file_name = f"{date_tag}_{cleaned_file_name}_{str(uuid4())[:8]}.{extension}"
+  # Replace spaces with underscores, keep everything else as-is
+  file_name = original_name.replace(" ", "_")
   return file_name
 
 
@@ -310,10 +302,9 @@ def get_db_metadata(file_metadata: FileMetadata, repo: FileMetadataRepository) -
 
 
 def _validate_metadata(file_metadata: FileMetadata, db_meta_object: FileMetadataFull):
-  # Exclude display-only and access-control fields not exposed to the frontend
-  exclude_fields = {"uploaded_by_name", "allowed_to"}
-  fields = set(file_metadata.model_fields.keys()) - exclude_fields
-  return file_metadata.model_dump(exclude=exclude_fields) == db_meta_object.model_dump(include=fields)
+  # Only validate the core identity fields sent by the frontend
+  identity_fields = {"id", "file_name", "file_type"}
+  return file_metadata.model_dump(include=identity_fields) == db_meta_object.model_dump(include=identity_fields)
 
 
 def _check_file_allowed_to_user(file_metadata: FileMetadata, user_id: str, user_role: str) -> bool:

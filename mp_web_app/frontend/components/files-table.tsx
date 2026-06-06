@@ -99,29 +99,30 @@ export function FilesTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                    <TableHead className={TABLE_STYLES.headPadded}>Име на файл</TableHead>
-                    <TableHead className={TABLE_STYLES.headPadded}>Дата на създаване</TableHead>
+                    <TableHead className={`${TABLE_STYLES.headPadded} w-[55%]`}>Име на файл</TableHead>
+                    <TableHead className={`${TABLE_STYLES.headPadded} w-[18%]`}>Качено от</TableHead>
+                    <TableHead className={`${TABLE_STYLES.headPadded} w-[12%]`}>Дата на създаване</TableHead>
                     <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headRight}`}>Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading && (
                     <TableRow>
-                      <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
+                      <TableCell colSpan={5} className={TABLE_STYLES.cellPadded}>
                         {LOADING_MESSAGES.generic}
                       </TableCell>
                     </TableRow>
                   )}
                   {error && !loading && (
                     <TableRow>
-                      <TableCell colSpan={4} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
+                      <TableCell colSpan={5} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
                         {error}
                       </TableCell>
                     </TableRow>
                   )}
                   {!loading && !error && pagination.pageItems.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
+                      <TableCell colSpan={5} className={TABLE_STYLES.cellPadded}>
                         {EMPTY_MESSAGES.files}
                       </TableCell>
                     </TableRow>
@@ -131,8 +132,15 @@ export function FilesTable({
                     pagination.pageItems.map((file: FileMetadata, idx: number) => (
                       <TableRow key={file.id ?? `${file.file_name}-${pagination.startIdx + idx}`}>
                         <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
-                        <TableCell className={TABLE_STYLES.cellPadded}>{file.file_name}</TableCell>
-                        <TableCell className={TABLE_STYLES.cellPadded}>
+                        <TableCell className="py-2 max-w-0 w-[55%]">
+                          <span className="block truncate" title={file.file_name ?? ""}>
+                            {file.file_name}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-2 whitespace-nowrap w-[18%]">
+                          {file.uploaded_by_name ?? "-"}
+                        </TableCell>
+                        <TableCell className="py-2 whitespace-nowrap w-[12%]">
                           {file.created_at
                             ? new Date(file.created_at).toLocaleDateString("bg-BG", {
                                 day: "2-digit",
