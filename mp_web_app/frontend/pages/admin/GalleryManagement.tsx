@@ -2,193 +2,166 @@ import React, {useState, useRef, useMemo} from "react";
 import {AdminLayout} from "@/components/admin-layout";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {Card} from "@/components/ui/card";
+import {Label} from "@/components/ui/label";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from "@/components/ui/dialog";
 import {ConfirmDialog} from "@/components/confirm-dialog";
+import {CategoryComboField} from "@/components/category-combofield";
 import {useToast} from "@/components/ui/use-toast";
-import {Trash2} from "lucide-react";
+import {Pencil, Trash2} from "lucide-react";
 import {extractApiErrorDetails} from "@/lib/errorUtils";
 import type {ApiError} from "@/lib/errorUtils";
-import {useAdminGallery, useCreateGalleryImage, useDeleteGalleryImage, GalleryImage} from "@/hooks/useGallery";
-import {TablePagination} from "@/components/table-pagination";
+import {
+  useAdminGallery,
+  useCreateGalleryImage,
+  useDeleteGalleryImage,
+  useUpdateGalleryImage,
+  GalleryImage,
+} from "@/hooks/useGallery";
 
-const GALLERY_PAGE_SIZE = 20;
+const FALLBACK_CATEGORY = "Други";
+
+function groupByCategory(images: GalleryImage[]): [string, GalleryImage[]][] {
+  const map: Record<string, GalleryImage[]> = {};
+  for (const img of images) {
+    const key = img.category?.trim() || FALLBACK_CATEGORY;
+    if (!map[key]) map[key] = [];
+    map[key].push(img);
+  }
+  const entries = Object.entries(map);
+  entries.sort(([a], [b]) => {
+    if (a === FALLBACK_CATEGORY) return 1;
+    if (b === FALLBACK_CATEGORY) return -1;
+    return a.localeCompare(b, "bg");
+  });
+  return entries;
+}
 
 export default function GalleryManagement() {
   const {data: images = [], isLoading: loading} = useAdminGallery();
   const createMutation = useCreateGalleryImage();
   const deleteMutation = useDeleteGalleryImage();
+  const updateMutation = useUpdateGalleryImage();
 
-  const [uploading, setUploading] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imageName, setImageName] = useState("");
+  // Upload form state
+  const [files, setFiles] = useState<File[]>([]);
+  const [category, setCategory] = useState("");
   const [isDragging, setIsDragging] = useState(false);
-  const [page, setPage] = useState(1);
-
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit / delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [editForm, setEditForm] = useState({image_name: "", category: ""});
+
   const {toast} = useToast();
 
-  // Build image URLs from response data
-  const imageUrls = useMemo(() => {
-    const urls: Record<string, string> = {};
-    images.forEach((image) => {
-      if (image.url) urls[image.id] = image.url;
-    });
-    return urls;
-  }, [images]);
+  const existingCategories = useMemo(
+    () => [...new Set(images.map((img) => img.category?.trim()).filter(Boolean))] as string[],
+    [images]
+  );
 
-  const totalPages = Math.max(1, Math.ceil(images.length / GALLERY_PAGE_SIZE));
-  const pagedImages = images.slice((page - 1) * GALLERY_PAGE_SIZE, page * GALLERY_PAGE_SIZE);
+  const groups = useMemo(() => groupByCategory(images), [images]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+  // ── file validation ────────────────────────────────────────────────────────
 
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Грешка",
-          description: "Невалиден формат. Разрешени формати: JPG, PNG, GIF, WEBP",
-          variant: "destructive",
-        });
-        e.target.value = ""; // Reset input
+  const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+  const MAX_SIZE = 15 * 1024 * 1024;
+
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_TYPES.includes(file.type)) return "Невалиден формат. Разрешени: JPG, PNG, GIF, WEBP";
+    if (file.size > MAX_SIZE) return `Файлът е твърде голям (макс. 15 MB): ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    return null;
+  };
+
+  const addFiles = (incoming: File[]) => {
+    for (const file of incoming) {
+      const err = validateFile(file);
+      if (err) {
+        toast({title: "Грешка", description: err, variant: "destructive"});
         return;
       }
-
-      // Check file size
-      const maxSize = 15 * 1024 * 1024; // 15MB
-      if (file.size > maxSize) {
-        toast({
-          title: "Грешка",
-          description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
-          variant: "destructive",
-        });
-        e.target.value = ""; // Reset input
-        return;
-      }
-
-      setSelectedFile(file);
-      setImageName(file.name.split(".")[0]);
     }
+    setFiles((prev) => [...prev, ...incoming]);
   };
 
-  // Drag and drop handlers
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+  // ── drag & drop ────────────────────────────────────────────────────────────
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
+  const handleDragEnter = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver  = (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); };
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-
-      if (file.type.startsWith("image/") && allowedTypes.includes(file.type)) {
-        // Check file size
-        const maxSize = 15 * 1024 * 1024; // 15MB
-        if (file.size > maxSize) {
-          toast({
-            title: "Грешка",
-            description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
-            variant: "destructive",
-          });
-          return;
-        }
-
-        setSelectedFile(file);
-        setImageName(file.name.split(".")[0]);
-      } else {
-        toast({
-          title: "Грешка",
-          description: "Невалиден формат. Разрешени формати: JPG, PNG, GIF, WEBP",
-          variant: "destructive",
-        });
-      }
-    }
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    if (e.dataTransfer.files.length) addFiles(Array.from(e.dataTransfer.files));
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      toast({title: "Грешка", description: "Моля изберете файл", variant: "destructive"});
-      return;
-    }
+  // ── upload ─────────────────────────────────────────────────────────────────
 
-    const maxSize = 15 * 1024 * 1024;
-    if (selectedFile.size > maxSize) {
-      toast({
-        title: "Грешка",
-        description: `Файлът е твърде голям. Максимален размер: 15MB. Вашият файл: ${(selectedFile.size / 1024 / 1024).toFixed(2)}MB`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-    if (!allowedTypes.includes(selectedFile.type)) {
-      toast({
-        title: "Грешка",
-        description: "Невалиден формат на снимката. Разрешени формати: JPG, PNG, GIF, WEBP",
-        variant: "destructive",
-      });
+  const handleUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!files.length) {
+      toast({title: "Грешка", description: "Моля изберете поне един файл", variant: "destructive"});
       return;
     }
 
     setUploading(true);
-
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    if (imageName) {
-      formData.append("image_name", imageName);
-    }
+    files.forEach((f) => formData.append("files", f));
+    formData.append("category", category);
 
     createMutation.mutate(formData, {
       onSuccess: () => {
-        toast({title: "Успех", description: "Снимката е качена успешно"});
-        setSelectedFile(null);
-        setImageName("");
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        toast({title: "Успех", description: "Снимките са качени успешно"});
+        setFiles([]);
+        setCategory("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
         setUploading(false);
       },
       onError: (err: Error) => {
-        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data || err);
-        toast({
-          title: "Грешка при качване",
-          description: errorMessage || "Неуспешно качване на снимката",
-          variant: "destructive",
-        });
+        const msg = extractApiErrorDetails((err as ApiError).response?.data || err);
+        toast({title: "Грешка при качване", description: msg || "Неуспешно качване", variant: "destructive"});
         setUploading(false);
       },
     });
   };
+
+  // ── edit ───────────────────────────────────────────────────────────────────
+
+  const openEditDialog = (image: GalleryImage) => {
+    setSelectedImage(image);
+    setEditForm({image_name: image.image_name, category: image.category ?? ""});
+    setEditDialogOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (!selectedImage) return;
+    updateMutation.mutate(
+      {id: selectedImage.id, image_name: editForm.image_name, category: editForm.category},
+      {
+        onSuccess: () => {
+          toast({title: "Успех", description: "Снимката е обновена успешно"});
+          setEditDialogOpen(false);
+          setSelectedImage(null);
+        },
+        onError: (err: Error) => {
+          const msg = extractApiErrorDetails((err as ApiError).response?.data || err);
+          toast({title: "Грешка", description: msg || "Неуспешно обновяване", variant: "destructive"});
+        },
+      }
+    );
+  };
+
+  // ── delete ─────────────────────────────────────────────────────────────────
 
   const openDeleteDialog = (image: GalleryImage) => {
     setSelectedImage(image);
     setDeleteDialogOpen(true);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!selectedImage) return;
-
     deleteMutation.mutate(selectedImage.id, {
       onSuccess: () => {
         toast({title: "Успех", description: "Снимката е изтрита успешно"});
@@ -196,135 +169,200 @@ export default function GalleryManagement() {
         setSelectedImage(null);
       },
       onError: (err: Error) => {
-        const errorMessage = extractApiErrorDetails((err as ApiError).response?.data || err);
-        toast({
-          title: "Грешка",
-          description: errorMessage || "Неуспешно изтриване на снимката",
-          variant: "destructive",
-        });
+        const msg = extractApiErrorDetails((err as ApiError).response?.data || err);
+        toast({title: "Грешка", description: msg || "Неуспешно изтриване", variant: "destructive"});
       },
     });
   };
 
   return (
     <AdminLayout title="Управление на галерия">
-      <div className="space-y-6">
-        {/* Upload Section */}
-        <Card className="p-4">
-          <h3 className="text-lg font-semibold mb-4">Качи нова снимка</h3>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUpload();
-            }}
-            className="space-y-4"
-          >
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              disabled={uploading}
-              className="sr-only"
-            />
+      <div className="space-y-8">
 
-            {/* Drag and drop zone */}
-            <div
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
-                isDragging
-                  ? "border-primary bg-primary/5 scale-[1.02]"
-                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
-              } ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-              onDragEnter={handleDragEnter}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => !uploading && fileInputRef.current?.click()}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                {selectedFile ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">{selectedFile.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedFile.size >= 1024 * 1024
-                        ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
-                        : `${(selectedFile.size / 1024).toFixed(2)} KB`}
-                    </p>
-                    <p className="text-xs text-primary">Кликни или пусни снимка за промяна</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                      {isDragging ? "Пусни снимката тук" : "Кликни или пусни снимка"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF до 15MB</p>
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* ── Upload Card ────────────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Качи снимки</CardTitle>
+            <CardDescription>
+              Изберете категория и добавете снимки чрез кликане или плъзгане. Разрешени формати: JPG, PNG, GIF, WEBP до 15 MB.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpload} className="flex flex-col gap-6">
 
-            {selectedFile && (
-              <div>
-                <label className="text-sm font-medium">Име на снимката (опционално)</label>
-                <Input
-                  value={imageName}
-                  onChange={(e) => setImageName(e.target.value)}
-                  placeholder="Въведете име"
+              {/* Category */}
+              <div className="grid gap-2">
+                <Label htmlFor="gallery-category">Категория</Label>
+                <CategoryComboField
+                  value={category}
+                  onChange={setCategory}
+                  existingCategories={existingCategories}
                   disabled={uploading}
-                  className="mt-2"
+                  placeholder="Изберете или въведете нова категория"
                 />
               </div>
-            )}
 
-            <Button type="submit" disabled={uploading || !selectedFile} className="w-full">
-              {uploading ? "Качване..." : "Качи снимка"}
-            </Button>
-          </form>
+              {/* File picker */}
+              <div className="grid gap-2">
+                <Label>Снимки</Label>
+                <input
+                  ref={fileInputRef}
+                  id="gallery-file-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    if (e.target.files) addFiles(Array.from(e.target.files));
+                  }}
+                />
+
+                {/* Drag & drop zone */}
+                <div
+                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                    isDragging
+                      ? "border-primary bg-primary/5 scale-[1.02]"
+                      : "border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50"
+                  } ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    {files.length > 0 ? (
+                      <div className="space-y-1 w-full">
+                        {files.map((f, i) => (
+                          <div key={i} className="flex items-center justify-between px-2 py-0.5">
+                            <p className="text-sm font-medium text-foreground truncate">{f.name}</p>
+                            <button
+                              type="button"
+                              className="ml-2 text-xs text-destructive hover:underline shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFiles((prev) => prev.filter((_, idx) => idx !== i));
+                              }}
+                            >
+                              Премахни
+                            </button>
+                          </div>
+                        ))}
+                        <p className="text-xs text-primary pt-1">Кликни или пусни снимки за добавяне</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">
+                          {isDragging ? "Пусни снимките тук" : "Кликни или пусни снимки"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, GIF до 15 MB</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={uploading || !files.length}>
+                {uploading ? "Качване..." : "Качи"}
+              </Button>
+            </form>
+          </CardContent>
         </Card>
 
-        {/* Gallery Grid */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Галерия ({images.length} снимки)</h3>
+        {/* ── Image list grouped by category ─────────────────────────────── */}
+        <div className="space-y-8">
+          <h3 className="text-lg font-semibold">Галерия ({images.length} снимки)</h3>
 
           {loading ? (
             <p className="text-center text-muted-foreground">Зареждане...</p>
           ) : images.length === 0 ? (
             <p className="text-center text-muted-foreground">Няма налични снимки</p>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[250px] gap-4">
-                {pagedImages.map((image) => {
-                  if (!imageUrls[image.id]) return null;
-                  return (
-                    <Card key={image.id} className="overflow-hidden relative group p-0">
-                      <img src={imageUrls[image.id]} alt={image.image_name} className="w-full h-full object-cover" />
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => openDeleteDialog(image)}
+            groups.map(([categoryName, groupImages]) => (
+              <section key={categoryName} className="space-y-3">
+                <h4 className="text-base font-medium text-muted-foreground border-b pb-1">
+                  {categoryName} ({groupImages.length})
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  {groupImages.map((image) => {
+                    if (!image.url) return null;
+                    return (
+                      <div
+                        key={image.id}
+                        className="flex items-stretch border rounded-lg overflow-hidden bg-card shadow-sm"
                       >
-                        <Trash2 className="h-4 w-4 text-white" />
-                      </Button>
-                    </Card>
-                  );
-                })}
-              </div>
-              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
-            </>
+                        {/* Padded thumbnail — padding = mat/border effect */}
+                        <div className="p-2">
+                          <img
+                            src={image.url}
+                            alt={image.image_name}
+                            className="w-20 h-20 object-cover rounded"
+                            loading="lazy"
+                          />
+                        </div>
+                        {/* Action column */}
+                        <div className="flex flex-col justify-between p-2 border-l">
+                          <button
+                            title="Редактирай"
+                            onClick={() => openEditDialog(image)}
+                            className="p-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            title="Изтрий"
+                            onClick={() => openDeleteDialog(image)}
+                            className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))
           )}
         </div>
 
-        {/* Delete Confirmation */}
+        {/* ── Edit Dialog ────────────────────────────────────────────────── */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Редактирай снимка</DialogTitle>
+              <DialogDescription>Променете името или категорията на снимката</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <Label>Име на снимката</Label>
+                <Input
+                  value={editForm.image_name}
+                  onChange={(e) => setEditForm({...editForm, image_name: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Категория</Label>
+                <CategoryComboField
+                  value={editForm.category}
+                  onChange={(v) => setEditForm({...editForm, category: v})}
+                  existingCategories={existingCategories}
+                  disabled={updateMutation.isPending}
+                />
+              </div>
+              <Button onClick={handleEdit} className="w-full" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Запазване..." : "Запази"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Delete Confirmation ────────────────────────────────────────── */}
         <ConfirmDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}

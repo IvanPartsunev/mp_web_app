@@ -9,12 +9,13 @@ from gallery.exceptions import (
   InvalidImageFormatError,
   PresignedUrlError,
 )
-from gallery.models import GalleryImageMetadata
+from gallery.models import GalleryImageMetadata, UpdateGalleryImageMetadataRequest
 from gallery.operations import (
   delete_gallery_image,
   generate_presigned_url,
   get_gallery_images,
   get_gallery_repository,
+  update_gallery_image_metadata,
   upload_gallery_image,
 )
 from users.roles import UserRole
@@ -22,16 +23,23 @@ from users.roles import UserRole
 gallery_router = APIRouter(tags=["gallery"])
 
 
-@gallery_router.post("/create", response_model=GalleryImageMetadata, status_code=status.HTTP_201_CREATED)
+@gallery_router.post("/create", response_model=list[GalleryImageMetadata], status_code=status.HTTP_201_CREATED)
 async def gallery_create(
-  file: UploadFile = File(...),
+  files: list[UploadFile] = File(...),
   image_name: str = Form(None),
+  category: str = Form(""),
   gallery_repo: GalleryRepository = Depends(get_gallery_repository),
   user=Depends(role_required([UserRole.ADMIN])),
 ):
-  """Upload a new gallery image (ADMIN only)."""
+  """Upload one or more gallery images (ADMIN only)."""
+  results = []
   try:
-    return upload_gallery_image(file=file, image_name=image_name, user_id=user.id, repo=gallery_repo)
+    for file in files:
+      result = upload_gallery_image(
+        file=file, image_name=image_name or "", user_id=user.id, repo=gallery_repo, category=category
+      )
+      results.append(result)
+    return results
   except InvalidImageFormatError as e:
     raise HTTPException(status_code=400, detail=str(e))
   except ImageUploadError as e:
@@ -86,6 +94,24 @@ async def gallery_image_url(image_id: str, gallery_repo: GalleryRepository = Dep
   except ImageNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except PresignedUrlError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=str(e))
+
+
+@gallery_router.patch("/{image_id}/metadata", response_model=GalleryImageMetadata, status_code=status.HTTP_200_OK)
+async def gallery_update_metadata(
+  image_id: str,
+  request: UpdateGalleryImageMetadataRequest,
+  gallery_repo: GalleryRepository = Depends(get_gallery_repository),
+  user=Depends(role_required([UserRole.ADMIN])),
+):
+  """Update image_name and category of a gallery image (ADMIN only)."""
+  try:
+    return update_gallery_image_metadata(image_id=image_id, request=request, repo=gallery_repo)
+  except ImageNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+  except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
   except Exception as e:
     raise HTTPException(status_code=400, detail=str(e))
