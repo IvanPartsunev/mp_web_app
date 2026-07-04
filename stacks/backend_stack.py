@@ -127,6 +127,14 @@ class BackendStack(Stack):
       removal_policy=RemovalPolicy.RETAIN
     )
 
+    self.table8 = dynamodb.TableV2(
+      self, "inquiries_table",
+      table_name="inquiries_table",
+      partition_key=dynamodb.Attribute(name="id", type=dynamodb.AttributeType.STRING),
+      billing=dynamodb.Billing.on_demand(),
+      removal_policy=RemovalPolicy.RETAIN,
+    )
+
     # Minimal log group with 1-day retention to cut CloudWatch costs
     lambda_log_group = logs.LogGroup(
       self, "BackendLambdaLogGroup",
@@ -170,6 +178,7 @@ class BackendStack(Stack):
         "UPLOADS_BUCKET": uploads_bucket_name or "",
         "GALLERY_TABLE_NAME": self.table6.table_name,
         "PRODUCTS_TABLE_NAME": self.table7.table_name,
+        "INQUIRIES_TABLE_NAME": self.table8.table_name,
         # CloudFront configuration
         "USE_CLOUDFRONT": "true" if uploads_cloudfront_domain else "false",
         "CLOUDFRONT_DOMAIN": uploads_cloudfront_domain or "",
@@ -222,6 +231,7 @@ class BackendStack(Stack):
     self.table5.grant_read_write_data(self.backend_lambda)
     self.table6.grant_read_write_data(self.backend_lambda)
     self.table7.grant_read_write_data(self.backend_lambda)
+    self.table8.grant_read_write_data(self.backend_lambda)
 
     # Explicitly grant permission to query the Global Secondary Index on the news table
     self.backend_lambda.add_to_role_policy(

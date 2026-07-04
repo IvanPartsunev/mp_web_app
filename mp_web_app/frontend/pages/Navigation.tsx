@@ -14,7 +14,7 @@ import {Menu as MenuIcon, X as CloseIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 
 // All navigation structure mapped here
-type NavDropdownItem = {label: string; to: string; description?: string; requiresAuth?: boolean};
+type NavDropdownItem = {label: string; to: string; description?: string; requiresAuth?: boolean; requiresRole?: string[]};
 type NavLink = {label: string; to?: string; dropdown?: NavDropdownItem[]};
 
 const NAV_LINKS: NavLink[] = [
@@ -44,6 +44,30 @@ const NAV_LINKS: NavLink[] = [
         label: "Член кооператори",
         to: "/cooperative",
         description: "Списък на член кооператорите.",
+      },
+    ],
+  },
+  {
+    label: "Запитвания",
+    dropdown: [
+      {
+        label: "Ново запитване",
+        to: "/inquiries/create",
+        description: "Подайте ново запитване към организацията.",
+        requiresAuth: true,
+      },
+      {
+        label: "Моите запитвания",
+        to: "/inquiries/mine",
+        description: "Запитвания, които сте подали или следите.",
+        requiresAuth: true,
+      },
+      {
+        label: "Адресирани до мен",
+        to: "/inquiries/addressed-to-me",
+        description: "Запитвания в обхвата на вашата роля.",
+        requiresAuth: true,
+        requiresRole: ["board", "control", "admin"],
       },
     ],
   },
@@ -223,6 +247,7 @@ export function Navigation() {
 
           const isDocuments = link.label === "Документи";
           const isLists = link.label === "Списъци";
+          const isInquiries = link.label === "Запитвания";
 
           // Hide entire Documents section when not authenticated
           if (isDocuments && !isLoggedIn) {
@@ -230,6 +255,10 @@ export function Navigation() {
           }
           // Hide Lists section when not authenticated
           if (isLists && !isLoggedIn) {
+            return null;
+          }
+          // Hide Inquiries section when not authenticated
+          if (isInquiries && !isLoggedIn) {
             return null;
           }
 
@@ -254,13 +283,18 @@ export function Navigation() {
                   item.to === "/others"
               );
             }
+          } else if (isInquiries) {
+            // Filter out "Адресирани до мен" for regular and accountant roles
+            documentsItems = link.dropdown.filter(
+              (item) => !(item as any).requiresRole || (role && (item as any).requiresRole.includes(role))
+            );
           } else {
             documentsItems = filterDropdown(link.dropdown);
           }
 
-          const itemsToRender = isDocuments ? documentsItems : link.dropdown;
+          const itemsToRender = (isDocuments || isInquiries) ? documentsItems : link.dropdown;
 
-          if ((isDocuments || isLists) && itemsToRender.length === 0) {
+          if ((isDocuments || isLists || isInquiries) && itemsToRender.length === 0) {
             return null;
           }
 
@@ -374,6 +408,7 @@ export function Navigation() {
 
                 const isDocuments = link.label === "Документи";
                 const isLists = link.label === "Списъци";
+                const isInquiries = link.label === "Запитвания";
 
                 // Hide entire Documents section when not authenticated
                 if (isDocuments && !isLoggedIn) {
@@ -381,6 +416,10 @@ export function Navigation() {
                 }
                 // Hide Lists section when not authenticated
                 if (isLists && !isLoggedIn) {
+                  return null;
+                }
+                // Hide Inquiries section when not authenticated
+                if (isInquiries && !isLoggedIn) {
                   return null;
                 }
 
@@ -405,13 +444,17 @@ export function Navigation() {
                         item.to === "/others"
                     );
                   }
+                } else if (isInquiries) {
+                  documentsItems = link.dropdown.filter(
+                    (item) => !(item as any).requiresRole || (role && (item as any).requiresRole.includes(role))
+                  );
                 } else {
                   documentsItems = filterDropdown(link.dropdown);
                 }
 
-                const itemsToRender = isDocuments ? documentsItems : link.dropdown;
+                const itemsToRender = (isDocuments || isInquiries) ? documentsItems : link.dropdown;
 
-                if ((isDocuments || isLists) && itemsToRender.length === 0) {
+                if ((isDocuments || isLists || isInquiries) && itemsToRender.length === 0) {
                   return null;
                 }
 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Запитване – ГПК Мурджов Пожар</title>
+    <style>
+      body {{
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12pt;
+        color: #222;
+        margin: 0;
+        padding: 0;
+      }}
+      .page {{
+        margin: 2cm;
+      }}
+      .header {{
+        text-align: center;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #16a34a;
+        padding-bottom: 12px;
+      }}
+      .header h1 {{
+        font-size: 18pt;
+        color: #16a34a;
+        margin: 0 0 4px 0;
+      }}
+      .header p {{
+        font-size: 10pt;
+        color: #666;
+        margin: 0;
+      }}
+      table {{
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }}
+      th {{
+        background-color: #f3f4f6;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 10pt;
+        color: #555;
+        width: 30%;
+        border: 1px solid #e5e7eb;
+      }}
+      td {{
+        padding: 8px 12px;
+        font-size: 11pt;
+        border: 1px solid #e5e7eb;
+      }}
+      .section-title {{
+        font-size: 13pt;
+        font-weight: bold;
+        color: #16a34a;
+        margin: 20px 0 8px 0;
+        border-bottom: 1px solid #d1fae5;
+        padding-bottom: 4px;
+      }}
+      .description-box {{
+        border: 1px solid #e5e7eb;
+        padding: 12px;
+        background-color: #fafafa;
+        font-size: 11pt;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }}
+      .footer {{
+        text-align: center;
+        font-size: 9pt;
+        color: #aaa;
+        margin-top: 32px;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 8px;
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">
+        <h1>ГПК Мурджов Пожар</h1>
+        <p>Официален документ – Запитване</p>
+      </div>
+
+      <div class="section-title">Основна информация</div>
+      <table>
+        <tr>
+          <th>Входящ номер</th>
+          <td>{entry_number}</td>
+        </tr>
+        <tr>
+          <th>Вид</th>
+          <td>{inquiry_type}</td>
+        </tr>
+        <tr>
+          <th>Статус</th>
+          <td>{status_bg}</td>
+        </tr>
+        <tr>
+          <th>Дата на подаване</th>
+          <td>{created_at}</td>
+        </tr>
+      </table>
+
+      <div class="section-title">Заглавие</div>
+      <table>
+        <tr>
+          <td>{title}</td>
+        </tr>
+      </table>
+
+      <div class="section-title">Описание</div>
+      <div class="description-box">{description}</div>
+
+      <div class="section-title">Участници</div>
+      <table>
+        <tr>
+          <th>Подател</th>
+          <td>{author_name}</td>
+        </tr>
+        <tr>
+          <th>Съавтори</th>
+          <td>{co_author_names}</td>
+        </tr>
+        <tr>
+          <th>Адресирано до</th>
+          <td>{scope_bg}</td>
+        </tr>
+      </table>
+
+      <div class="footer">
+        Документът е генериран автоматично от системата на ГПК Мурджов Пожар.
+      </div>
+    </div>
+  </body>
+</html>
