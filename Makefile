@@ -187,7 +187,7 @@ frontend-deploy-all: frontend-deploy ## Build, deploy to S3
 
 requirements: ## Generate requirements.txt for Lambda deployment
 	@echo "$(BLUE)Generating requirements.txt...$(NC)"
-	cd mp_web_app/backend && uv pip compile pyproject.toml -o requirements.txt
+	cd mp_web_app/backend && uv pip compile pyproject.toml -c constraints.txt -o requirements.txt
 
 upgrade-deps: ## Upgrade all dependencies to latest versions
 	@echo "$(BLUE)Upgrading backend dependencies...$(NC)"
