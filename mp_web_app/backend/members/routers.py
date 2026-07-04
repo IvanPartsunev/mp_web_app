@@ -8,7 +8,7 @@ from auth.operations import role_required
 from database.exceptions import DatabaseError
 from database.repositories import MemberRepository
 from members.exceptions import InvalidFileTypeError
-from members.models import Member, MemberPublic, MemberProxy
+from members.models import Member, MemberPublic, MemberProxy, MemberGovernance
 from members.operations import (
   convert_members_list,
   get_member_repository,
@@ -24,7 +24,7 @@ member_router = APIRouter(tags=["member"])
 
 PRIVILEGED_ROLES = [UserRole.ADMIN, UserRole.BOARD, UserRole.CONTROL]
 
-@member_router.get("/list/members", response_model=Union[list[Member], list[MemberPublic]], status_code=status.HTTP_200_OK)
+@member_router.get("/list/members", response_model=Union[list[MemberGovernance], list[MemberPublic]], status_code=status.HTTP_200_OK)
 async def members_list_members(
   member_repo: MemberRepository = Depends(get_member_repository),
   current_user: User = Depends(role_required([UserRole.REGULAR_USER])),
@@ -44,7 +44,19 @@ async def members_list_members(
 
     if user_role in PRIVILEGED_ROLES:
       # Admin, Board, Control see everything
-      return members
+      return [
+        MemberGovernance(
+          first_name=m.first_name,
+          middle_name=m.middle_name,
+          last_name=m.last_name,
+          phone=m.phone,
+          email=m.email,
+          proxy=m.proxy,
+          board=m.board,
+          control=m.control
+        )
+        for m in members
+      ]
     else:
       # For member list: all logged users see only names and role (proxy, board or control)
       return [
@@ -62,13 +74,13 @@ async def members_list_members(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.get("/list/proxy", response_model=Union[list[Member], list[MemberProxy]], status_code=status.HTTP_200_OK)
+@member_router.get("/list/proxy", response_model=Union[list[MemberGovernance], list[MemberProxy]], status_code=status.HTTP_200_OK)
 async def members_list_proxy(
   member_repo: MemberRepository = Depends(get_member_repository),
   current_user: User = Depends(role_required([UserRole.REGULAR_USER])),
 ):
   """
-  List all proxes.
+  List all proxies.
 
   Access:
   - All authenticated users can access this endpoint
@@ -82,7 +94,19 @@ async def members_list_proxy(
 
     if user_role in PRIVILEGED_ROLES:
       # Admin, Board, Control see everything
-      return members
+      return [
+        MemberGovernance(
+          first_name=m.first_name,
+          middle_name=m.middle_name,
+          last_name=m.last_name,
+          phone=m.phone,
+          email=m.email,
+          proxy=m.proxy,
+          board=m.board,
+          control=m.control
+        )
+        for m in members
+      ]
     else:
       # For member list: all logged users see only names and role (proxy, board or control)
       return [
@@ -101,7 +125,7 @@ async def members_list_proxy(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.get("/list/{governance}", response_model=Union[list[Member]], status_code=status.HTTP_200_OK)
+@member_router.get("/list/{governance}", response_model=Union[list[MemberGovernance]], status_code=status.HTTP_200_OK)
 async def members_list_governance(
   governance: str,
   member_repo: MemberRepository = Depends(get_member_repository),
@@ -114,18 +138,30 @@ async def members_list_governance(
   - All authenticated users can access this endpoint
   """
   if governance.lower() not in ["board", "control"]:
-    raise HTTPException(status_code=400, detail="Governance must be eather `board` or `control`.")
+    raise HTTPException(status_code=400, detail="Governance must be either `board` or `control`.")
 
-  board = True if governance.lower() == "board" else False
-  control = True if governance.lower() == "control" else False
+  gov = governance.lower()
+  board = gov == "board"
+  control = gov == "control"
 
   try:
-    return list_members(member_repo, board_only=board, control_only=control)
+    members = list_members(member_repo, board_only=board, control_only=control)
+    return [
+      MemberGovernance(
+        first_name=m.first_name,
+        middle_name=m.middle_name,
+        last_name=m.last_name,
+        phone=m.phone,
+        email=m.email,
+        proxy=m.proxy,
+        board=m.board,
+        control=m.control
+      )
+      for m in members
+    ]
   except DatabaseError as e:
     raise HTTPException(status_code=500, detail=str(e))
 
-
-@member_router.get(path="/list/{type}", response_model=Union[list[Member], list[MemberPublic]], status_code=status.HTTP_200_OK)
 
 @member_router.get("/export", status_code=status.HTTP_200_OK)
 async def members_export(
