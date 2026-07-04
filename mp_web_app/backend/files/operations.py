@@ -76,6 +76,30 @@ def _enrich_with_user_names(files_metadata: list[FileMetadata]):
       fm.uploaded_by_name = users_map.get(fm.uploaded_by, fm.uploaded_by)
 
 
+def get_existing_labels(repo: FileMetadataRepository) -> list[str]:
+  """Scan uploads table and return a sorted deduplicated list of all label strings."""
+  try:
+    items: list[dict] = []
+    response = repo.table.scan(ProjectionExpression="labels")
+    items.extend(response.get("Items", []))
+    while "LastEvaluatedKey" in response:
+      response = repo.table.scan(
+        ProjectionExpression="labels",
+        ExclusiveStartKey=response["LastEvaluatedKey"],
+      )
+      items.extend(response.get("Items", []))
+  except Exception as e:
+    raise MetadataError(f"Failed to scan labels: {e}")
+
+  label_set: set[str] = set()
+  for item in items:
+    for lbl in item.get("labels") or []:
+      if lbl and lbl.strip():
+        label_set.add(lbl.strip())
+
+  return sorted(label_set)
+
+
 def get_uploads_repository():
   return FileMetadataRepository(UPLOADS_TABLE_NAME)
 
@@ -109,6 +133,7 @@ def create_file_metadata(
     "created_at": file_metadata.created_at,
     "updated_at": file_metadata.created_at,
     "updated_by": user_id,
+    "labels": file_metadata.labels if file_metadata.labels else None
   }
   try:
     repo.table.put_item(Item=file_metadata_item)
@@ -175,6 +200,9 @@ def update_file_metadata(
   old_key: str = item.get("key", "")
   new_file_type = request.file_type.value
 
+  # Build label SET/REMOVE expression fragment
+  has_labels = bool(request.labels)
+
   if old_file_type != new_file_type and old_key:
     s3 = boto3.client("s3")
     # Build new key: replace first path segment with new file_type
@@ -186,28 +214,44 @@ def update_file_metadata(
     except Exception as e:
       raise MetadataError(f"Failed to move S3 object: {e}")
 
+    expr_values: dict = {
+      ":fn": request.file_name,
+      ":ft": new_file_type,
+      ":key": new_key,
+      ":ua": now,
+      ":ub": user_id,
+    }
+    update_expr = "SET file_name = :fn, file_type = :ft, #k = :key, updated_at = :ua, updated_by = :ub"
+    if has_labels:
+      update_expr += ", labels = :lbl"
+      expr_values[":lbl"] = request.labels
+    else:
+      update_expr += " REMOVE labels"
+
     repo.table.update_item(
       Key={"id": file_id},
-      UpdateExpression="SET file_name = :fn, file_type = :ft, #k = :key, updated_at = :ua, updated_by = :ub",
+      UpdateExpression=update_expr,
       ExpressionAttributeNames={"#k": "key"},
-      ExpressionAttributeValues={
-        ":fn": request.file_name,
-        ":ft": new_file_type,
-        ":key": new_key,
-        ":ua": now,
-        ":ub": user_id,
-      },
+      ExpressionAttributeValues=expr_values,
     )
   else:
+    expr_values = {
+      ":fn": request.file_name,
+      ":ft": new_file_type,
+      ":ua": now,
+      ":ub": user_id,
+    }
+    update_expr = "SET file_name = :fn, file_type = :ft, updated_at = :ua, updated_by = :ub"
+    if has_labels:
+      update_expr += ", labels = :lbl"
+      expr_values[":lbl"] = request.labels
+    else:
+      update_expr += " REMOVE labels"
+
     repo.table.update_item(
       Key={"id": file_id},
-      UpdateExpression="SET file_name = :fn, file_type = :ft, updated_at = :ua, updated_by = :ub",
-      ExpressionAttributeValues={
-        ":fn": request.file_name,
-        ":ft": new_file_type,
-        ":ua": now,
-        ":ub": user_id,
-      },
+      UpdateExpression=update_expr,
+      ExpressionAttributeValues=expr_values,
     )
 
   updated = repo.table.get_item(Key={"id": file_id})["Item"]
@@ -421,6 +465,7 @@ def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserReposito
           created_at=created_at,
           shared_with_id=recipient_id,
           shared_with_name=users_map.get(recipient_id, recipient_id),
+          labels=item.get("labels") or None,
         )
       )
 

@@ -26,6 +26,7 @@ from files.operations import (
   add_share,
   delete_file,
   download_file,
+  get_existing_labels,
   get_files_metadata,
   get_files_shared_with_user,
   get_shared_files_audit,
@@ -49,10 +50,23 @@ from users.roles import UserRole
 file_router = APIRouter(tags=["files"])
 
 
+@file_router.get("/labels", response_model=list[str], status_code=status.HTTP_200_OK)
+async def list_labels(
+  repo: FileMetadataRepository = Depends(get_uploads_repository),
+  user=Depends(role_required([UserRole.ADMIN, UserRole.ACCOUNTANT])),
+):
+  """Return a sorted, deduplicated list of all label strings used across uploaded files."""
+  try:
+    return get_existing_labels(repo)
+  except MetadataError as e:
+    raise HTTPException(status_code=500, detail=str(e))
+
+
 @file_router.post("/create", response_model=list[FileMetadata], status_code=status.HTTP_201_CREATED)
 async def file_create(
   file_type: FileType = Form(...),
   allowed_to: list[str] = Form([]),
+  labels: list[str] = Form([]),
   files: list[UploadFile] = File(...),
   background_tasks: BackgroundTasks = BackgroundTasks(),
   repo: FileMetadataRepository = Depends(get_uploads_repository),
@@ -64,9 +78,14 @@ async def file_create(
     if user.role == UserRole.ACCOUNTANT.value and file_type != FileType.accounting:
       raise HTTPException(status_code=403, detail="Accountants can only upload accounting documents")
 
+    # Normalise: empty list becomes None so we don't store empty lists in DynamoDB
+    normalised_labels = labels if labels else None
+
     results = []
     for file in files:
-      file_metadata = FileMetadataFull(file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
+      file_metadata = FileMetadataFull(
+        file_type=file_type, allowed_to=allowed_to, labels=normalised_labels, uploaded_by=user.id
+      )
       result = upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
       background_tasks.add_task(notify_upload, result, user_repo)
       results.append(result)

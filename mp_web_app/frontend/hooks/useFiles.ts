@@ -19,6 +19,7 @@ export interface FileMetadata {
   uploaded_by_name?: string | null;
   created_at?: string | null;
   allowed_to?: string[] | null;
+  labels?: string[] | null;
 }
 
 export interface SharedFileAuditEntry {
@@ -30,6 +31,7 @@ export interface SharedFileAuditEntry {
   created_at: string | null;
   shared_with_id: string;
   shared_with_name: string | null;
+  labels?: string[] | null;
 }
 
 // Query key factory
@@ -38,6 +40,7 @@ export const fileKeys = {
   lists: () => [...fileKeys.all, "list"] as const,
   list: (fileType?: FileType) => [...fileKeys.lists(), {fileType}] as const,
   sharedAudit: () => [...fileKeys.all, "shared-audit"] as const,
+  labels: () => [...fileKeys.all, "labels"] as const,
 };
 
 // Fetch files by type (documents page)
@@ -93,8 +96,18 @@ export function useUpdateFileMetadata() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({id, file_name, file_type}: {id: string; file_name: string; file_type: FileType}) => {
-      const response = await apiClient.patch<FileMetadata>(`files/${id}/metadata`, {file_name, file_type});
+    mutationFn: async ({
+      id,
+      file_name,
+      file_type,
+      labels,
+    }: {
+      id: string;
+      file_name: string;
+      file_type: FileType;
+      labels?: string[] | null;
+    }) => {
+      const response = await apiClient.patch<FileMetadata>(`files/${id}/metadata`, {file_name, file_type, labels});
       return response.data;
     },
     onSuccess: () => {
@@ -166,6 +179,17 @@ export function useShareFile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: fileKeys.all});
+    },
+  });
+}
+
+// Fetch all existing label strings (admin / accountant only)
+export function useFileLabels() {
+  return useQuery({
+    queryKey: fileKeys.labels(),
+    queryFn: async () => {
+      const response = await apiClient.get<string[]>("files/labels");
+      return response.data ?? [];
     },
   });
 }

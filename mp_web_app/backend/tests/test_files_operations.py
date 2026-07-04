@@ -8,6 +8,7 @@ from files.operations import (
   _check_file_allowed_to_user,
   _create_file_name,
   _validate_metadata,
+  get_existing_labels,
   notify_shared_users,
 )
 
@@ -454,3 +455,83 @@ class TestNotifyUpload:
     assert call_kwargs["category_bg"] == "Нормативни документи"
     assert call_kwargs["documents_link"].endswith("/governing-documents")
     assert call_kwargs["file_name"] == "document.pdf"
+
+
+class TestGetExistingLabels:
+  def _make_repo(self, scan_pages: list[list[dict]]):
+    """Build a mock repo whose table.scan returns paginated results."""
+    repo = Mock()
+    responses = []
+    for i, page in enumerate(scan_pages):
+      resp: dict = {"Items": page}
+      if i < len(scan_pages) - 1:
+        resp["LastEvaluatedKey"] = {"id": f"last-key-{i}"}
+      responses.append(resp)
+    repo.table.scan.side_effect = responses
+    return repo
+
+  def test_returns_empty_list_when_no_items(self):
+    repo = self._make_repo([[]])
+
+    result = get_existing_labels(repo)
+
+    assert result == []
+
+  def test_returns_empty_list_when_items_have_no_labels(self):
+    repo = self._make_repo([[{"id": "f1"}, {"id": "f2", "labels": None}]])
+
+    result = get_existing_labels(repo)
+
+    assert result == []
+
+  def test_collects_labels_from_single_page(self):
+    repo = self._make_repo([
+      [
+        {"id": "f1", "labels": ["beta", "alpha"]},
+        {"id": "f2", "labels": ["gamma"]},
+      ]
+    ])
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta", "gamma"]
+
+  def test_deduplicates_labels_across_items(self):
+    repo = self._make_repo([
+      [
+        {"id": "f1", "labels": ["alpha", "beta"]},
+        {"id": "f2", "labels": ["beta", "gamma"]},
+      ]
+    ])
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta", "gamma"]
+
+  def test_collects_labels_across_paginated_results(self):
+    repo = self._make_repo([
+      [{"id": "f1", "labels": ["alpha"]}],
+      [{"id": "f2", "labels": ["beta"]}],
+    ])
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta"]
+
+  def test_ignores_empty_string_labels(self):
+    repo = self._make_repo([
+      [{"id": "f1", "labels": ["alpha", "", "  "]}]
+    ])
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha"]
+
+  def test_raises_metadata_error_on_scan_failure(self):
+    from files.exceptions import MetadataError
+
+    repo = Mock()
+    repo.table.scan.side_effect = Exception("DynamoDB down")
+
+    with pytest.raises(MetadataError):
+      get_existing_labels(repo)

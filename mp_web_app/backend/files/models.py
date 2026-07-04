@@ -25,6 +25,7 @@ class FileMetadata(BaseModel):
   updated_by: str | None = None
   updated_by_name: str | None = None
   allowed_to: list[str] | None = None  # Populated for admin list calls
+  labels: list[str] | None = None
 
 
 class FileMetadataFull(FileMetadata):
@@ -36,6 +37,7 @@ class FileMetadataFull(FileMetadata):
 class UpdateFileMetadataRequest(BaseModel):
   file_name: str
   file_type: FileType
+  labels: list[str] | None = None
 
 
 class SharedFileAuditEntry(BaseModel):
@@ -47,6 +49,7 @@ class SharedFileAuditEntry(BaseModel):
   created_at: str
   shared_with_id: str
   shared_with_name: str | None = None
+  labels: list[str] | None = None
 
 
 class ShareFileRequest(BaseModel):

@@ -82,10 +82,10 @@ export default function AdminPanel() {
                 <SelectItem value="news">Новини</SelectItem>
                 <SelectItem value="users">Потребители</SelectItem>
                 <SelectItem value="products">Продукти</SelectItem>
-                <SelectItem value="gallery">Галерия</SelectItem>
-                <SelectItem value="members">Членове</SelectItem>
                 <SelectItem value="documents">Документи</SelectItem>
                 <SelectItem value="shared-files">Споделени файлове</SelectItem>
+                <SelectItem value="gallery">Галерия</SelectItem>
+                <SelectItem value="members">Членове</SelectItem>
               </SelectContent>
             </Select>
 
@@ -106,9 +106,9 @@ export default function AdminPanel() {
               <TabsTrigger value="users">Потребители</TabsTrigger>
               <TabsTrigger value="products">Продукти</TabsTrigger>
               <TabsTrigger value="documents">Документи</TabsTrigger>
+              <TabsTrigger value="shared-files">Споделени файлове</TabsTrigger>
               <TabsTrigger value="gallery">Галерия</TabsTrigger>
               <TabsTrigger value="members">Членове</TabsTrigger>
-              <TabsTrigger value="shared-files">Споделени файлове</TabsTrigger>
             </TabsList>
 
             <TabsContent value="news" className="mt-6">
