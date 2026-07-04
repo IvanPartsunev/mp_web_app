@@ -54,30 +54,6 @@ const NAV_LINKS: NavLink[] = [
     ],
   },
   {
-    label: "Запитвания",
-    dropdown: [
-      {
-        label: "Ново запитване",
-        to: "/inquiries/create",
-        description: "Подайте ново запитване към организацията.",
-        requiresAuth: true,
-      },
-      {
-        label: "Моите запитвания",
-        to: "/inquiries/mine",
-        description: "Запитвания, които сте подали или следите.",
-        requiresAuth: true,
-      },
-      {
-        label: "Адресирани до мен",
-        to: "/inquiries/addressed-to-me",
-        description: "Запитвания в обхвата на вашата роля.",
-        requiresAuth: true,
-        requiresRole: ["board", "control", "admin"],
-      },
-    ],
-  },
-  {
     label: "Документи",
     dropdown: [
       {
@@ -119,6 +95,30 @@ const NAV_LINKS: NavLink[] = [
         to: "/others",
         description: "Други документи свързани с дейноста на ГПК.",
         requiresAuth: true,
+      },
+    ],
+  },
+  {
+    label: "Запитвания",
+    dropdown: [
+      {
+        label: "Ново запитване",
+        to: "/inquiries/create",
+        description: "Подайте ново запитване към организацията.",
+        requiresAuth: true,
+      },
+      {
+        label: "Моите запитвания",
+        to: "/inquiries/mine",
+        description: "Запитвания, които сте подали или следите.",
+        requiresAuth: true,
+      },
+      {
+        label: "Адресирани до мен",
+        to: "/inquiries/addressed-to-me",
+        description: "Запитвания в обхвата на вашата роля.",
+        requiresAuth: true,
+        requiresRole: ["board", "control", "admin"],
       },
     ],
   },

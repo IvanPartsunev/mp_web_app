@@ -524,10 +524,17 @@ def delete_inquiry(
 
 def export_pdf(inquiry: Inquiry) -> bytes:
   """Render the inquiry PDF template and return PDF bytes."""
+  import base64
   from pathlib import Path
 
   template_path = Path(__file__).parent / "templates" / "inquiry_pdf.html"
   html_content = template_path.read_text(encoding="utf-8")
+
+  # Encode logo as base64 for embedding
+  logo_path = Path(__file__).parent / "templates" / "logo.svg"
+  logo_b64 = ""
+  if logo_path.exists():
+    logo_b64 = base64.b64encode(logo_path.read_bytes()).decode("utf-8")
 
   # Bulgarian labels for status and scope
   status_map = {
@@ -550,13 +557,14 @@ def export_pdf(inquiry: Inquiry) -> bytes:
     {
       "entry_number": entry_number,
       "title": inquiry.title,
-      "inquiry_type": inquiry.inquiry_type,
+      "inquiry_type": inquiry.inquiry_type.upper(),
       "description": inquiry.description,
       "author_name": inquiry.author_name or inquiry.author_id,
       "co_author_names": co_author_names,
       "scope_bg": scope_bg,
       "created_at": created_at,
       "status_bg": status_bg,
+      "logo_b64": logo_b64,
     }
   )
 
@@ -569,7 +577,6 @@ def export_pdf(inquiry: Inquiry) -> bytes:
     pisa.CreatePDF(html, dest=buf, encoding="utf-8")
     return buf.getvalue()
   except ImportError:
-    # Fallback: return the raw HTML as bytes if xhtml2pdf not installed
     return html.encode("utf-8")
 
 

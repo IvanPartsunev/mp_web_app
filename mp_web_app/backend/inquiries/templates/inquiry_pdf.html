@@ -2,135 +2,158 @@
 <html lang="bg">
   <head>
     <meta charset="UTF-8" />
-    <title>Запитване – ГПК Мурджов Пожар</title>
+    <title>Запитване</title>
     <style>
+      @font-face {{
+        font-family: DejaVu;
+        src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+        font-weight: normal;
+      }}
+      @font-face {{
+        font-family: DejaVu;
+        src: url("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf");
+        font-weight: bold;
+      }}
       body {{
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: DejaVu, sans-serif;
         font-size: 12pt;
         color: #222;
-        margin: 0;
+        margin: 1.5cm 1.5cm 2cm 1.5cm;
         padding: 0;
-      }}
-      .page {{
-        margin: 2cm;
-      }}
-      .header {{
-        text-align: center;
-        margin-bottom: 24px;
-        border-bottom: 2px solid #16a34a;
-        padding-bottom: 12px;
-      }}
-      .header h1 {{
-        font-size: 18pt;
-        color: #16a34a;
-        margin: 0 0 4px 0;
-      }}
-      .header p {{
-        font-size: 10pt;
-        color: #666;
-        margin: 0;
       }}
       table {{
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 20px;
       }}
-      th {{
-        background-color: #f3f4f6;
-        text-align: left;
-        padding: 8px 12px;
-        font-size: 10pt;
-        color: #555;
-        width: 30%;
-        border: 1px solid #e5e7eb;
-      }}
-      td {{
-        padding: 8px 12px;
+      td, th {{
+        padding: 7px 12px;
         font-size: 11pt;
         border: 1px solid #e5e7eb;
+        vertical-align: middle;
       }}
-      .section-title {{
-        font-size: 13pt;
+      .no-border {{
+        border: none;
+        padding: 4px 0;
+      }}
+      .label {{
+        background-color: #f3f4f6;
+        color: #555;
+        font-size: 10pt;
+        font-weight: normal;
+        width: 28%;
+      }}
+      .section-header {{
+        background-color: #f0fdf4;
+        color: #16a34a;
+        font-weight: bold;
+        font-size: 11pt;
+        border: 1px solid #d1fae5;
+        padding: 6px 12px;
+      }}
+      .org-name {{
+        font-size: 18pt;
         font-weight: bold;
         color: #16a34a;
-        margin: 20px 0 8px 0;
-        border-bottom: 1px solid #d1fae5;
-        padding-bottom: 4px;
       }}
-      .description-box {{
-        border: 1px solid #e5e7eb;
-        padding: 12px;
-        background-color: #fafafa;
+      .type-cell {{
+        font-size: 12pt;
+        font-weight: bold;
+        color: #333;
+        text-transform: uppercase;
+        text-align: center;
+        letter-spacing: 1px;
+        border: none;
+        border-bottom: 2px solid #16a34a;
+        padding: 8px 12px;
+      }}
+      .plain {{
         font-size: 11pt;
-        line-height: 1.6;
+        line-height: 1.7;
         white-space: pre-wrap;
+        vertical-align: top;
+      }}
+      .bold-text {{
+        font-weight: bold;
+        font-size: 12pt;
       }}
       .footer {{
         text-align: center;
         font-size: 9pt;
         color: #aaa;
-        margin-top: 32px;
+        margin-top: 20px;
         border-top: 1px solid #e5e7eb;
-        padding-top: 8px;
+        padding-top: 6px;
       }}
     </style>
   </head>
   <body>
-    <div class="page">
-      <div class="header">
-        <h1>ГПК Мурджов Пожар</h1>
-        <p>Официален документ – Запитване</p>
-      </div>
+    <table>
 
-      <div class="section-title">Основна информация</div>
-      <table>
-        <tr>
-          <th>Входящ номер</th>
-          <td>{entry_number}</td>
-        </tr>
-        <tr>
-          <th>Вид</th>
-          <td>{inquiry_type}</td>
-        </tr>
-        <tr>
-          <th>Статус</th>
-          <td>{status_bg}</td>
-        </tr>
-        <tr>
-          <th>Дата на подаване</th>
-          <td>{created_at}</td>
-        </tr>
-      </table>
+      <!-- Row 1: logo | org name -->
+      <tr>
+        <td class="no-border" style="width: 60px; border-bottom: 2px solid #16a34a;">
+          <img src="data:image/svg+xml;base64,{logo_b64}" width="52" height="45" />
+        </td>
+        <td class="no-border" style="border-bottom: 2px solid #16a34a; padding-left: 10px;">
+          <div class="org-name">ГПК Мурджов Пожар</div>
+        </td>
+      </tr>
 
-      <div class="section-title">Заглавие</div>
-      <table>
-        <tr>
-          <td>{title}</td>
-        </tr>
-      </table>
+      <!-- Row 2: inquiry type full width -->
+      <tr>
+        <td class="type-cell" colspan="2">{inquiry_type}</td>
+      </tr>
 
-      <div class="section-title">Описание</div>
-      <div class="description-box">{description}</div>
+      <!-- Section: Основна информация -->
+      <tr>
+        <td class="section-header" colspan="2">Основна информация</td>
+      </tr>
+      <tr>
+        <td class="label">Входящ номер</td>
+        <td>{entry_number}</td>
+      </tr>
+      <tr>
+        <td class="label">Дата на подаване</td>
+        <td>{created_at}</td>
+      </tr>
 
-      <div class="section-title">Участници</div>
-      <table>
-        <tr>
-          <th>Подател</th>
-          <td>{author_name}</td>
-        </tr>
-        <tr>
-          <th>Съавтори</th>
-          <td>{co_author_names}</td>
-        </tr>
-        <tr>
-          <th>Адресирано до</th>
-          <td>{scope_bg}</td>
-        </tr>
-      </table>
+      <!-- Section: Заглавие -->
+      <tr>
+        <td class="section-header" colspan="2">Заглавие</td>
+      </tr>
+      <tr>
+        <td colspan="2" class="bold-text">{title}</td>
+      </tr>
 
-      <div class="footer">
-        Документът е генериран автоматично от системата на ГПК Мурджов Пожар.
-      </div>
+      <!-- Section: Описание -->
+      <tr>
+        <td class="section-header" colspan="2">Описание</td>
+      </tr>
+      <tr>
+        <td colspan="2" class="plain">{description}</td>
+      </tr>
+
+      <!-- Section: Участници -->
+      <tr>
+        <td class="section-header" colspan="2">Участници</td>
+      </tr>
+      <tr>
+        <td class="label">Подател</td>
+        <td>{author_name}</td>
+      </tr>
+      <tr>
+        <td class="label">Съавтори</td>
+        <td>{co_author_names}</td>
+      </tr>
+      <tr>
+        <td class="label">Адресирано до</td>
+        <td>{scope_bg}</td>
+      </tr>
+
+    </table>
+
+    <div class="footer">
+      Документът е генериран автоматично от системата на ГПК Мурджов Пожар.
     </div>
   </body>
 </html>

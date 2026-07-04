@@ -1,6 +1,5 @@
 import {useState} from "react";
 import {useParams, useNavigate} from "react-router-dom";
-import {API_BASE_URL} from "@/app-config";
 import {
   useInquiry,
   useAssignEntryNumber,
@@ -17,6 +16,7 @@ import {getAccessToken} from "@/context/tokenStore";
 import {getUserRole} from "@/context/jwt";
 import {useToast} from "@/components/ui/use-toast";
 import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Label} from "@/components/ui/label";
@@ -24,6 +24,8 @@ import {Badge} from "@/components/ui/badge";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from "@/components/ui/dialog";
+import apiClient from "@/context/apiClient";
+import {Trash2, Pencil} from "lucide-react";
 
 const SCOPE_BG: Record<string, string> = {
   admin: "Администрация",
@@ -31,13 +33,13 @@ const SCOPE_BG: Record<string, string> = {
   control: "Контролен съвет",
 };
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  sent: "secondary",
-  accepted: "outline",
-  in_progress: "default",
-  closed: "outline",
-  finished: "default",
-  failed: "destructive",
+const STATUS_CLASS: Record<string, string> = {
+  sent: "border border-gray-400 text-gray-500 bg-transparent",
+  accepted: "border border-blue-500 text-blue-600 bg-transparent",
+  in_progress: "border border-amber-600 text-amber-700 bg-transparent",
+  closed: "border border-gray-600 text-gray-700 bg-transparent",
+  finished: "border border-green-600 text-green-700 bg-transparent",
+  failed: "border border-red-500 text-red-600 bg-transparent",
 };
 
 const FINAL_STATUSES = [
@@ -96,9 +98,9 @@ export default function InquiryDetail() {
     return null;
   }
 
-  if (isLoading) return <div className="max-w-3xl mx-auto px-4 py-10 text-muted-foreground">Зареждане...</div>;
+  if (isLoading) return <div className="flex min-h-svh w-full items-start justify-center p-4"><div className="w-full max-w-3xl text-muted-foreground pt-10">Зареждане...</div></div>;
   if (error || !inquiry)
-    return <div className="max-w-3xl mx-auto px-4 py-10 text-destructive">Запитването не е намерено.</div>;
+    return <div className="flex min-h-svh w-full items-start justify-center p-4"><div className="w-full max-w-3xl text-destructive pt-10">Запитването не е намерено.</div></div>;
 
   const isAuthor = inquiry.author_id === userId;
   const isCoAuthor = inquiry.co_authors.includes(userId);
@@ -212,8 +214,18 @@ export default function InquiryDetail() {
     }
   };
 
-  const handlePdfExport = () => {
-    window.open(`${API_BASE_URL}inquiries/${inquiry.id}/pdf`, "_blank");
+  const handlePdfExport = async () => {
+    try {
+      const res = await apiClient.get(`inquiries/${inquiry.id}/pdf`, {responseType: "blob"});
+      const url = URL.createObjectURL(new Blob([res.data], {type: "application/pdf"}));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `inquiry-${inquiry.entry_number ?? inquiry.id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({title: "Грешка", description: "Неуспешно изтегляне на PDF.", variant: "destructive"});
+    }
   };
 
   const toggleEditCoAuthor = (uid: string) => {
@@ -221,152 +233,161 @@ export default function InquiryDetail() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">{inquiry.title}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{inquiry.inquiry_type}</p>
-        </div>
-        <Badge variant={STATUS_VARIANT[inquiry.status] ?? "secondary"} className="text-sm px-3 py-1">
-          {STATUS_BG[inquiry.status] ?? inquiry.status}
-        </Badge>
-      </div>
-
-      <hr className="border-border" />
-
-      {/* Meta */}
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-        <div>
-          <dt className="text-muted-foreground">Входящ номер</dt>
-          <dd className="font-mono font-medium">{inquiry.entry_number ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Дата</dt>
-          <dd>{inquiry.created_at?.slice(0, 10)}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Подател</dt>
-          <dd>{inquiry.author_name ?? inquiry.author_id}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Съавтори</dt>
-          <dd>{inquiry.co_author_names.length ? inquiry.co_author_names.join(", ") : "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Адресирано до</dt>
-          <dd>{inquiry.scope.map((s) => SCOPE_BG[s] ?? s).join(", ")}</dd>
-        </div>
-      </dl>
-
-      <hr className="border-border" />
-
-      {/* Description */}
-      <div>
-        <h2 className="text-base font-semibold mb-2">Описание</h2>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">{inquiry.description}</p>
-      </div>
-
-      {/* Files */}
-      {inquiry.file_s3_keys.length > 0 && (
-        <div>
-          <h2 className="text-base font-semibold mb-2">Прикачени файлове</h2>
-          <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-            {inquiry.file_s3_keys.map((k) => (
-              <li key={k}>{k.split("/").pop()}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Closing record */}
-      {inquiry.closing_record && (
-        <div className="rounded-md border p-4 space-y-2 bg-muted/30">
-          <h2 className="text-base font-semibold">Запис за затваряне</h2>
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+    <div className="flex min-h-svh w-full items-start justify-center p-4">
+      <div className="w-full max-w-3xl">
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap pb-4">
             <div>
-              <dt className="text-muted-foreground">Затворено от</dt>
-              <dd>{inquiry.closing_record.closed_by_name}</dd>
+              <CardTitle className="text-2xl">{inquiry.title}</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1 uppercase">{inquiry.inquiry_type}</p>
             </div>
-            <div>
-              <dt className="text-muted-foreground">Дата</dt>
-              <dd>{inquiry.closing_record.closed_at?.slice(0, 10)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Финален статус</dt>
-              <dd>{STATUS_BG[inquiry.closing_record.final_status] ?? inquiry.closing_record.final_status}</dd>
-            </div>
-            <div className="col-span-2">
-              <dt className="text-muted-foreground">Причина</dt>
-              <dd className="whitespace-pre-wrap">{inquiry.closing_record.reason}</dd>
-            </div>
-          </dl>
-        </div>
-      )}
+            <Badge className={`text-sm px-3 py-1 rounded-sm ${STATUS_CLASS[inquiry.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}>
+              {STATUS_BG[inquiry.status] ?? inquiry.status}
+            </Badge>
+          </CardHeader>
 
-      <hr className="border-border" />
+          <CardContent className="space-y-6">
+            <hr className="border-border" />
 
-      {/* Actions */}
-      <div className="flex flex-wrap gap-3">
-        {/* Edit — author, status=sent, pre-acceptance fields only */}
-        {isAuthor && isSent && (
-          <Button variant="outline" onClick={openEditForm}>
-            Редактирай
-          </Button>
-        )}
-        {/* Add files — author, status=sent */}
-        {isAuthor && isSent && (
-          <Button variant="outline" onClick={() => setShowAddFiles(true)}>
-            Добави файлове
-          </Button>
-        )}
-        {/* Assign entry number — admin, status=sent */}
-        {isAdmin && isSent && (
-          <div className="flex gap-2 items-center">
-            <Input
-              placeholder="Вх. номер"
-              value={entryInput}
-              onChange={(e) => setEntryInput(e.target.value)}
-              className="w-32"
-            />
-            <Button onClick={handleAssignNumber} disabled={!entryInput.trim() || assigningNumber}>
-              Присвои номер
-            </Button>
-          </div>
-        )}
-        {/* PDF export — any involved, status != sent */}
-        {isPastSent && canClose && (
-          <Button variant="outline" onClick={handlePdfExport}>
-            Изтегли PDF
-          </Button>
-        )}
-        {/* Send file — admin, in_progress — reuse upload page with pre-filled label */}
-        {isAdmin && isInProgress && inquiry.entry_number && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              const params = new URLSearchParams({
-                label: inquiry.entry_number!,
-                allowed_to: [inquiry.author_id, ...inquiry.co_authors].join(","),
-              });
-              navigate(`/upload?${params.toString()}`);
-            }}
-          >
-            Изпрати файл
-          </Button>
-        )}
-        {/* Close */}
-        {canClose && (
-          <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
-            Затвори
-          </Button>
-        )}
-        {/* Delete */}
-        {canDelete && (
-          <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
-            Изтрий
-          </Button>
-        )}
+            {/* Meta */}
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Входящ номер</dt>
+                <dd className="font-mono font-medium">{inquiry.entry_number ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Дата</dt>
+                <dd>{inquiry.created_at?.slice(0, 10)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Подател</dt>
+                <dd>{inquiry.author_name ?? inquiry.author_id}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Съавтори</dt>
+                <dd>{inquiry.co_author_names.length ? inquiry.co_author_names.join(", ") : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Адресирано до</dt>
+                <dd>{inquiry.scope.map((s) => SCOPE_BG[s] ?? s).join(", ")}</dd>
+              </div>
+            </dl>
+
+            <hr className="border-border" />
+
+            {/* Description */}
+            <div>
+              <h2 className="text-base font-semibold mb-2">Описание</h2>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">{inquiry.description}</p>
+            </div>
+
+            {/* Files */}
+            {inquiry.file_s3_keys.length > 0 && (
+              <div>
+                <h2 className="text-base font-semibold mb-2">Прикачени файлове</h2>
+                <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+                  {inquiry.file_s3_keys.map((k) => (
+                    <li key={k}>{k.split("/").pop()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Closing record */}
+            {inquiry.closing_record && (
+              <div className="rounded-md border p-4 space-y-2 bg-muted/30">
+                <h2 className="text-base font-semibold">Запис за затваряне</h2>
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <dt className="text-muted-foreground">Затворено от</dt>
+                    <dd>{inquiry.closing_record.closed_by_name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Дата</dt>
+                    <dd>{inquiry.closing_record.closed_at?.slice(0, 10)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Финален статус</dt>
+                    <dd>{STATUS_BG[inquiry.closing_record.final_status] ?? inquiry.closing_record.final_status}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-muted-foreground">Причина</dt>
+                    <dd className="whitespace-pre-wrap">{inquiry.closing_record.reason}</dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+
+            <hr className="border-border" />
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-3">
+              {isAuthor && isSent && (
+                <Button variant="outline" onClick={() => setShowAddFiles(true)}>
+                  Добави файлове
+                </Button>
+              )}
+              {canClose && (
+                <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
+                  Затвори
+                </Button>
+              )}
+              {isAdmin && isSent && (
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder="Вх. номер"
+                    value={entryInput}
+                    onChange={(e) => setEntryInput(e.target.value)}
+                    className="w-32"
+                  />
+                  <Button onClick={handleAssignNumber} disabled={!entryInput.trim() || assigningNumber}>
+                    Регистрирай
+                  </Button>
+                </div>
+              )}
+              {isPastSent && canClose && (
+                <Button variant="outline" onClick={handlePdfExport}>
+                  Изтегли PDF
+                </Button>
+              )}
+              {isAdmin && isInProgress && inquiry.entry_number && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      label: inquiry.entry_number!,
+                      allowed_to: [inquiry.author_id, ...inquiry.co_authors].join(","),
+                    });
+                    navigate(`/upload?${params.toString()}`);
+                  }}
+                >
+                  Изпрати файл
+                </Button>
+              )}
+              {/* Icon buttons grouped together */}
+              {(isAuthor && isSent) || canDelete ? (
+                <div className="flex items-center gap-1">
+                  {isAuthor && isSent && (
+                    <button
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      onClick={openEditForm}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Edit form dialog */}
@@ -398,7 +419,7 @@ export default function InquiryDetail() {
                 <SelectContent>
                   {INQUIRY_TYPES.map((t) => (
                     <SelectItem key={t} value={t}>
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                      {t.toUpperCase()}
                     </SelectItem>
                   ))}
                 </SelectContent>
