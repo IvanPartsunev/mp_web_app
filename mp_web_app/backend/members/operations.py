@@ -121,9 +121,9 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
 
     normalized_members_list.append(
       {
-        "first_name": member["first_name"].capitalize(),
-        "middle_name": member["middle_name"].capitalize(),
-        "last_name": member["last_name"].capitalize(),
+        "first_name": (member["first_name"] or "").capitalize(),
+        "middle_name": (member["middle_name"] or "").capitalize(),
+        "last_name": (member["last_name"] or "").capitalize(),
         "phone": phone,
         "email": email,
         "member_code": member["member_code"],
@@ -228,7 +228,7 @@ def list_members(
     member_objects = [repo.convert_item_to_object(member) for member in members]
     active = sorted(
       (m for m in member_objects if not m.is_deleted),
-      key=lambda m: (m.first_name.lower(), m.middle_name.lower() if m.middle_name else "", m.last_name.lower()),
+      key=lambda m: (m.first_name.lower() if m.first_name else "", m.middle_name.lower() if m.middle_name else "", m.last_name.lower() if m.last_name else ""),
     )
 
     if proxy_only:
