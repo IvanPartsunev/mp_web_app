@@ -23,9 +23,7 @@ export default function Products() {
       <div className="container mx-auto px-4 py-10">
         {isLoading && <LoadingSpinner />}
 
-        {error && (
-          <p className="text-center text-red-600 py-8">Възникна грешка при зареждане.</p>
-        )}
+        {error && <p className="text-center text-red-600 py-8">Възникна грешка при зареждане.</p>}
 
         {!isLoading && !error && products.length === 0 && (
           <p className="text-center text-muted-foreground py-8">Няма налични продукти.</p>

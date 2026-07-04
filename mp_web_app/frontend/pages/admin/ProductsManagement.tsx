@@ -68,10 +68,22 @@ function PictureInput({currentUrl, onFileChange, onRemove, removePicture}: Pictu
           )}
         </div>
         <div className="flex flex-col gap-2 flex-1">
-          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} className="w-full">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            className="w-full"
+          >
             {displayUrl ? "Смени снимката" : "Избери снимка"}
           </Button>
-          <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,.webp,.gif" className="hidden" onChange={handleChange} />
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.gif"
+            className="hidden"
+            onChange={handleChange}
+          />
           {onRemove && currentUrl && !preview && (
             <Button
               type="button"
@@ -253,7 +265,7 @@ export default function ProductsManagement() {
             variant: "destructive",
           });
         },
-      },
+      }
     );
   };
 
@@ -286,7 +298,7 @@ export default function ProductsManagement() {
             variant: "destructive",
           });
         },
-      },
+      }
     );
   };
 
@@ -361,10 +373,7 @@ export default function ProductsManagement() {
           rows={3}
         />
       </div>
-      <SizesEditor
-        sizes={formData.sizes}
-        onChange={(sizes) => setFormData((f) => ({...f, sizes}))}
-      />
+      <SizesEditor sizes={formData.sizes} onChange={(sizes) => setFormData((f) => ({...f, sizes}))} />
     </div>
   );
 
@@ -448,7 +457,12 @@ export default function ProductsManagement() {
                     <TableCell className="py-2">
                       <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                         {product.picture_url ? (
-                          <img src={product.picture_url} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                          <img
+                            src={product.picture_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
                             <Package className="w-5 h-5 opacity-40" />
@@ -544,7 +558,9 @@ export default function ProductsManagement() {
                   </p>
                   <ul className="text-xs text-muted-foreground space-y-1 max-h-40 overflow-y-auto">
                     {orphansQuery.data?.orphans.map((key) => (
-                      <li key={key} className="truncate">{key}</li>
+                      <li key={key} className="truncate">
+                        {key}
+                      </li>
                     ))}
                   </ul>
                   <Button
@@ -553,7 +569,9 @@ export default function ProductsManagement() {
                     onClick={handleDeleteOrphans}
                     disabled={deleteOrphansMutation.isPending}
                   >
-                    {deleteOrphansMutation.isPending ? "Изтриване..." : `Изтрий всички (${orphansQuery.data?.count ?? 0})`}
+                    {deleteOrphansMutation.isPending
+                      ? "Изтриване..."
+                      : `Изтрий всички (${orphansQuery.data?.count ?? 0})`}
                   </Button>
                 </>
               )}

@@ -80,7 +80,9 @@ function SizesTable({product}: {product: Product}) {
           <tbody>
             {visibleSizes.map((s, i) => (
               <tr key={i} className="border-b border-gray-100 dark:border-gray-700/50 last:border-0">
-                <td className="py-1.5 pr-4 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">{s.label}</td>
+                <td className="py-1.5 pr-4 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                  {s.label}
+                </td>
                 {cols.width && (
                   <td className="py-1.5 pr-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">
                     {s.width != null ? `${s.width} см` : "—"}
@@ -170,7 +172,9 @@ export function ProductCard({product}: ProductCardProps) {
 
         {product.description && (
           <div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{displayDesc}</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              {displayDesc}
+            </p>
             {shouldTruncateDesc && (
               <button
                 onClick={() => setDescExpanded((e) => !e)}

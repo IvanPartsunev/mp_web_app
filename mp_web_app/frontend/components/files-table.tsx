@@ -49,7 +49,10 @@ export function FilesTable({
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredData = useMemo(() => matchesSearch ? data.filter((f) => matchesSearch(f, searchQuery)) : data, [data, searchQuery]);
+  const filteredData = useMemo(
+    () => (matchesSearch ? data.filter((f) => matchesSearch(f, searchQuery)) : data),
+    [data, searchQuery]
+  );
 
   const pagination = usePagination(filteredData);
 

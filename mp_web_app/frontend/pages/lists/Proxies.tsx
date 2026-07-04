@@ -130,9 +130,7 @@ export default function Proxies() {
                           <TableCell className={TABLE_STYLES.cellBase}>{member.first_name}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.middle_name || "-"}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.last_name}</TableCell>
-                          {isLoggedIn && (
-                            <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>
-                          )}
+                          {isLoggedIn && <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>}
                           {canSeePhone && (
                             <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>
                           )}

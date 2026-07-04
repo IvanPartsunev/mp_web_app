@@ -81,9 +81,7 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
                     <TableRow key={product.id ?? `product-${pagination.startIdx + idx}`}>
                       <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
                       <TableCell className={`${TABLE_STYLES.cellPadded} font-medium`}>{product.name}</TableCell>
-                      <TableCell className={TABLE_STYLES.cellPadded}>
-                        {formatDimensions(product)}
-                      </TableCell>
+                      <TableCell className={TABLE_STYLES.cellPadded}>{formatDimensions(product)}</TableCell>
                       <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
                     </TableRow>
                   ))}
