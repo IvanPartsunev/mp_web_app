@@ -36,17 +36,17 @@ def mock_repo():
 
 
 def make_member(**kwargs) -> Member:
-  defaults = dict(
-    first_name="John",
-    middle_name="A",
-    last_name="Doe",
-    email="john@example.com",
-    phone="+359889123456",
-    member_code="CODE001",
-    member_code_valid=True,
-    proxy=False,
-    is_deleted=False,
-  )
+  defaults = {
+    "first_name": "John",
+    "middle_name": "A",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "phone": "+359889123456",
+    "member_code": "CODE001",
+    "member_code_valid": True,
+    "proxy": False,
+    "is_deleted": False,
+  }
   defaults.update(kwargs)
   return Member(**defaults)
 
@@ -222,9 +222,8 @@ class TestUpdateMember:
     mock_get.return_value = make_member()
 
     # Patch validate_email to simulate a validation failure after pydantic accepts the field
-    with patch("members.operations.validate_email", side_effect=ValueError("Invalid email format")):
-      with pytest.raises(ValidationError, match="Invalid email"):
-        update_member("CODE001", MemberUpdate(email="user@example.com"), mock_repo)
+    with patch("members.operations.validate_email", side_effect=ValueError("Invalid email format")), pytest.raises(ValidationError, match="Invalid email"):
+      update_member("CODE001", MemberUpdate(email="user@example.com"), mock_repo)
 
   @patch("members.operations.get_member_by_code")
   def test_raises_validation_error_on_invalid_phone(self, mock_get, mock_repo):
@@ -302,28 +301,28 @@ class TestListMembers:
 
   def test_returns_active_members_sorted(self, mock_repo):
     items = [
-      dict(
-        first_name="Zara",
-        middle_name="",
-        last_name="Smith",
-        email=None,
-        phone=None,
-        member_code="C2",
-        member_code_valid=True,
-        proxy=False,
-        is_deleted=False,
-      ),
-      dict(
-        first_name="Anna",
-        middle_name="",
-        last_name="Jones",
-        email=None,
-        phone=None,
-        member_code="C1",
-        member_code_valid=True,
-        proxy=False,
-        is_deleted=False,
-      ),
+      {
+        "first_name": "Zara",
+        "middle_name": "",
+        "last_name": "Smith",
+        "email": None,
+        "phone": None,
+        "member_code": "C2",
+        "member_code_valid": True,
+        "proxy": False,
+        "is_deleted": False,
+      },
+      {
+        "first_name": "Anna",
+        "middle_name": "",
+        "last_name": "Jones",
+        "email": None,
+        "phone": None,
+        "member_code": "C1",
+        "member_code_valid": True,
+        "proxy": False,
+        "is_deleted": False,
+      },
     ]
     self._setup_scan(mock_repo, items)
 
@@ -335,28 +334,28 @@ class TestListMembers:
 
   def test_excludes_soft_deleted(self, mock_repo):
     items = [
-      dict(
-        first_name="John",
-        middle_name="",
-        last_name="Doe",
-        email=None,
-        phone=None,
-        member_code="C1",
-        member_code_valid=True,
-        proxy=False,
-        is_deleted=False,
-      ),
-      dict(
-        first_name="Jane",
-        middle_name="",
-        last_name="Doe",
-        email=None,
-        phone=None,
-        member_code="C2",
-        member_code_valid=True,
-        proxy=False,
-        is_deleted=True,
-      ),
+      {
+        "first_name": "John",
+        "middle_name": "",
+        "last_name": "Doe",
+        "email": None,
+        "phone": None,
+        "member_code": "C1",
+        "member_code_valid": True,
+        "proxy": False,
+        "is_deleted": False,
+      },
+      {
+        "first_name": "Jane",
+        "middle_name": "",
+        "last_name": "Doe",
+        "email": None,
+        "phone": None,
+        "member_code": "C2",
+        "member_code_valid": True,
+        "proxy": False,
+        "is_deleted": True,
+      },
     ]
     self._setup_scan(mock_repo, items)
 
@@ -367,28 +366,28 @@ class TestListMembers:
 
   def test_filters_proxy_only(self, mock_repo):
     items = [
-      dict(
-        first_name="John",
-        middle_name="",
-        last_name="Doe",
-        email=None,
-        phone=None,
-        member_code="C1",
-        member_code_valid=True,
-        proxy=True,
-        is_deleted=False,
-      ),
-      dict(
-        first_name="Jane",
-        middle_name="",
-        last_name="Doe",
-        email=None,
-        phone=None,
-        member_code="C2",
-        member_code_valid=True,
-        proxy=False,
-        is_deleted=False,
-      ),
+      {
+        "first_name": "John",
+        "middle_name": "",
+        "last_name": "Doe",
+        "email": None,
+        "phone": None,
+        "member_code": "C1",
+        "member_code_valid": True,
+        "proxy": True,
+        "is_deleted": False,
+      },
+      {
+        "first_name": "Jane",
+        "middle_name": "",
+        "last_name": "Doe",
+        "email": None,
+        "phone": None,
+        "member_code": "C2",
+        "member_code_valid": True,
+        "proxy": False,
+        "is_deleted": False,
+      },
     ]
     self._setup_scan(mock_repo, items)
 
@@ -404,28 +403,28 @@ class TestListMembers:
       list_members(mock_repo)
 
   def test_handles_paginated_scan(self, mock_repo):
-    page1 = dict(
-      first_name="Anna",
-      middle_name="",
-      last_name="A",
-      email=None,
-      phone=None,
-      member_code="C1",
-      member_code_valid=True,
-      proxy=False,
-      is_deleted=False,
-    )
-    page2 = dict(
-      first_name="Bob",
-      middle_name="",
-      last_name="B",
-      email=None,
-      phone=None,
-      member_code="C2",
-      member_code_valid=True,
-      proxy=False,
-      is_deleted=False,
-    )
+    page1 = {
+      "first_name": "Anna",
+      "middle_name": "",
+      "last_name": "A",
+      "email": None,
+      "phone": None,
+      "member_code": "C1",
+      "member_code_valid": True,
+      "proxy": False,
+      "is_deleted": False,
+    }
+    page2 = {
+      "first_name": "Bob",
+      "middle_name": "",
+      "last_name": "B",
+      "email": None,
+      "phone": None,
+      "member_code": "C2",
+      "member_code_valid": True,
+      "proxy": False,
+      "is_deleted": False,
+    }
 
     mock_repo.table.scan.side_effect = [
       {"Items": [page1], "LastEvaluatedKey": {"member_code": "C1"}},
@@ -446,17 +445,17 @@ class TestListMembers:
 
 class TestSyncMembersList:
   def _make_raw(self, **kwargs):
-    defaults = dict(
-      first_name="john",
-      middle_name="a",
-      last_name="doe",
-      phone="0889123456",
-      email="john@example.com",
-      member_code="CODE001",
-      proxy="no",
-      board="no",
-      control="no",
-    )
+    defaults = {
+      "first_name": "john",
+      "middle_name": "a",
+      "last_name": "doe",
+      "phone": "0889123456",
+      "email": "john@example.com",
+      "member_code": "CODE001",
+      "proxy": "no",
+      "board": "no",
+      "control": "no",
+    }
     defaults.update(kwargs)
     return defaults
 
@@ -474,17 +473,17 @@ class TestSyncMembersList:
     assert written["is_deleted"] is False
 
   def test_soft_deletes_absent_members(self, mock_repo):
-    existing = dict(
-      first_name="Old",
-      middle_name="M",
-      last_name="Member",
-      email=None,
-      phone=None,
-      member_code="OLD001",
-      member_code_valid=True,
-      proxy=False,
-      is_deleted=False,
-    )
+    existing = {
+      "first_name": "Old",
+      "middle_name": "M",
+      "last_name": "Member",
+      "email": None,
+      "phone": None,
+      "member_code": "OLD001",
+      "member_code_valid": True,
+      "proxy": False,
+      "is_deleted": False,
+    }
     mock_repo.table.scan.return_value = {"Items": [existing]}
     batch_mock = MagicMock()
     mock_repo.table.batch_writer.return_value.__enter__ = Mock(return_value=batch_mock)
@@ -499,17 +498,17 @@ class TestSyncMembersList:
     assert old_item["is_deleted"] is True
 
   def test_restores_soft_deleted_member(self, mock_repo):
-    existing = dict(
-      first_name="Old",
-      middle_name="M",
-      last_name="Member",
-      email=None,
-      phone=None,
-      member_code="CODE001",
-      member_code_valid=True,
-      proxy=False,
-      is_deleted=True,
-    )
+    existing = {
+      "first_name": "Old",
+      "middle_name": "M",
+      "last_name": "Member",
+      "email": None,
+      "phone": None,
+      "member_code": "CODE001",
+      "member_code_valid": True,
+      "proxy": False,
+      "is_deleted": True,
+    }
     mock_repo.table.scan.return_value = {"Items": [existing]}
     batch_mock = MagicMock()
     mock_repo.table.batch_writer.return_value.__enter__ = Mock(return_value=batch_mock)
@@ -522,17 +521,17 @@ class TestSyncMembersList:
     assert restored["is_deleted"] is False
 
   def test_skips_already_deleted_absent_members(self, mock_repo):
-    existing = dict(
-      first_name="Old",
-      middle_name="M",
-      last_name="Member",
-      email=None,
-      phone=None,
-      member_code="OLD001",
-      member_code_valid=True,
-      proxy=False,
-      is_deleted=True,
-    )
+    existing = {
+      "first_name": "Old",
+      "middle_name": "M",
+      "last_name": "Member",
+      "email": None,
+      "phone": None,
+      "member_code": "OLD001",
+      "member_code_valid": True,
+      "proxy": False,
+      "is_deleted": True,
+    }
     mock_repo.table.scan.return_value = {"Items": [existing]}
     batch_mock = MagicMock()
     mock_repo.table.batch_writer.return_value.__enter__ = Mock(return_value=batch_mock)
@@ -553,17 +552,17 @@ class TestSyncMembersList:
 
 class TestNormalizeMembers:
   def _raw(self, **kwargs):
-    defaults = dict(
-      first_name="john",
-      middle_name="a",
-      last_name="doe",
-      phone="0889123456",
-      email="john@example.com",
-      member_code="CODE001",
-      proxy="no",
-      board="no",
-      control="no",
-    )
+    defaults = {
+      "first_name": "john",
+      "middle_name": "a",
+      "last_name": "doe",
+      "phone": "0889123456",
+      "email": "john@example.com",
+      "member_code": "CODE001",
+      "proxy": "no",
+      "board": "no",
+      "control": "no",
+    }
     defaults.update(kwargs)
     return defaults
 
@@ -669,17 +668,17 @@ class TestMembersListToCsv:
 
   def test_csv_includes_member_data(self, mock_repo):
     items = [
-      dict(
-        member_code="CODE001",
-        first_name="John",
-        middle_name="A",
-        last_name="Doe",
-        email="john@example.com",
-        phone="+359889123456",
-        proxy=False,
-        board=False,
-        control=False,
-      )
+      {
+        "member_code": "CODE001",
+        "first_name": "John",
+        "middle_name": "A",
+        "last_name": "Doe",
+        "email": "john@example.com",
+        "phone": "+359889123456",
+        "proxy": False,
+        "board": False,
+        "control": False,
+      }
     ]
     mock_repo.table.scan.return_value = {"Items": items}
 
