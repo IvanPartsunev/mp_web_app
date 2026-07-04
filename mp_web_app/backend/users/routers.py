@@ -155,7 +155,9 @@ async def user_redact_names(
   """Redact (clear) a user's first and last name (ADMIN only)."""
   try:
     existing_user = get_user_by_id(user_id, user_repo)
-    return update_user(user_id, existing_user.email, UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), user_repo)
+    return update_user(
+      user_id, existing_user.email, UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), user_repo
+    )
   except UserNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:

@@ -214,7 +214,9 @@ class TestRedactUserNames:
     mock_repo.table.update_item.return_value = {"Attributes": {}}
     mock_repo.convert_item_to_object.return_value = redacted_user
 
-    result = update_user("user123", "test@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo)
+    result = update_user(
+      "user123", "test@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo
+    )
 
     assert result == redacted_user
     call_args = mock_repo.table.update_item.call_args[1]
@@ -228,7 +230,9 @@ class TestRedactUserNames:
     mock_repo = Mock()
 
     with pytest.raises(UserNotFoundError):
-      update_user("user123", "missing@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo)
+      update_user(
+        "user123", "missing@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo
+      )
 
     mock_repo.table.update_item.assert_not_called()
 

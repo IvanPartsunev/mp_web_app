@@ -7,6 +7,7 @@ class ProductSize(BaseModel):
   model_config = ConfigDict(extra="ignore")
 
   label: str
+  value: str | None = None
   width: Decimal | None = None
   height: Decimal | None = None
   length: Decimal | None = None

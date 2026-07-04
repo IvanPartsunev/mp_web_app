@@ -10,7 +10,14 @@ import {ShareFileDialog} from "@/components/share-file-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
-import {useAllFiles, useDeleteFile, useUpdateFileMetadata, useFileLabels, FileMetadata, FileType} from "@/hooks/useFiles";
+import {
+  useAllFiles,
+  useDeleteFile,
+  useUpdateFileMetadata,
+  useFileLabels,
+  FileMetadata,
+  FileType,
+} from "@/hooks/useFiles";
 import type {ApiError} from "@/lib/errorUtils";
 import {TablePagination} from "@/components/table-pagination";
 import {ExpandableLabelCell} from "@/components/expandable-label-cell";

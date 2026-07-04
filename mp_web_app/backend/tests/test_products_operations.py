@@ -4,7 +4,7 @@ import pytest
 
 from database.exceptions import DatabaseError
 from products.exceptions import ProductNotFoundError
-from products.models import Product, ProductSize, ProductUpdate
+from products.models import Product, ProductSize
 from products.operations import (
   create_product,
   delete_product,
@@ -12,7 +12,6 @@ from products.operations import (
   list_orphaned_pictures,
   list_products,
   parse_sizes,
-  update_product,
 )
 
 
@@ -20,9 +19,9 @@ from products.operations import (
 def mock_repo():
   repo = Mock()
   repo.table = Mock()
-  repo.convert_item_to_object = Mock(side_effect=lambda item: Product(**{
-    k: v for k, v in item.items() if k in Product.model_fields
-  }))
+  repo.convert_item_to_object = Mock(
+    side_effect=lambda item: Product(**{k: v for k, v in item.items() if k in Product.model_fields})
+  )
   return repo
 
 
@@ -50,9 +49,11 @@ class TestParseSizes:
 
 class TestGetProduct:
   def test_returns_product_when_found(self, mock_repo):
-    mock_repo.table.get_item = Mock(return_value={"Item": {
-      "id": "abc", "name": "Product A", "sizes": [], "description": None, "picture_s3_key": None
-    }})
+    mock_repo.table.get_item = Mock(
+      return_value={
+        "Item": {"id": "abc", "name": "Product A", "sizes": [], "description": None, "picture_s3_key": None}
+      }
+    )
 
     result = get_product(mock_repo, "abc")
     assert result.id == "abc"
@@ -139,6 +140,7 @@ class TestListProducts:
   @patch("products.operations._get_products_from_db")
   def test_raises_database_error_on_client_error(self, mock_get_db, mock_repo):
     from botocore.exceptions import ClientError
+
     mock_get_db.side_effect = ClientError({"Error": {"Message": "fail"}}, "Scan")
 
     with pytest.raises(DatabaseError):
@@ -157,9 +159,7 @@ class TestListOrphanedPictures:
     mock_boto.return_value = mock_s3
     paginator = MagicMock()
     mock_s3.get_paginator.return_value = paginator
-    paginator.paginate.return_value = [
-      {"Contents": [{"Key": "products/used.jpg"}, {"Key": "products/orphan.jpg"}]}
-    ]
+    paginator.paginate.return_value = [{"Contents": [{"Key": "products/used.jpg"}, {"Key": "products/orphan.jpg"}]}]
 
     result = list_orphaned_pictures(mock_repo)
 
@@ -176,9 +176,7 @@ class TestListOrphanedPictures:
     mock_boto.return_value = mock_s3
     paginator = MagicMock()
     mock_s3.get_paginator.return_value = paginator
-    paginator.paginate.return_value = [
-      {"Contents": [{"Key": "products/used.jpg"}]}
-    ]
+    paginator.paginate.return_value = [{"Contents": [{"Key": "products/used.jpg"}]}]
 
     result = list_orphaned_pictures(mock_repo)
     assert result == []

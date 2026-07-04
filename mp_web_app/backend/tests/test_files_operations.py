@@ -322,6 +322,7 @@ class TestAddShare:
 class TestNotifyUpload:
   def _make_file_meta(self, file_type, allowed_to=None):
     from files.models import FileMetadataFull, FileType
+
     return FileMetadataFull(
       id="file-1",
       file_name="document.pdf",
@@ -366,9 +367,7 @@ class TestNotifyUpload:
   @patch("files.operations.notify_shared_users")
   @patch("mail.operations.send_upload_notification")
   @patch("users.operations.get_subscribed_users")
-  def test_accounting_excludes_regular_users(
-    self, mock_get_users, mock_send_upload, mock_notify_shared
-  ):
+  def test_accounting_excludes_regular_users(self, mock_get_users, mock_send_upload, mock_notify_shared):
     from files.operations import notify_upload
 
     users = [
@@ -391,9 +390,7 @@ class TestNotifyUpload:
   @patch("files.operations.notify_shared_users")
   @patch("mail.operations.send_upload_notification")
   @patch("users.operations.get_subscribed_users")
-  def test_private_documents_skips_broadcast(
-    self, mock_get_users, mock_send_upload, mock_notify_shared
-  ):
+  def test_private_documents_skips_broadcast(self, mock_get_users, mock_send_upload, mock_notify_shared):
     from files.operations import notify_upload
 
     file_meta = self._make_file_meta("private_documents", allowed_to=["uid-1"])
@@ -408,9 +405,7 @@ class TestNotifyUpload:
   @patch("files.operations.notify_shared_users")
   @patch("mail.operations.send_upload_notification")
   @patch("users.operations.get_subscribed_users")
-  def test_calls_notify_shared_users_when_allowed_to_set(
-    self, mock_get_users, mock_send_upload, mock_notify_shared
-  ):
+  def test_calls_notify_shared_users_when_allowed_to_set(self, mock_get_users, mock_send_upload, mock_notify_shared):
     from files.operations import notify_upload
 
     mock_get_users.return_value = []
@@ -485,43 +480,47 @@ class TestGetExistingLabels:
     assert result == []
 
   def test_collects_labels_from_single_page(self):
-    repo = self._make_repo([
+    repo = self._make_repo(
       [
-        {"id": "f1", "labels": ["beta", "alpha"]},
-        {"id": "f2", "labels": ["gamma"]},
+        [
+          {"id": "f1", "labels": ["beta", "alpha"]},
+          {"id": "f2", "labels": ["gamma"]},
+        ]
       ]
-    ])
+    )
 
     result = get_existing_labels(repo)
 
     assert result == ["alpha", "beta", "gamma"]
 
   def test_deduplicates_labels_across_items(self):
-    repo = self._make_repo([
+    repo = self._make_repo(
       [
-        {"id": "f1", "labels": ["alpha", "beta"]},
-        {"id": "f2", "labels": ["beta", "gamma"]},
+        [
+          {"id": "f1", "labels": ["alpha", "beta"]},
+          {"id": "f2", "labels": ["beta", "gamma"]},
+        ]
       ]
-    ])
+    )
 
     result = get_existing_labels(repo)
 
     assert result == ["alpha", "beta", "gamma"]
 
   def test_collects_labels_across_paginated_results(self):
-    repo = self._make_repo([
-      [{"id": "f1", "labels": ["alpha"]}],
-      [{"id": "f2", "labels": ["beta"]}],
-    ])
+    repo = self._make_repo(
+      [
+        [{"id": "f1", "labels": ["alpha"]}],
+        [{"id": "f2", "labels": ["beta"]}],
+      ]
+    )
 
     result = get_existing_labels(repo)
 
     assert result == ["alpha", "beta"]
 
   def test_ignores_empty_string_labels(self):
-    repo = self._make_repo([
-      [{"id": "f1", "labels": ["alpha", "", "  "]}]
-    ])
+    repo = self._make_repo([[{"id": "f1", "labels": ["alpha", "", "  "]}]])
 
     result = get_existing_labels(repo)
 

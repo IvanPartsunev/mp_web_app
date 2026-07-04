@@ -1,5 +1,4 @@
 import os
-from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -29,6 +28,7 @@ def get_product_repository() -> ProductRepository:
 # ---------------------------------------------------------------------------
 # Picture helpers
 # ---------------------------------------------------------------------------
+
 
 def _generate_picture_url(s3_key: str) -> str:
   if USE_CLOUDFRONT and CLOUDFRONT_DOMAIN:
@@ -73,6 +73,7 @@ def delete_product_picture(s3_key: str) -> None:
 # CRUD
 # ---------------------------------------------------------------------------
 
+
 def _attach_picture_url(product: Product) -> None:
   if product.picture_s3_key:
     try:
@@ -90,19 +91,28 @@ def get_product(repo: ProductRepository, product_id: str) -> Product:
   return product
 
 
+def parse_sizes(sizes_json: str) -> list[ProductSize]:
+  """Parse a JSON string into a list of ProductSize objects."""
+  if not sizes_json or sizes_json.strip() == "":
+    return []
+  import json
+
+  try:
+    data = json.loads(sizes_json)
+  except (json.JSONDecodeError, ValueError):
+    raise ValueError("Invalid sizes format: expected a JSON array")
+  if not isinstance(data, list):
+    raise ValueError("Invalid sizes format: expected a JSON array")
+  return [ProductSize(**item) for item in data]
+
+
 def _serialize_sizes(sizes: list[ProductSize]) -> list[dict]:
-  return [
-    {k: v for k, v in s.model_dump().items() if v is not None or k == "label"}
-    for s in sizes
-  ]
+  return [{k: v for k, v in s.model_dump().items() if v is not None or k == "label"} for s in sizes]
 
 
 def create_product(
   name: str,
   description: str | None,
-  width: Decimal | None,
-  height: Decimal | None,
-  length: Decimal | None,
   sizes: list[ProductSize],
   picture: UploadFile | None,
   repo: ProductRepository,
@@ -115,9 +125,6 @@ def create_product(
     "id": str(uuid4()),
     "name": name,
     "description": description,
-    "width": width,
-    "height": height,
-    "length": length,
     "sizes": _serialize_sizes(sizes),
     "picture_s3_key": s3_key,
   }
@@ -228,6 +235,7 @@ def _get_products_from_db(repo: ProductRepository) -> list[dict[Any, Any]]:
 # ---------------------------------------------------------------------------
 # Orphan cleanup
 # ---------------------------------------------------------------------------
+
 
 def list_orphaned_pictures(repo: ProductRepository) -> list[str]:
   items = _get_products_from_db(repo)

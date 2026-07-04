@@ -217,10 +217,7 @@ def delete_member(member_code: str, repo: MemberRepository) -> bool:
 
 
 def list_members(
-  repo: MemberRepository,
-  proxy_only: bool = False,
-  board_only: bool = False,
-  control_only: bool = False
+  repo: MemberRepository, proxy_only: bool = False, board_only: bool = False, control_only: bool = False
 ) -> list[Member]:
   """List all members or filter by proxy status, board status or control status. Excludes soft-deleted members."""
   try:
@@ -228,7 +225,11 @@ def list_members(
     member_objects = [repo.convert_item_to_object(member) for member in members]
     active = sorted(
       (m for m in member_objects if not m.is_deleted),
-      key=lambda m: (m.first_name.lower() if m.first_name else "", m.middle_name.lower() if m.middle_name else "", m.last_name.lower() if m.last_name else ""),
+      key=lambda m: (
+        m.first_name.lower() if m.first_name else "",
+        m.middle_name.lower() if m.middle_name else "",
+        m.last_name.lower() if m.last_name else "",
+      ),
     )
 
     if proxy_only:
@@ -271,7 +272,7 @@ def members_list_to_csv(repo: MemberRepository) -> io.BytesIO:
         "phone": (item.get("phone") or "").replace("+359", "0"),
         "proxy": "yes" if item.get("proxy") else "no",
         "board": "yes" if item.get("board") else "no",
-        "control": "yes" if item.get("control") else "no"
+        "control": "yes" if item.get("control") else "no",
       }
     )
 

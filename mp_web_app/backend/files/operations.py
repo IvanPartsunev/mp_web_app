@@ -31,12 +31,12 @@ USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 # Maps each FileType value to its Bulgarian display name and frontend route path
 FILE_TYPE_DISPLAY: dict[str, dict] = {
   "governing_documents": {"bg": "Нормативни документи", "route": "governing-documents"},
-  "forms":               {"bg": "Бланки",               "route": "forms"},
-  "minutes":             {"bg": "Протоколи",             "route": "minutes"},
-  "transcripts":         {"bg": "Стенограми",            "route": "transcripts"},
-  "accounting":          {"bg": "Счетоводни документи",  "route": "accounting-documents"},
-  "others":              {"bg": "Други документи",       "route": "others"},
-  "private_documents":   {"bg": "Лични документи",       "route": "mydocuments"},
+  "forms": {"bg": "Бланки", "route": "forms"},
+  "minutes": {"bg": "Протоколи", "route": "minutes"},
+  "transcripts": {"bg": "Стенограми", "route": "transcripts"},
+  "accounting": {"bg": "Счетоводни документи", "route": "accounting-documents"},
+  "others": {"bg": "Други документи", "route": "others"},
+  "private_documents": {"bg": "Лични документи", "route": "mydocuments"},
 }
 
 
@@ -133,7 +133,7 @@ def create_file_metadata(
     "created_at": file_metadata.created_at,
     "updated_at": file_metadata.created_at,
     "updated_by": user_id,
-    "labels": file_metadata.labels if file_metadata.labels else None
+    "labels": file_metadata.labels if file_metadata.labels else None,
   }
   try:
     repo.table.put_item(Item=file_metadata_item)

@@ -8,7 +8,7 @@ from auth.operations import role_required
 from database.exceptions import DatabaseError
 from database.repositories import MemberRepository
 from members.exceptions import InvalidFileTypeError
-from members.models import Member, MemberPublic, MemberProxy, MemberGovernance
+from members.models import MemberGovernance, MemberProxy, MemberPublic
 from members.operations import (
   convert_members_list,
   get_member_repository,
@@ -24,7 +24,10 @@ member_router = APIRouter(tags=["member"])
 
 PRIVILEGED_ROLES = [UserRole.ADMIN, UserRole.BOARD, UserRole.CONTROL]
 
-@member_router.get("/list/members", response_model=Union[list[MemberGovernance], list[MemberPublic]], status_code=status.HTTP_200_OK)
+
+@member_router.get(
+  "/list/members", response_model=Union[list[MemberGovernance], list[MemberPublic]], status_code=status.HTTP_200_OK
+)
 async def members_list_members(
   member_repo: MemberRepository = Depends(get_member_repository),
   current_user: User = Depends(role_required([UserRole.REGULAR_USER])),
@@ -53,7 +56,7 @@ async def members_list_members(
           email=m.email,
           proxy=m.proxy,
           board=m.board,
-          control=m.control
+          control=m.control,
         )
         for m in members
       ]
@@ -66,7 +69,7 @@ async def members_list_members(
           last_name=m.last_name,
           proxy=m.proxy,
           board=m.board,
-          control=m.control
+          control=m.control,
         )
         for m in members
       ]
@@ -74,7 +77,9 @@ async def members_list_members(
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@member_router.get("/list/proxy", response_model=Union[list[MemberGovernance], list[MemberProxy]], status_code=status.HTTP_200_OK)
+@member_router.get(
+  "/list/proxy", response_model=Union[list[MemberGovernance], list[MemberProxy]], status_code=status.HTTP_200_OK
+)
 async def members_list_proxy(
   member_repo: MemberRepository = Depends(get_member_repository),
   current_user: User = Depends(role_required([UserRole.REGULAR_USER])),
@@ -103,7 +108,7 @@ async def members_list_proxy(
           email=m.email,
           proxy=m.proxy,
           board=m.board,
-          control=m.control
+          control=m.control,
         )
         for m in members
       ]
@@ -117,7 +122,7 @@ async def members_list_proxy(
           email=m.email,
           proxy=m.proxy,
           board=m.board,
-          control=m.control
+          control=m.control,
         )
         for m in members
       ]
@@ -155,7 +160,7 @@ async def members_list_governance(
         email=m.email,
         proxy=m.proxy,
         board=m.board,
-        control=m.control
+        control=m.control,
       )
       for m in members
     ]
