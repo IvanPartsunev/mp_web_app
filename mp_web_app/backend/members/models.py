@@ -10,6 +10,8 @@ class Member(BaseModel):
   member_code: str
   member_code_valid: bool = True
   proxy: bool = False
+  board: bool = False
+  control: bool = False
   is_deleted: bool = False
 
 
@@ -20,6 +22,8 @@ class MemberPublic(BaseModel):
   middle_name: str | None = None
   last_name: str
   proxy: bool = False
+  board: bool = False
+  control: bool = False
 
 
 class MemberUpdate(BaseModel):

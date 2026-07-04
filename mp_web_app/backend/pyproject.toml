@@ -37,7 +37,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["auth", "database", "files", "gallery", "mail", "news", "users", "utils"]
+packages = ["auth", "database", "files", "gallery", "mail", "members", "news", "products", "users", "utils"]
 
 [tool.ruff]
 # Set line length to 120 characters
@@ -106,7 +106,7 @@ exclude = [
 
 [tool.ruff.lint.isort]
 # Configure import sorting
-known-first-party = ["auth", "database", "files", "gallery", "mail", "news", "users", "utils"]
+known-first-party = ["auth", "database", "files", "gallery", "mail", "members", "news", "products", "users", "utils"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [tool.ruff.lint.per-file-ignores]
