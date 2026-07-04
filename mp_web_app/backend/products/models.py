@@ -5,26 +5,24 @@ from pydantic import BaseModel, ConfigDict
 
 class Product(BaseModel):
   model_config = ConfigDict(
-    json_encoders={Decimal: float},
     from_attributes=True,
+    extra="ignore",
   )
 
   id: str | None = None
   name: str
+  description: str | None = None
   width: Decimal | None = None
   height: Decimal | None = None
   length: Decimal | None = None
-  description: str | None = None
+  picture_s3_key: str | None = None
+  picture_url: str | None = None
 
 
 class ProductUpdate(BaseModel):
-  model_config = ConfigDict(
-    json_encoders={Decimal: float},
-    from_attributes=True,
-  )
-
   name: str | None = None
+  description: str | None = None
   width: Decimal | None = None
   height: Decimal | None = None
   length: Decimal | None = None
-  description: str | None = None
+  remove_picture: bool = False

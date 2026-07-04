@@ -14,6 +14,15 @@ import {usePagination} from "@/hooks/usePagination";
 import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES, LOADING_MESSAGES} from "@/lib/tableUtils";
 import {SECTION_STYLES} from "@/lib/styles";
 
+function formatDimensions(product: Product): string {
+  const parts = [
+    product.width != null ? `Ш: ${product.width} см` : null,
+    product.height != null ? `В: ${product.height} см` : null,
+    product.length != null ? `Д: ${product.length} см` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? (parts as string[]).join(" / ") : "—";
+}
+
 type ProductsTableProps = {
   title?: string;
 };
@@ -38,15 +47,7 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
                   <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.large}`}>Име</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
-                    Дължина (см)
-                  </TableHead>
-                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
-                    Ширина (см)
-                  </TableHead>
-                  <TableHead className={`${TABLE_STYLES.headPadded} ${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
-                    Височина (см)
-                  </TableHead>
+                  <TableHead className={`${TABLE_STYLES.headPadded} w-[200px]`}>Размери</TableHead>
                   <TableHead className={`${TABLE_STYLES.headPadded} ${COLUMN_WIDTHS.description} pl-8`}>
                     Описание
                   </TableHead>
@@ -55,21 +56,21 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
               <TableBody>
                 {loading && (
                   <TableRow>
-                    <TableCell colSpan={6} className={TABLE_STYLES.cellPadded}>
+                    <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
                       {LOADING_MESSAGES.generic}
                     </TableCell>
                   </TableRow>
                 )}
                 {error && !loading && (
                   <TableRow>
-                    <TableCell colSpan={6} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
+                    <TableCell colSpan={4} className={`text-red-600 ${TABLE_STYLES.cellPadded}`}>
                       {error}
                     </TableCell>
                   </TableRow>
                 )}
                 {!loading && !error && pagination.pageItems.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className={TABLE_STYLES.cellPadded}>
+                    <TableCell colSpan={4} className={TABLE_STYLES.cellPadded}>
                       {EMPTY_MESSAGES.products}
                     </TableCell>
                   </TableRow>
@@ -80,14 +81,8 @@ export function ProductsTable({title = "Продукти"}: ProductsTableProps) 
                     <TableRow key={product.id ?? `product-${pagination.startIdx + idx}`}>
                       <TableCell className={TABLE_STYLES.rowNumberCell}>{pagination.startIdx + idx + 1}</TableCell>
                       <TableCell className={`${TABLE_STYLES.cellPadded} font-medium`}>{product.name}</TableCell>
-                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
-                        {product.length ?? "-"}
-                      </TableCell>
-                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
-                        {product.width ?? "-"}
-                      </TableCell>
-                      <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellCenter}`}>
-                        {product.height ?? "-"}
+                      <TableCell className={TABLE_STYLES.cellPadded}>
+                        {formatDimensions(product)}
                       </TableCell>
                       <TableCell className="py-2 pl-8 min-w-[350px]">{product.description || "-"}</TableCell>
                     </TableRow>

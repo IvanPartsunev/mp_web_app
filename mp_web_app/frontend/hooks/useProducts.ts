@@ -1,17 +1,16 @@
-// hooks/useProducts.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import apiClient from "@/context/apiClient";
 
 export interface Product {
   id?: string | null;
   name: string;
+  description?: string | null;
   width?: number | null;
   height?: number | null;
   length?: number | null;
-  description?: string | null;
+  picture_url?: string | null;
 }
 
-// Query key factory
 export const productKeys = {
   all: ["products"] as const,
   lists: () => [...productKeys.all, "list"] as const,
@@ -23,7 +22,6 @@ const productQueryFn = async () => {
   return response.data ?? [];
 };
 
-// Public products
 export function useProducts() {
   return useQuery({
     queryKey: productKeys.list("public"),
@@ -31,7 +29,6 @@ export function useProducts() {
   });
 }
 
-// Admin products
 export function useAdminProducts() {
   return useQuery({
     queryKey: productKeys.list("admin"),
@@ -39,13 +36,36 @@ export function useAdminProducts() {
   });
 }
 
-// Create product mutation
+export interface CreateProductPayload {
+  name: string;
+  description?: string | null;
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+  picture?: File | null;
+}
+
+export interface UpdateProductPayload extends CreateProductPayload {
+  id: string;
+  remove_picture?: boolean;
+}
+
 export function useCreateProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (product: Omit<Product, "id">) => {
-      const response = await apiClient.post("products/create", product);
+    mutationFn: async (payload: CreateProductPayload) => {
+      const form = new FormData();
+      form.append("name", payload.name);
+      if (payload.description) form.append("description", payload.description);
+      if (payload.width != null) form.append("width", String(payload.width));
+      if (payload.height != null) form.append("height", String(payload.height));
+      if (payload.length != null) form.append("length", String(payload.length));
+      if (payload.picture) form.append("picture", payload.picture);
+
+      const response = await apiClient.post("products/create", form, {
+        headers: {"Content-Type": "multipart/form-data"},
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -54,13 +74,23 @@ export function useCreateProduct() {
   });
 }
 
-// Update product mutation
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({id, ...product}: Product & {id: string}) => {
-      const response = await apiClient.put(`products/update/${id}`, product);
+    mutationFn: async ({id, ...payload}: UpdateProductPayload) => {
+      const form = new FormData();
+      if (payload.name) form.append("name", payload.name);
+      if (payload.description != null) form.append("description", payload.description);
+      if (payload.width != null) form.append("width", String(payload.width));
+      if (payload.height != null) form.append("height", String(payload.height));
+      if (payload.length != null) form.append("length", String(payload.length));
+      form.append("remove_picture", String(payload.remove_picture ?? false));
+      if (payload.picture) form.append("picture", payload.picture);
+
+      const response = await apiClient.put(`products/update/${id}`, form, {
+        headers: {"Content-Type": "multipart/form-data"},
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -69,7 +99,6 @@ export function useUpdateProduct() {
   });
 }
 
-// Delete product mutation
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
 
@@ -78,6 +107,32 @@ export function useDeleteProduct() {
       await apiClient.delete(`products/delete/${id}`);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: productKeys.lists()});
+    },
+  });
+}
+
+export function useOrphanedPictures() {
+  return useQuery({
+    queryKey: ["products", "orphans"],
+    queryFn: async () => {
+      const response = await apiClient.get<{orphans: string[]; count: number}>("products/orphans");
+      return response.data;
+    },
+    enabled: false,
+  });
+}
+
+export function useDeleteOrphanedPictures() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.delete<{deleted: number}>("products/orphans");
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["products", "orphans"]});
       queryClient.invalidateQueries({queryKey: productKeys.lists()});
     },
   });
