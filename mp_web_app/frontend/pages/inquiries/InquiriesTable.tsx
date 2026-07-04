@@ -3,13 +3,13 @@ import {Inquiry, STATUS_BG} from "@/hooks/useInquiries";
 import {Badge} from "@/components/ui/badge";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  sent: "secondary",
-  accepted: "outline",
-  in_progress: "default",
-  closed: "outline",
-  finished: "default",
-  failed: "destructive",
+const STATUS_CLASS: Record<string, string> = {
+  sent: "border border-gray-400 text-gray-500 bg-transparent",
+  accepted: "border border-blue-500 text-blue-600 bg-transparent",
+  in_progress: "border border-amber-600 text-amber-700 bg-transparent",
+  closed: "border border-gray-600 text-gray-700 bg-transparent",
+  finished: "border border-green-600 text-green-700 bg-transparent",
+  failed: "border border-red-500 text-red-600 bg-transparent",
 };
 
 interface Props {
@@ -51,9 +51,11 @@ export function InquiriesTable({title, inquiries, isLoading, error}: Props) {
               >
                 <TableCell className="font-mono text-sm">{inq.entry_number ?? "—"}</TableCell>
                 <TableCell className="font-medium">{inq.title}</TableCell>
-                <TableCell className="capitalize">{inq.inquiry_type}</TableCell>
+                <TableCell className="uppercase">{inq.inquiry_type}</TableCell>
                 <TableCell>
-                  <Badge variant={STATUS_VARIANT[inq.status] ?? "secondary"}>
+                  <Badge
+                    className={`rounded-sm ${STATUS_CLASS[inq.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}
+                  >
                     {STATUS_BG[inq.status] ?? inq.status}
                   </Badge>
                 </TableCell>

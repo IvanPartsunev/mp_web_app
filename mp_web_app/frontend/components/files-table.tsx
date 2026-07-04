@@ -184,7 +184,7 @@ export function FilesTable({
                             : "-"}
                         </TableCell>
                         <TableCell className={`${TABLE_STYLES.cellPadded} ${TABLE_STYLES.cellRight}`}>
-                          <Button size="sm" onClick={() => handleDownload(file)}>
+                          <Button variant="outline-primary" size="sm" onClick={() => handleDownload(file)}>
                             Изтегли
                           </Button>
                         </TableCell>

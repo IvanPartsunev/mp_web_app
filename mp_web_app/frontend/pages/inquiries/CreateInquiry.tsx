@@ -162,7 +162,7 @@ export default function CreateInquiry() {
                   <SelectContent>
                     {INQUIRY_TYPES.map((t) => (
                       <SelectItem key={t} value={t}>
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                        {t.toUpperCase()}
                       </SelectItem>
                     ))}
                   </SelectContent>

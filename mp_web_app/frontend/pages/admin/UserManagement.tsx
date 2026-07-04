@@ -13,15 +13,9 @@ import {useUsersList, useUpdateUser, useDeleteUser, useRedactUserPhone, User} fr
 import type {ApiError} from "@/lib/errorUtils";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
 import {TablePagination} from "@/components/table-pagination";
-import {Pencil, Trash2} from "lucide-react";
+import {Pencil, Search, Trash2} from "lucide-react";
+import {UserRoleBadge} from "@/components/role-badge";
 
-const roleTranslations: Record<string, string> = {
-  regular: "Обикновен",
-  board: "УС",
-  control: "КС",
-  accountant: "Счетоводител",
-  admin: "Админ",
-};
 
 export default function UserManagement() {
   const {data: users = [], isLoading: loading} = useUsersList();
@@ -33,9 +27,21 @@ export default function UserManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
 
-  const totalPages = Math.max(1, Math.ceil(users.length / DEFAULT_PAGE_SIZE));
-  const pagedUsers = users.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
+  const filteredUsers = users.filter((u) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    const name = `${u.first_name ?? ""} ${u.last_name ?? ""}`.toLowerCase();
+    return (
+      name.includes(q) ||
+      (u.email ?? "").toLowerCase().includes(q) ||
+      (u.phone ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / DEFAULT_PAGE_SIZE));
+  const pagedUsers = filteredUsers.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
   const [formData, setFormData] = useState<{
     role: string;
@@ -141,8 +147,17 @@ export default function UserManagement() {
   return (
     <AdminLayout title="Управление на потребители">
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Списък с потребители ({users.length})</h3>
+        <div className="flex flex-wrap items-center gap-4">
+          <h3 className="text-lg font-semibold">Списък с потребители ({filteredUsers.length}{search && ` от ${users.length}`})</h3>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Търсене по име, имейл или телефон..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-8"
+            />
+          </div>
         </div>
         {loading ? (
           <LoadingSpinner />
@@ -173,7 +188,7 @@ export default function UserManagement() {
                     <TableCell className={TABLE_STYLES.cellBase}>{user.email}</TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>{user.phone || "-"}</TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
-                      {user.role ? roleTranslations[user.role] || user.role : "-"}
+                      <UserRoleBadge role={user.role} />
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       {(user.active ?? user.is_active) ? "Да" : "Не"}

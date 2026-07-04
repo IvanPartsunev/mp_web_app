@@ -135,7 +135,7 @@ export default function NewsManagement() {
           <h3 className="text-lg font-semibold">Списък с новини ({news.length})</h3>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Създай новина</Button>
+              <Button variant="outline-primary">Създай новина</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

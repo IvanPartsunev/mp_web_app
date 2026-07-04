@@ -288,14 +288,21 @@ async def inquiry_export_pdf(
 
   try:
     pdf_bytes = export_pdf(inquiry)
-    safe_title = inquiry.title.replace(" ", "_")[:50]
-    filename = f"zapitване_{inquiry.entry_number or inquiry.id}_{safe_title}.pdf"
+    ascii_id = inquiry.entry_number or inquiry.id
+    filename_ascii = f"inquiry_{ascii_id}.pdf"
+    from urllib.parse import quote
+
+    safe_title = inquiry.title[:50]
+    filename_utf8 = quote(f"zapitване_{ascii_id}_{safe_title}.pdf")
     return Response(
       content=pdf_bytes,
       media_type="application/pdf",
-      headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+      headers={"Content-Disposition": f"attachment; filename=\"{filename_ascii}\"; filename*=UTF-8''{filename_utf8}"},
     )
   except Exception as e:
+    import traceback
+
+    traceback.print_exc()
     raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
 
 

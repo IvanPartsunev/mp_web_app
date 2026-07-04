@@ -288,9 +288,11 @@ export default function GalleryManagement() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={uploading || !files.length}>
-                {uploading ? "Качване..." : "Качи"}
-              </Button>
+              <div className="flex justify-center">
+                <Button type="submit" className="w-2/5" disabled={uploading || !files.length}>
+                  {uploading ? "Качване..." : "Качи"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

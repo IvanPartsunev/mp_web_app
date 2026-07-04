@@ -19,7 +19,7 @@ FRONTEND_URL = os.environ.get("FRONTEND_BASE_URL", FRONTEND_BASE_URL)
 
 # Allow both www and non-www variants of the frontend URL
 def get_allowed_origins(url: str) -> list[str]:
-  origins = [url]
+  origins = [url, "http://localhost:3000", "http://127.0.0.1:3000"]
   if url.startswith("https://www."):
     origins.append(url.replace("https://www.", "https://", 1))
   elif url.startswith("https://") and not url.startswith("https://www."):
