@@ -298,9 +298,9 @@ class TestListMembers:
 
   def test_returns_active_members_sorted(self, mock_repo):
     items = [
-      dict(first_name="Zara", middle_name=None, last_name="Smith", email=None, phone=None,
+      dict(first_name="Zara", middle_name="", last_name="Smith", email=None, phone=None,
            member_code="C2", member_code_valid=True, proxy=False, is_deleted=False),
-      dict(first_name="Anna", middle_name=None, last_name="Jones", email=None, phone=None,
+      dict(first_name="Anna", middle_name="", last_name="Jones", email=None, phone=None,
            member_code="C1", member_code_valid=True, proxy=False, is_deleted=False),
     ]
     self._setup_scan(mock_repo, items)
@@ -313,9 +313,9 @@ class TestListMembers:
 
   def test_excludes_soft_deleted(self, mock_repo):
     items = [
-      dict(first_name="John", middle_name=None, last_name="Doe", email=None, phone=None,
+      dict(first_name="John", middle_name="", last_name="Doe", email=None, phone=None,
            member_code="C1", member_code_valid=True, proxy=False, is_deleted=False),
-      dict(first_name="Jane", middle_name=None, last_name="Doe", email=None, phone=None,
+      dict(first_name="Jane", middle_name="", last_name="Doe", email=None, phone=None,
            member_code="C2", member_code_valid=True, proxy=False, is_deleted=True),
     ]
     self._setup_scan(mock_repo, items)
@@ -327,9 +327,9 @@ class TestListMembers:
 
   def test_filters_proxy_only(self, mock_repo):
     items = [
-      dict(first_name="John", middle_name=None, last_name="Doe", email=None, phone=None,
+      dict(first_name="John", middle_name="", last_name="Doe", email=None, phone=None,
            member_code="C1", member_code_valid=True, proxy=True, is_deleted=False),
-      dict(first_name="Jane", middle_name=None, last_name="Doe", email=None, phone=None,
+      dict(first_name="Jane", middle_name="", last_name="Doe", email=None, phone=None,
            member_code="C2", member_code_valid=True, proxy=False, is_deleted=False),
     ]
     self._setup_scan(mock_repo, items)
@@ -348,9 +348,9 @@ class TestListMembers:
       list_members(mock_repo)
 
   def test_handles_paginated_scan(self, mock_repo):
-    page1 = dict(first_name="Anna", middle_name=None, last_name="A", email=None, phone=None,
+    page1 = dict(first_name="Anna", middle_name="", last_name="A", email=None, phone=None,
                  member_code="C1", member_code_valid=True, proxy=False, is_deleted=False)
-    page2 = dict(first_name="Bob", middle_name=None, last_name="B", email=None, phone=None,
+    page2 = dict(first_name="Bob", middle_name="", last_name="B", email=None, phone=None,
                  member_code="C2", member_code_valid=True, proxy=False, is_deleted=False)
 
     mock_repo.table.scan.side_effect = [
