@@ -3,7 +3,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Label} from "@/components/ui/label";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useSearchParams} from "react-router-dom";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
 import {useFileLabels} from "@/hooks/useFiles";
@@ -19,6 +19,7 @@ type User = {
 
 export default function UploadFile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // FileType options must match backend enum values
   const fileTypeOptions = useMemo(
@@ -44,14 +45,28 @@ export default function UploadFile() {
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState<string>("");
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [userSearch, setUserSearch] = useState<string>("");
 
   // Get user role
   const [userRole, setUserRole] = useState<string>("");
 
-  // Labels state
-  const [labels, setLabels] = useState<string[]>([]);
+  // Labels state — prefill from ?label= query param if present
+  const initialLabel = searchParams.get("label");
+  const [labels, setLabels] = useState<string[]>(initialLabel ? [initialLabel] : []);
   const {data: existingLabels = []} = useFileLabels();
+
+  // Pre-select users from ?allowed_to= query param (comma-separated IDs)
+  const initialAllowedTo = searchParams.get("allowed_to");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
+    initialAllowedTo ? initialAllowedTo.split(",").filter(Boolean) : []
+  );
+
+  useEffect(() => {
+    const param = searchParams.get("allowed_to");
+    if (param) {
+      setSelectedUserIds(param.split(",").filter(Boolean));
+    }
+  }, [searchParams]);
 
   // Frontend guard: only allow admins and accountants to access this page
   useEffect(() => {
@@ -245,34 +260,47 @@ export default function UploadFile() {
                   Позволен достъп {isPrivate ? "(задължително за частни документи)" : "(по избор)"}
                 </Label>
 
+                <input
+                  type="text"
+                  placeholder="Търси потребител..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                />
+
                 <div
                   id="allowed_to_select"
                   className="h-40 rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 overflow-auto"
                 >
                   <div className="min-w-full">
-                    {users.map((u) => {
-                      const full = `${u.first_name} ${u.last_name} (${u.email})`;
-                      const checked = selectedUserIds.includes(u.id);
-                      return (
-                        <label
-                          key={u.id}
-                          className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer hover:bg-accent"
-                          title={full}
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={checked}
-                            onChange={(e) => {
-                              setSelectedUserIds((prev) =>
-                                e.target.checked ? [...prev, u.id] : prev.filter((id) => id !== u.id)
-                              );
-                            }}
-                          />
-                          <span className="text-sm">{full}</span>
-                        </label>
-                      );
-                    })}
+                    {users
+                      .filter((u) => {
+                        const full = `${u.first_name} ${u.last_name} ${u.email}`.toLowerCase();
+                        return full.includes(userSearch.toLowerCase());
+                      })
+                      .map((u) => {
+                        const full = `${u.first_name} ${u.last_name} (${u.email})`;
+                        const checked = selectedUserIds.includes(u.id);
+                        return (
+                          <label
+                            key={u.id}
+                            className="flex items-center gap-2 px-2 py-1 w-max whitespace-nowrap cursor-pointer hover:bg-accent"
+                            title={full}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4"
+                              checked={checked}
+                              onChange={(e) => {
+                                setSelectedUserIds((prev) =>
+                                  e.target.checked ? [...prev, u.id] : prev.filter((id) => id !== u.id)
+                                );
+                              }}
+                            />
+                            <span className="text-sm">{full}</span>
+                          </label>
+                        );
+                      })}
                   </div>
                 </div>
 
