@@ -98,9 +98,18 @@ export default function InquiryDetail() {
     return null;
   }
 
-  if (isLoading) return <div className="flex min-h-svh w-full items-start justify-center p-4"><div className="w-full max-w-3xl text-muted-foreground pt-10">Зареждане...</div></div>;
+  if (isLoading)
+    return (
+      <div className="flex min-h-svh w-full items-start justify-center p-4">
+        <div className="w-full max-w-3xl text-muted-foreground pt-10">Зареждане...</div>
+      </div>
+    );
   if (error || !inquiry)
-    return <div className="flex min-h-svh w-full items-start justify-center p-4"><div className="w-full max-w-3xl text-destructive pt-10">Запитването не е намерено.</div></div>;
+    return (
+      <div className="flex min-h-svh w-full items-start justify-center p-4">
+        <div className="w-full max-w-3xl text-destructive pt-10">Запитването не е намерено.</div>
+      </div>
+    );
 
   const isAuthor = inquiry.author_id === userId;
   const isCoAuthor = inquiry.co_authors.includes(userId);
@@ -241,7 +250,9 @@ export default function InquiryDetail() {
               <CardTitle className="text-2xl">{inquiry.title}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1 uppercase">{inquiry.inquiry_type}</p>
             </div>
-            <Badge className={`text-sm px-3 py-1 rounded-sm ${STATUS_CLASS[inquiry.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}>
+            <Badge
+              className={`text-sm px-3 py-1 rounded-sm ${STATUS_CLASS[inquiry.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}
+            >
               {STATUS_BG[inquiry.status] ?? inquiry.status}
             </Badge>
           </CardHeader>

@@ -291,6 +291,7 @@ async def inquiry_export_pdf(
     ascii_id = inquiry.entry_number or inquiry.id
     filename_ascii = f"inquiry_{ascii_id}.pdf"
     from urllib.parse import quote
+
     safe_title = inquiry.title[:50]
     filename_utf8 = quote(f"zapitване_{ascii_id}_{safe_title}.pdf")
     return Response(
@@ -300,6 +301,7 @@ async def inquiry_export_pdf(
     )
   except Exception as e:
     import traceback
+
     traceback.print_exc()
     raise HTTPException(status_code=500, detail=f"PDF generation failed: {e}")
 

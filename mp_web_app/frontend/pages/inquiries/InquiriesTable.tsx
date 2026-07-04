@@ -53,7 +53,9 @@ export function InquiriesTable({title, inquiries, isLoading, error}: Props) {
                 <TableCell className="font-medium">{inq.title}</TableCell>
                 <TableCell className="uppercase">{inq.inquiry_type}</TableCell>
                 <TableCell>
-                  <Badge className={`rounded-sm ${STATUS_CLASS[inq.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}>
+                  <Badge
+                    className={`rounded-sm ${STATUS_CLASS[inq.status] ?? "border border-gray-400 text-gray-500 bg-transparent"}`}
+                  >
                     {STATUS_BG[inq.status] ?? inq.status}
                   </Badge>
                 </TableCell>
