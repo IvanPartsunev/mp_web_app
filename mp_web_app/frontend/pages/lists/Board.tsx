@@ -12,7 +12,7 @@ import {TablePagination} from "@/components/table-pagination";
 import {RoleBadge} from "@/components/role-badge";
 
 export default function Board() {
-  const {data: members = [], isLoading: loading, error: queryError} = useMembers("board", 30 * 60 * 1000);
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers("board");
   const error = queryError ? "Неуспешно зареждане на управителния съвет" : null;
 
   const [search, setSearch] = useState("");

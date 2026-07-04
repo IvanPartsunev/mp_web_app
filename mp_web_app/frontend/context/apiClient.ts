@@ -11,17 +11,6 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true, // send refresh cookie to backend
 });
 
-// Admin API client — identical to apiClient but sends X-Admin-Request: true
-// so the backend CacheControlMiddleware responds with Cache-Control: no-store,
-// bypassing the browser HTTP cache and ensuring admin mutations are always visible immediately.
-export const adminApiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-  headers: {
-    "X-Admin-Request": "true",
-  },
-});
-
 // Shared request interceptor: inject auth token
 function attachRequestInterceptor(instance: AxiosInstance) {
   instance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
@@ -118,8 +107,5 @@ function attachResponseInterceptor(instance: AxiosInstance) {
 
 attachRequestInterceptor(apiClient);
 attachResponseInterceptor(apiClient);
-
-attachRequestInterceptor(adminApiClient);
-attachResponseInterceptor(adminApiClient);
 
 export default apiClient;

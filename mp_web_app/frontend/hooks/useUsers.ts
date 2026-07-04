@@ -1,6 +1,6 @@
 // hooks/useUsers.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient, {adminApiClient} from "@/context/apiClient";
+import apiClient from "@/context/apiClient";
 
 export interface User {
   id?: string;
@@ -24,15 +24,14 @@ export const userKeys = {
   list: () => [...userKeys.lists()] as const,
 };
 
-// Fetch all users (admin) — always fresh, bypasses browser HTTP cache via X-Admin-Request header
+// Fetch all users (admin)
 export function useUsersList() {
   return useQuery({
     queryKey: userKeys.list(),
     queryFn: async () => {
-      const response = await adminApiClient.get<User[]>("users/list");
+      const response = await apiClient.get<User[]>("users/list");
       return response.data ?? [];
     },
-    staleTime: 0, // admin panel — always fetch fresh data
   });
 }
 

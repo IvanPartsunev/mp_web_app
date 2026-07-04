@@ -13,7 +13,7 @@ import {TablePagination} from "@/components/table-pagination";
 import {RoleBadge} from "@/components/role-badge";
 
 export default function CooperativeMembers() {
-  const {data: members = [], isLoading: loading} = useMembers("members", 30 * 60 * 1000);
+  const {data: members = [], isLoading: loading} = useMembers("members");
   const {user} = useAuth();
   const isAdmin = user?.role === "admin";
   const isBoardOrControl = user?.role === "board" || user?.role === "control";

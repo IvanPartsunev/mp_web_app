@@ -9,7 +9,6 @@ from files.routers import file_router
 from gallery.routers import gallery_router
 from mail.routers import mail_router
 from members.routers import member_router
-from middleware.cache_headers import CacheControlMiddleware
 from news.routers import news_router
 from products.routers import product_router
 from users.routers import user_router
@@ -37,9 +36,6 @@ app.add_middleware(
   allow_headers=["*"],
   expose_headers=["Content-Disposition"],
 )
-
-# Add cache control middleware
-app.add_middleware(CacheControlMiddleware)
 
 app.include_router(user_router, prefix="/api/users")
 app.include_router(auth_router, prefix="/api/auth")

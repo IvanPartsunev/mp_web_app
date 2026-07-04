@@ -13,7 +13,7 @@ import {TablePagination} from "@/components/table-pagination";
 import {RoleBadge} from "@/components/role-badge";
 
 export default function Proxies() {
-  const {data: members = [], isLoading: loading, error: queryError} = useMembers("proxy", 30 * 60 * 1000);
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers("proxy");
   const error = queryError ? "Неуспешно зареждане на пълномощниците" : null;
   const {isLoggedIn, user} = useAuth();
   const isAdmin = user?.role === "admin";

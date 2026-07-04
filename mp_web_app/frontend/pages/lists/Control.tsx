@@ -12,7 +12,7 @@ import {TablePagination} from "@/components/table-pagination";
 import {RoleBadge} from "@/components/role-badge";
 
 export default function Control() {
-  const {data: members = [], isLoading: loading, error: queryError} = useMembers("control", 30 * 60 * 1000);
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers("control");
   const error = queryError ? "Неуспешно зареждане на контролния съвет" : null;
 
   const [search, setSearch] = useState("");

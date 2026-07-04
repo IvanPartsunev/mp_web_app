@@ -1,6 +1,6 @@
 // hooks/useMembers.ts
 import {useQuery, useQueryClient} from "@tanstack/react-query";
-import apiClient, {adminApiClient} from "@/context/apiClient";
+import apiClient from "@/context/apiClient";
 
 export type MemberEndpoint = "members" | "proxy" | "board" | "control";
 
@@ -22,15 +22,13 @@ export const memberKeys = {
 };
 
 // Fetch members list by endpoint
-export function useMembers(endpoint: MemberEndpoint, staleTime = 5 * 60 * 1000, admin = false) {
-  const client = admin ? adminApiClient : apiClient;
+export function useMembers(endpoint: MemberEndpoint) {
   return useQuery({
     queryKey: memberKeys.list(endpoint),
     queryFn: async () => {
-      const response = await client.get<Member[]>(`members/list/${endpoint}`);
+      const response = await apiClient.get<Member[]>(`members/list/${endpoint}`);
       return response.data ?? [];
     },
-    staleTime,
   });
 }
 
