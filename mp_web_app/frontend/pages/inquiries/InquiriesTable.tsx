@@ -29,9 +29,7 @@ export function InquiriesTable({title, inquiries, isLoading, error}: Props) {
       {isLoading && <p className="text-muted-foreground">Зареждане...</p>}
       {error && <p className="text-destructive">{error}</p>}
 
-      {!isLoading && !error && inquiries.length === 0 && (
-        <p className="text-muted-foreground">Няма запитвания.</p>
-      )}
+      {!isLoading && !error && inquiries.length === 0 && <p className="text-muted-foreground">Няма запитвания.</p>}
 
       {!isLoading && inquiries.length > 0 && (
         <Table>
@@ -59,9 +57,7 @@ export function InquiriesTable({title, inquiries, isLoading, error}: Props) {
                     {STATUS_BG[inq.status] ?? inq.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {inq.created_at?.slice(0, 10) ?? "—"}
-                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{inq.created_at?.slice(0, 10) ?? "—"}</TableCell>
               </TableRow>
             ))}
           </TableBody>

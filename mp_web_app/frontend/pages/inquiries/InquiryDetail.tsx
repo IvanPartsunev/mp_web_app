@@ -23,13 +23,7 @@ import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from "@/components/ui/dialog";
 
 const SCOPE_BG: Record<string, string> = {
   admin: "Администрация",
@@ -103,7 +97,8 @@ export default function InquiryDetail() {
   }
 
   if (isLoading) return <div className="max-w-3xl mx-auto px-4 py-10 text-muted-foreground">Зареждане...</div>;
-  if (error || !inquiry) return <div className="max-w-3xl mx-auto px-4 py-10 text-destructive">Запитването не е намерено.</div>;
+  if (error || !inquiry)
+    return <div className="max-w-3xl mx-auto px-4 py-10 text-destructive">Запитването не е намерено.</div>;
 
   const isAuthor = inquiry.author_id === userId;
   const isCoAuthor = inquiry.co_authors.includes(userId);
@@ -142,7 +137,11 @@ export default function InquiryDetail() {
       toast({title: "Запитването е обновено"});
       setShowEditForm(false);
     } catch (err: any) {
-      toast({title: "Грешка", description: err?.response?.data?.detail ?? "Грешка при обновяване.", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err?.response?.data?.detail ?? "Грешка при обновяване.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -157,7 +156,11 @@ export default function InquiryDetail() {
       setShowAddFiles(false);
       setNewFiles([]);
     } catch (err: any) {
-      toast({title: "Грешка", description: err?.response?.data?.detail ?? "Грешка при качване.", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err?.response?.data?.detail ?? "Грешка при качване.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -168,7 +171,11 @@ export default function InquiryDetail() {
       toast({title: `Входящ номер ${entryInput} присвоен`});
       setEntryInput("");
     } catch (err: any) {
-      toast({title: "Грешка", description: err?.response?.data?.detail ?? "Грешка при присвояване.", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err?.response?.data?.detail ?? "Грешка при присвояване.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -183,7 +190,11 @@ export default function InquiryDetail() {
       toast({title: "Запитването е затворено"});
       setShowCloseDialog(false);
     } catch (err: any) {
-      toast({title: "Грешка", description: err?.response?.data?.detail ?? "Грешка при затваряне.", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err?.response?.data?.detail ?? "Грешка при затваряне.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -193,7 +204,11 @@ export default function InquiryDetail() {
       toast({title: "Запитването е изтрито"});
       navigate("/inquiries/mine");
     } catch (err: any) {
-      toast({title: "Грешка", description: err?.response?.data?.detail ?? "Грешка при изтриване.", variant: "destructive"});
+      toast({
+        title: "Грешка",
+        description: err?.response?.data?.detail ?? "Грешка при изтриване.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -295,11 +310,15 @@ export default function InquiryDetail() {
       <div className="flex flex-wrap gap-3">
         {/* Edit — author, status=sent, pre-acceptance fields only */}
         {isAuthor && isSent && (
-          <Button variant="outline" onClick={openEditForm}>Редактирай</Button>
+          <Button variant="outline" onClick={openEditForm}>
+            Редактирай
+          </Button>
         )}
         {/* Add files — author, status=sent */}
         {isAuthor && isSent && (
-          <Button variant="outline" onClick={() => setShowAddFiles(true)}>Добави файлове</Button>
+          <Button variant="outline" onClick={() => setShowAddFiles(true)}>
+            Добави файлове
+          </Button>
         )}
         {/* Assign entry number — admin, status=sent */}
         {isAdmin && isSent && (
@@ -317,7 +336,9 @@ export default function InquiryDetail() {
         )}
         {/* PDF export — any involved, status != sent */}
         {isPastSent && canClose && (
-          <Button variant="outline" onClick={handlePdfExport}>Изтегли PDF</Button>
+          <Button variant="outline" onClick={handlePdfExport}>
+            Изтегли PDF
+          </Button>
         )}
         {/* Send file — admin, in_progress — reuse upload page with pre-filled label */}
         {isAdmin && isInProgress && inquiry.entry_number && (
@@ -336,11 +357,15 @@ export default function InquiryDetail() {
         )}
         {/* Close */}
         {canClose && (
-          <Button variant="outline" onClick={() => setShowCloseDialog(true)}>Затвори</Button>
+          <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
+            Затвори
+          </Button>
         )}
         {/* Delete */}
         {canDelete && (
-          <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>Изтрий</Button>
+          <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)}>
+            Изтрий
+          </Button>
         )}
       </div>
 
@@ -357,15 +382,24 @@ export default function InquiryDetail() {
             </div>
             <div className="space-y-1">
               <Label>Описание</Label>
-              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} required />
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={4}
+                required
+              />
             </div>
             <div className="space-y-1">
               <Label>Вид</Label>
               <Select value={editType} onValueChange={setEditType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {INQUIRY_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -388,17 +422,29 @@ export default function InquiryDetail() {
                 <Label>Съавтори</Label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
                   {allUsers.map((u) => (
-                    <label key={u.id} className="flex items-center gap-2 cursor-pointer px-1 py-0.5 hover:bg-accent rounded">
-                      <Checkbox checked={editCoAuthors.includes(u.id!)} onCheckedChange={() => toggleEditCoAuthor(u.id!)} />
-                      <span className="text-sm">{u.first_name} {u.last_name}</span>
+                    <label
+                      key={u.id}
+                      className="flex items-center gap-2 cursor-pointer px-1 py-0.5 hover:bg-accent rounded"
+                    >
+                      <Checkbox
+                        checked={editCoAuthors.includes(u.id!)}
+                        onCheckedChange={() => toggleEditCoAuthor(u.id!)}
+                      />
+                      <span className="text-sm">
+                        {u.first_name} {u.last_name}
+                      </span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>Отказ</Button>
-              <Button type="submit" disabled={updating}>Запази</Button>
+              <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>
+                Отказ
+              </Button>
+              <Button type="submit" disabled={updating}>
+                Запази
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -407,7 +453,9 @@ export default function InquiryDetail() {
       {/* Add files dialog */}
       <Dialog open={showAddFiles} onOpenChange={setShowAddFiles}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Добави файлове</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Добави файлове</DialogTitle>
+          </DialogHeader>
           <form onSubmit={handleAddFiles} className="space-y-4 mt-2">
             <Input
               type="file"
@@ -426,8 +474,12 @@ export default function InquiryDetail() {
             />
             {newFilesError && <p className="text-sm text-destructive">{newFilesError}</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowAddFiles(false)}>Отказ</Button>
-              <Button type="submit" disabled={!newFiles.length || !!newFilesError || addingFiles}>Качи</Button>
+              <Button type="button" variant="outline" onClick={() => setShowAddFiles(false)}>
+                Отказ
+              </Button>
+              <Button type="submit" disabled={!newFiles.length || !!newFilesError || addingFiles}>
+                Качи
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -436,15 +488,21 @@ export default function InquiryDetail() {
       {/* Close dialog */}
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Затвори запитване</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Затвори запитване</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1">
               <Label>Финален статус *</Label>
               <Select value={finalStatus} onValueChange={setFinalStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {FINAL_STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -464,8 +522,12 @@ export default function InquiryDetail() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Отказ</Button>
-            <Button onClick={handleClose} disabled={!closeReason.trim() || closing}>Затвори</Button>
+            <Button variant="outline" onClick={() => setShowCloseDialog(false)}>
+              Отказ
+            </Button>
+            <Button onClick={handleClose} disabled={!closeReason.trim() || closing}>
+              Затвори
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -473,11 +535,19 @@ export default function InquiryDetail() {
       {/* Delete confirm dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Изтрий запитване</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Сигурни ли сте? Това действие е необратимо и ще изтрие и всички прикачени файлове.</p>
+          <DialogHeader>
+            <DialogTitle>Изтрий запитване</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Сигурни ли сте? Това действие е необратимо и ще изтрие и всички прикачени файлове.
+          </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Отказ</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>Изтрий</Button>
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+              Отказ
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              Изтрий
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

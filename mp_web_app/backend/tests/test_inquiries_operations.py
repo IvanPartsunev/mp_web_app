@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -12,7 +12,7 @@ from inquiries.models import (
   InquiryUpdate,
 )
 from inquiries.operations import (
-  add_inquiry_files,
+  _sort_inquiries,
   assign_entry_number,
   close_inquiry,
   create_inquiry,
@@ -20,13 +20,12 @@ from inquiries.operations import (
   get_inquiry,
   list_inquiries_for_scope,
   list_inquiries_for_user,
-  _sort_inquiries,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _make_inquiry(**kwargs) -> Inquiry:
   defaults = {
@@ -54,9 +53,9 @@ def _make_inquiry(**kwargs) -> Inquiry:
 def mock_repo():
   repo = Mock()
   repo.table = Mock()
-  repo.convert_item_to_object = Mock(side_effect=lambda item: Inquiry(**{
-    k: v for k, v in item.items() if k in Inquiry.model_fields
-  }))
+  repo.convert_item_to_object = Mock(
+    side_effect=lambda item: Inquiry(**{k: v for k, v in item.items() if k in Inquiry.model_fields})
+  )
   return repo
 
 
@@ -64,40 +63,46 @@ def mock_repo():
 def mock_user_repo():
   repo = Mock()
   repo.table = Mock()
-  repo.table.get_item = Mock(return_value={
-    "Item": {
-      "id": "user-1",
-      "first_name": "Иван",
-      "last_name": "Иванов",
-      "email": "ivan@example.com",
-      "role": "regular",
-      "phone": None,
-      "active": True,
-      "created_at": "2024-01-01T00:00:00",
-      "updated_at": "2024-01-01T00:00:00",
-      "subscribed": True,
+  repo.table.get_item = Mock(
+    return_value={
+      "Item": {
+        "id": "user-1",
+        "first_name": "Иван",
+        "last_name": "Иванов",
+        "email": "ivan@example.com",
+        "role": "regular",
+        "phone": None,
+        "active": True,
+        "created_at": "2024-01-01T00:00:00",
+        "updated_at": "2024-01-01T00:00:00",
+        "subscribed": True,
+      }
     }
-  })
+  )
 
   from users.models import User
-  repo.convert_item_to_object = Mock(return_value=User(
-    id="user-1",
-    first_name="Иван",
-    last_name="Иванов",
-    email="ivan@example.com",
-    role="regular",
-    phone=None,
-    active=True,
-    created_at="2024-01-01T00:00:00",
-    updated_at="2024-01-01T00:00:00",
-    subscribed=True,
-  ))
+
+  repo.convert_item_to_object = Mock(
+    return_value=User(
+      id="user-1",
+      first_name="Иван",
+      last_name="Иванов",
+      email="ivan@example.com",
+      role="regular",
+      phone=None,
+      active=True,
+      created_at="2024-01-01T00:00:00",
+      updated_at="2024-01-01T00:00:00",
+      subscribed=True,
+    )
+  )
   return repo
 
 
 # ---------------------------------------------------------------------------
 # get_inquiry
 # ---------------------------------------------------------------------------
+
 
 class TestGetInquiry:
   def test_returns_inquiry_when_found(self, mock_repo):
@@ -118,6 +123,7 @@ class TestGetInquiry:
 # ---------------------------------------------------------------------------
 # create_inquiry
 # ---------------------------------------------------------------------------
+
 
 class TestCreateInquiry:
   @patch("inquiries.operations.boto3.client")
@@ -197,6 +203,7 @@ class TestCreateInquiry:
 # update_inquiry — status guards
 # ---------------------------------------------------------------------------
 
+
 class TestUpdateInquiry:
   def test_allows_title_update_when_sent(self, mock_repo, mock_user_repo):
     inq = _make_inquiry(status=InquiryStatus.SENT)
@@ -236,6 +243,7 @@ class TestUpdateInquiry:
 # assign_entry_number
 # ---------------------------------------------------------------------------
 
+
 class TestAssignEntryNumber:
   def test_assigns_entry_number_and_sets_in_progress(self, mock_repo, mock_user_repo):
     inq = _make_inquiry(status=InquiryStatus.SENT)
@@ -259,6 +267,7 @@ class TestAssignEntryNumber:
 # ---------------------------------------------------------------------------
 # close_inquiry
 # ---------------------------------------------------------------------------
+
 
 class TestCloseInquiry:
   def test_author_can_close(self, mock_repo, mock_user_repo):
@@ -344,6 +353,7 @@ class TestCloseInquiry:
 # delete_inquiry
 # ---------------------------------------------------------------------------
 
+
 class TestDeleteInquiry:
   @patch("inquiries.operations._delete_inquiry_folder")
   def test_author_can_delete(self, mock_delete_folder, mock_repo):
@@ -375,6 +385,7 @@ class TestDeleteInquiry:
 # ---------------------------------------------------------------------------
 # listing / visibility filtering
 # ---------------------------------------------------------------------------
+
 
 class TestListingFilters:
   @patch("inquiries.operations._full_scan")
@@ -413,6 +424,7 @@ class TestListingFilters:
 # ---------------------------------------------------------------------------
 # sorting
 # ---------------------------------------------------------------------------
+
 
 class TestSortInquiries:
   def test_null_entry_number_comes_first(self):

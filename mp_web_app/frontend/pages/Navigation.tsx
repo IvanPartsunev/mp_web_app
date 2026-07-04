@@ -14,7 +14,13 @@ import {Menu as MenuIcon, X as CloseIcon} from "lucide-react";
 import {Button} from "@/components/ui/button";
 
 // All navigation structure mapped here
-type NavDropdownItem = {label: string; to: string; description?: string; requiresAuth?: boolean; requiresRole?: string[]};
+type NavDropdownItem = {
+  label: string;
+  to: string;
+  description?: string;
+  requiresAuth?: boolean;
+  requiresRole?: string[];
+};
 type NavLink = {label: string; to?: string; dropdown?: NavDropdownItem[]};
 
 const NAV_LINKS: NavLink[] = [
@@ -292,7 +298,7 @@ export function Navigation() {
             documentsItems = filterDropdown(link.dropdown);
           }
 
-          const itemsToRender = (isDocuments || isInquiries) ? documentsItems : link.dropdown;
+          const itemsToRender = isDocuments || isInquiries ? documentsItems : link.dropdown;
 
           if ((isDocuments || isLists || isInquiries) && itemsToRender.length === 0) {
             return null;
@@ -452,7 +458,7 @@ export function Navigation() {
                   documentsItems = filterDropdown(link.dropdown);
                 }
 
-                const itemsToRender = (isDocuments || isInquiries) ? documentsItems : link.dropdown;
+                const itemsToRender = isDocuments || isInquiries ? documentsItems : link.dropdown;
 
                 if ((isDocuments || isLists || isInquiries) && itemsToRender.length === 0) {
                   return null;
