@@ -16,6 +16,8 @@ const buttonVariants = cva(
           "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/40 hover:scale-105 active:scale-95",
         outline:
           "border-2 border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm hover:border-primary hover:bg-primary/5 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md",
+        "outline-primary":
+          "border-2 border-primary text-primary bg-transparent hover:bg-primary/5 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md",
         secondary:
           "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-900 dark:text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95",
         ghost: "hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:scale-105 active:scale-95 backdrop-blur-sm",

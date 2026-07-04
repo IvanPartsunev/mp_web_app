@@ -157,12 +157,14 @@ export default function MembersManagement() {
               </div>
             </div>
 
-            <Button type="submit" disabled={uploading || !selectedFile} className="w-full">
-              {uploading ? "Качване..." : "Качи"}
-            </Button>
-            <Button type="button" onClick={handleExport} disabled={downloading} className="w-full">
-              {downloading ? "Изтегляне..." : "Изтегли"}
-            </Button>
+            <div className="flex justify-center gap-3">
+              <Button type="submit" disabled={uploading || !selectedFile} className="w-2/5">
+                {uploading ? "Качване..." : "Качи"}
+              </Button>
+              <Button type="button" onClick={handleExport} disabled={downloading} className="w-2/5">
+                {downloading ? "Изтегляне..." : "Изтегли"}
+              </Button>
+            </div>
           </form>
         </Card>
 

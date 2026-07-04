@@ -329,10 +329,10 @@ export function Navigation() {
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
           <div className="mt-4 space-y-2">
-            <Button className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
+            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
               Качи документ
             </Button>
-            <Button className="w-full" onClick={() => handleNavigation("/admin")} disabled={isNavigating}>
+            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/admin")} disabled={isNavigating}>
               Админ панел
             </Button>
           </div>
@@ -340,7 +340,7 @@ export function Navigation() {
         {/* Accountant upload action for mobile */}
         {isLoggedIn && isAccountant && (
           <div className="mt-4">
-            <Button className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
+            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
               Качи документ
             </Button>
           </div>
@@ -371,6 +371,7 @@ export function Navigation() {
         ) : (
           <div className="mt-4">
             <Button
+              variant="outline-primary"
               className="w-full"
               onClick={() => {
                 logout();
@@ -496,14 +497,14 @@ export function Navigation() {
                 <>
                   <NavigationMenuItem>
                     <Link to="/upload">
-                      <Button className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md">
+                      <Button variant="outline-primary" className="ml-2 transition-all duration-200">
                         Качи документ
                       </Button>
                     </Link>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link to="/admin">
-                      <Button className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md">
+                      <Button variant="outline-primary" className="ml-2 transition-all duration-200">
                         Админ панел
                       </Button>
                     </Link>
@@ -514,7 +515,7 @@ export function Navigation() {
               {isLoggedIn && isAccountant && (
                 <NavigationMenuItem>
                   <Link to="/upload">
-                    <Button className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md">
+                    <Button variant="outline-primary" className="ml-2 transition-all duration-200">
                       Качи документ
                     </Button>
                   </Link>
@@ -561,7 +562,7 @@ export function Navigation() {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem>
-                  <Button className="ml-2 transition-all duration-200 hover:scale-105 hover:shadow-md" onClick={logout}>
+                  <Button variant="outline-primary" className="ml-2 transition-all duration-200" onClick={logout}>
                     Изход
                   </Button>
                 </NavigationMenuItem>

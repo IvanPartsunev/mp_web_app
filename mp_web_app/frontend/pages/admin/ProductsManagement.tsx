@@ -387,7 +387,7 @@ export default function ProductsManagement() {
             {/* Create dialog */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>Създай продукт</Button>
+                <Button variant="outline-primary">Създай продукт</Button>
               </DialogTrigger>
               <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
