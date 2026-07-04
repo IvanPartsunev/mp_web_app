@@ -48,6 +48,7 @@ class MemberGovernance(BaseModel):
   board: bool
   control: bool
 
+
 class MemberUpdate(BaseModel):
   email: EmailStr | None = None
   phone: str | None = None

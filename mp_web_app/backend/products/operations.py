@@ -30,6 +30,7 @@ def get_product_repository() -> ProductRepository:
 # Picture helpers
 # ---------------------------------------------------------------------------
 
+
 def _generate_picture_url(s3_key: str) -> str:
   if USE_CLOUDFRONT and CLOUDFRONT_DOMAIN:
     return f"https://{CLOUDFRONT_DOMAIN}/{s3_key}"
@@ -73,6 +74,7 @@ def delete_product_picture(s3_key: str) -> None:
 # CRUD
 # ---------------------------------------------------------------------------
 
+
 def _attach_picture_url(product: Product) -> None:
   if product.picture_s3_key:
     try:
@@ -91,10 +93,7 @@ def get_product(repo: ProductRepository, product_id: str) -> Product:
 
 
 def _serialize_sizes(sizes: list[ProductSize]) -> list[dict]:
-  return [
-    {k: v for k, v in s.model_dump().items() if v is not None or k == "label"}
-    for s in sizes
-  ]
+  return [{k: v for k, v in s.model_dump().items() if v is not None or k == "label"} for s in sizes]
 
 
 def create_product(
@@ -228,6 +227,7 @@ def _get_products_from_db(repo: ProductRepository) -> list[dict[Any, Any]]:
 # ---------------------------------------------------------------------------
 # Orphan cleanup
 # ---------------------------------------------------------------------------
+
 
 def list_orphaned_pictures(repo: ProductRepository) -> list[str]:
   items = _get_products_from_db(repo)
