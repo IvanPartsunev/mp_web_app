@@ -26,21 +26,11 @@ import {
   useOrphanedPictures,
   useDeleteOrphanedPictures,
   type Product,
+  type ProductSize,
 } from "@/hooks/useProducts";
 import {TablePagination} from "@/components/table-pagination";
-import {MoreVertical, Package, Pencil, Trash2, X} from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Dimensions display helper
-// ---------------------------------------------------------------------------
-function formatDimensions(product: Product): string {
-  const parts = [
-    product.width != null ? `Ш: ${product.width} см` : null,
-    product.height != null ? `В: ${product.height} см` : null,
-    product.length != null ? `Д: ${product.length} см` : null,
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" / ") : "—";
-}
+import {ExpandableSizeCell} from "@/components/expandable-size-cell";
+import {MoreVertical, Package, Pencil, Plus, Trash2, X} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Picture preview helper
@@ -101,46 +91,101 @@ function PictureInput({currentUrl, onFileChange, onRemove, removePicture}: Pictu
 }
 
 // ---------------------------------------------------------------------------
-// Dimensions editor — 3 plain number inputs
+// Single size row editor
 // ---------------------------------------------------------------------------
-interface DimensionsEditorProps {
-  width: string;
-  height: string;
-  length: string;
-  onChange: (field: "width" | "height" | "length", val: string) => void;
+interface SizeRowProps {
+  size: ProductSize;
+  index: number;
+  onChange: (index: number, size: ProductSize) => void;
+  onRemove: (index: number) => void;
 }
 
-function DimensionsEditor({width, height, length, onChange}: DimensionsEditorProps) {
+function SizeRow({size, index, onChange, onRemove}: SizeRowProps) {
+  const set = (field: keyof ProductSize, val: string) => {
+    if (field === "label") {
+      onChange(index, {...size, label: val});
+    } else {
+      const n = parseFloat(val);
+      onChange(index, {...size, [field]: val === "" ? null : isNaN(n) ? null : n});
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-end">
+      <div className="space-y-1">
+        {index === 0 && <label className="text-xs text-muted-foreground">Наименование</label>}
+        <Input
+          placeholder="напр. Малък"
+          value={size.label}
+          onChange={(e) => set("label", e.target.value)}
+          className="h-8 text-sm"
+        />
+      </div>
+      {(["width", "height", "length"] as const).map((field) => (
+        <div key={field} className="space-y-1">
+          {index === 0 && (
+            <label className="text-xs text-muted-foreground">
+              {field === "width" ? "Ширина" : field === "height" ? "Височина" : "Дължина"} (см)
+            </label>
+          )}
+          <div className="relative">
+            <Input
+              type="number"
+              min={0}
+              step="any"
+              placeholder="—"
+              value={size[field] != null ? String(size[field]) : ""}
+              onChange={(e) => set(field, e.target.value)}
+              className="h-8 text-sm pr-7"
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+              см
+            </span>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className={`p-1.5 rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors ${index === 0 ? "mt-5" : ""}`}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sizes list editor
+// ---------------------------------------------------------------------------
+interface SizesEditorProps {
+  sizes: ProductSize[];
+  onChange: (sizes: ProductSize[]) => void;
+}
+
+function SizesEditor({sizes, onChange}: SizesEditorProps) {
+  const add = () => onChange([...sizes, {label: "", width: null, height: null, length: null}]);
+  const update = (i: number, s: ProductSize) => onChange(sizes.map((x, idx) => (idx === i ? s : x)));
+  const remove = (i: number) => onChange(sizes.filter((_, idx) => idx !== i));
+
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">Размери (см)</label>
-      <div className="grid grid-cols-3 gap-2">
-        {(
-          [
-            {key: "width", label: "Ширина"},
-            {key: "height", label: "Височина"},
-            {key: "length", label: "Дължина"},
-          ] as const
-        ).map(({key, label}) => (
-          <div key={key} className="space-y-1">
-            <label className="text-xs text-muted-foreground">{label}</label>
-            <div className="relative">
-              <Input
-                type="number"
-                min={0}
-                step="any"
-                placeholder="—"
-                value={key === "width" ? width : key === "height" ? height : length}
-                onChange={(e) => onChange(key, e.target.value)}
-                className="h-8 text-sm pr-8"
-              />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                см
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">Размери</label>
+        <Button type="button" variant="outline" size="sm" onClick={add} className="h-7 text-xs gap-1">
+          <Plus className="h-3 w-3" />
+          Добави размер
+        </Button>
       </div>
+      {sizes.length === 0 ? (
+        <p className="text-xs text-muted-foreground">Няма добавени размери.</p>
+      ) : (
+        <div className="space-y-2">
+          {sizes.map((s, idx) => (
+            <SizeRow key={idx} size={s} index={idx} onChange={update} onRemove={remove} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -151,19 +196,12 @@ function DimensionsEditor({width, height, length, onChange}: DimensionsEditorPro
 const emptyForm = () => ({
   name: "",
   description: "",
-  width: "",
-  height: "",
-  length: "",
+  sizes: [] as ProductSize[],
   picture: null as File | null,
   remove_picture: false,
 });
 
 type FormData = ReturnType<typeof emptyForm>;
-
-function parseNum(s: string): number | null {
-  const n = parseFloat(s);
-  return isNaN(n) ? null : n;
-}
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -190,9 +228,6 @@ export default function ProductsManagement() {
   const totalPages = Math.max(1, Math.ceil(products.length / DEFAULT_PAGE_SIZE));
   const pagedProducts = products.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
 
-  const setDim = (field: "width" | "height" | "length", val: string) =>
-    setFormData((f) => ({...f, [field]: val}));
-
   const handleCreate = () => {
     if (!formData.name.trim()) {
       toast({title: "Грешка", description: "Името е задължително", variant: "destructive"});
@@ -202,9 +237,7 @@ export default function ProductsManagement() {
       {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
-        width: parseNum(formData.width),
-        height: parseNum(formData.height),
-        length: parseNum(formData.length),
+        sizes: formData.sizes,
         picture: formData.picture,
       },
       {
@@ -235,9 +268,7 @@ export default function ProductsManagement() {
         id: selectedProduct.id,
         name: formData.name.trim(),
         description: formData.description.trim() || null,
-        width: parseNum(formData.width),
-        height: parseNum(formData.height),
-        length: parseNum(formData.length),
+        sizes: formData.sizes,
         picture: formData.picture,
         remove_picture: formData.remove_picture,
       },
@@ -282,9 +313,7 @@ export default function ProductsManagement() {
     setFormData({
       name: product.name,
       description: product.description || "",
-      width: product.width != null ? String(product.width) : "",
-      height: product.height != null ? String(product.height) : "",
-      length: product.length != null ? String(product.length) : "",
+      sizes: product.sizes ?? [],
       picture: null,
       remove_picture: false,
     });
@@ -332,11 +361,9 @@ export default function ProductsManagement() {
           rows={3}
         />
       </div>
-      <DimensionsEditor
-        width={formData.width}
-        height={formData.height}
-        length={formData.length}
-        onChange={setDim}
+      <SizesEditor
+        sizes={formData.sizes}
+        onChange={(sizes) => setFormData((f) => ({...f, sizes}))}
       />
     </div>
   );
@@ -438,7 +465,7 @@ export default function ProductsManagement() {
                         : "—"}
                     </TableCell>
                     <TableCell className={`${TABLE_STYLES.cellBase} text-sm text-muted-foreground`}>
-                      {formatDimensions(product)}
+                      <ExpandableSizeCell sizes={product.sizes} />
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellCenter}>
                       <div className="flex justify-center gap-2">

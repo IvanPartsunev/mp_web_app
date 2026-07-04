@@ -1,6 +1,13 @@
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import apiClient from "@/context/apiClient";
 
+export interface ProductSize {
+  label: string;
+  width?: number | null;
+  height?: number | null;
+  length?: number | null;
+}
+
 export interface Product {
   id?: string | null;
   name: string;
@@ -8,6 +15,7 @@ export interface Product {
   width?: number | null;
   height?: number | null;
   length?: number | null;
+  sizes?: ProductSize[];
   picture_url?: string | null;
 }
 
@@ -42,6 +50,7 @@ export interface CreateProductPayload {
   width?: number | null;
   height?: number | null;
   length?: number | null;
+  sizes?: ProductSize[];
   picture?: File | null;
 }
 
@@ -61,6 +70,7 @@ export function useCreateProduct() {
       if (payload.width != null) form.append("width", String(payload.width));
       if (payload.height != null) form.append("height", String(payload.height));
       if (payload.length != null) form.append("length", String(payload.length));
+      if (payload.sizes != null) form.append("sizes", JSON.stringify(payload.sizes));
       if (payload.picture) form.append("picture", payload.picture);
 
       const response = await apiClient.post("products/create", form, {
@@ -86,6 +96,7 @@ export function useUpdateProduct() {
       if (payload.height != null) form.append("height", String(payload.height));
       if (payload.length != null) form.append("length", String(payload.length));
       form.append("remove_picture", String(payload.remove_picture ?? false));
+      if (payload.sizes != null) form.append("sizes", JSON.stringify(payload.sizes));
       if (payload.picture) form.append("picture", payload.picture);
 
       const response = await apiClient.put(`products/update/${id}`, form, {

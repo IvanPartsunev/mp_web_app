@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from database.exceptions import DatabaseError
 from database.repositories import ProductRepository
 from products.exceptions import ProductNotFoundError
-from products.models import Product, ProductUpdate
+from products.models import Product, ProductSize, ProductUpdate
 
 PRODUCTS_TABLE_NAME = os.getenv("PRODUCTS_TABLE_NAME")
 PRODUCTS_BUCKET = os.environ.get("UPLOADS_BUCKET")
@@ -90,12 +90,20 @@ def get_product(repo: ProductRepository, product_id: str) -> Product:
   return product
 
 
+def _serialize_sizes(sizes: list[ProductSize]) -> list[dict]:
+  return [
+    {k: v for k, v in s.model_dump().items() if v is not None or k == "label"}
+    for s in sizes
+  ]
+
+
 def create_product(
   name: str,
   description: str | None,
   width: Decimal | None,
   height: Decimal | None,
   length: Decimal | None,
+  sizes: list[ProductSize],
   picture: UploadFile | None,
   repo: ProductRepository,
 ) -> Product:
@@ -110,6 +118,7 @@ def create_product(
     "width": width,
     "height": height,
     "length": length,
+    "sizes": _serialize_sizes(sizes),
     "picture_s3_key": s3_key,
   }
 
@@ -164,6 +173,11 @@ def update_product(
       update_parts.append(f"#{field} = :{field}")
       attr_values[f":{field}"] = val
       attr_names[f"#{field}"] = field
+
+  if product_update.sizes is not None:
+    update_parts.append("#sizes = :sizes")
+    attr_values[":sizes"] = _serialize_sizes(product_update.sizes)
+    attr_names["#sizes"] = "sizes"
 
   if not update_parts:
     return product
