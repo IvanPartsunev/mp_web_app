@@ -29,11 +29,11 @@ const BADGE_CONFIGS: BadgeConfig[] = [
 ];
 
 const USER_ROLE_BADGE_CONFIGS: Record<string, BadgeConfig> = {
-  regular:    {letter: "О", tooltip: "Обикновен",          className: "border-gray-400 text-gray-500"},
-  board:      {letter: "У", tooltip: "Управителен съвет",  className: "border-gray-400 text-gray-500"},
-  control:    {letter: "К", tooltip: "Контролен съвет",    className: "border-gray-400 text-gray-500"},
-  accountant: {letter: "С", tooltip: "Счетоводител",       className: "border-gray-400 text-gray-500"},
-  admin:      {letter: "А", tooltip: "Администратор",      className: "border-gray-400 text-gray-500"},
+  regular: {letter: "О", tooltip: "Обикновен", className: "border-gray-400 text-gray-500"},
+  board: {letter: "У", tooltip: "Управителен съвет", className: "border-gray-400 text-gray-500"},
+  control: {letter: "К", tooltip: "Контролен съвет", className: "border-gray-400 text-gray-500"},
+  accountant: {letter: "С", tooltip: "Счетоводител", className: "border-gray-400 text-gray-500"},
+  admin: {letter: "А", tooltip: "Администратор", className: "border-gray-400 text-gray-500"},
 };
 
 function Badge({cfg}: {cfg: BadgeConfig}) {

@@ -16,7 +16,6 @@ import {TablePagination} from "@/components/table-pagination";
 import {Pencil, Search, Trash2} from "lucide-react";
 import {UserRoleBadge} from "@/components/role-badge";
 
-
 export default function UserManagement() {
   const {data: users = [], isLoading: loading} = useUsersList();
   const updateMutation = useUpdateUser();
@@ -33,11 +32,7 @@ export default function UserManagement() {
     if (!search.trim()) return true;
     const q = search.trim().toLowerCase();
     const name = `${u.first_name ?? ""} ${u.last_name ?? ""}`.toLowerCase();
-    return (
-      name.includes(q) ||
-      (u.email ?? "").toLowerCase().includes(q) ||
-      (u.phone ?? "").toLowerCase().includes(q)
-    );
+    return name.includes(q) || (u.email ?? "").toLowerCase().includes(q) || (u.phone ?? "").toLowerCase().includes(q);
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / DEFAULT_PAGE_SIZE));
@@ -148,13 +143,19 @@ export default function UserManagement() {
     <AdminLayout title="Управление на потребители">
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-4">
-          <h3 className="text-lg font-semibold">Списък с потребители ({filteredUsers.length}{search && ` от ${users.length}`})</h3>
+          <h3 className="text-lg font-semibold">
+            Списък с потребители ({filteredUsers.length}
+            {search && ` от ${users.length}`})
+          </h3>
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Търсене по име, имейл или телефон..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="pl-8"
             />
           </div>

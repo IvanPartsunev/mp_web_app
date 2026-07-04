@@ -329,10 +329,20 @@ export function Navigation() {
         {/* Admin upload action for mobile */}
         {isLoggedIn && isAdmin && (
           <div className="mt-4 space-y-2">
-            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
+            <Button
+              variant="outline-primary"
+              className="w-full"
+              onClick={() => handleNavigation("/upload")}
+              disabled={isNavigating}
+            >
               Качи документ
             </Button>
-            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/admin")} disabled={isNavigating}>
+            <Button
+              variant="outline-primary"
+              className="w-full"
+              onClick={() => handleNavigation("/admin")}
+              disabled={isNavigating}
+            >
               Админ панел
             </Button>
           </div>
@@ -340,7 +350,12 @@ export function Navigation() {
         {/* Accountant upload action for mobile */}
         {isLoggedIn && isAccountant && (
           <div className="mt-4">
-            <Button variant="outline-primary" className="w-full" onClick={() => handleNavigation("/upload")} disabled={isNavigating}>
+            <Button
+              variant="outline-primary"
+              className="w-full"
+              onClick={() => handleNavigation("/upload")}
+              disabled={isNavigating}
+            >
               Качи документ
             </Button>
           </div>
