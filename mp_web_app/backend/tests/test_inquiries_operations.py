@@ -20,6 +20,7 @@ from inquiries.operations import (
   get_inquiry,
   list_inquiries_for_scope,
   list_inquiries_for_user,
+  update_inquiry,
 )
 
 # ---------------------------------------------------------------------------
