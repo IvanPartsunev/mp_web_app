@@ -16,8 +16,6 @@ from users.operations import (
   get_user_by_id,
   get_user_repository,
   list_users,
-  redact_user_names,
-  redact_user_phone,
   update_user,
   update_user_password,
 )
@@ -157,7 +155,7 @@ async def user_redact_names(
   """Redact (clear) a user's first and last name (ADMIN only)."""
   try:
     existing_user = get_user_by_id(user_id, user_repo)
-    return redact_user_names(user_id, existing_user.email, user_repo)
+    return update_user(user_id, existing_user.email, UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), user_repo)
   except UserNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:
@@ -173,7 +171,7 @@ async def user_redact_phone(
   """Redact (clear) a user's phone number (ADMIN only)."""
   try:
     existing_user = get_user_by_id(user_id, user_repo)
-    return redact_user_phone(user_id, existing_user.email, user_repo)
+    return update_user(user_id, existing_user.email, UserUpdate(phone=None), user_repo)
   except UserNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:

@@ -91,13 +91,13 @@ export function useDeleteUser() {
   });
 }
 
-// Redact user phone mutation
+// Redact user phone — clears phone via update
 export function useRedactUserPhone() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.patch(`users/redact-phone/${id}`);
+      const response = await apiClient.put(`users/update/${id}`, {phone: null});
       return response.data;
     },
     onSuccess: () => {
@@ -106,13 +106,13 @@ export function useRedactUserPhone() {
   });
 }
 
-// Redact user names mutation
+// Redact user names — clears first/last name via update
 export function useRedactUserNames() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.patch(`users/redact-names/${id}`);
+      const response = await apiClient.put(`users/update/${id}`, {first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"});
       return response.data;
     },
     onSuccess: () => {
