@@ -529,6 +529,9 @@ def export_pdf(inquiry: Inquiry) -> bytes:
 
   template_path = Path(__file__).parent / "templates" / "inquiry_pdf.html"
   html_content = template_path.read_text(encoding="utf-8")
+  font_dir = Path(__file__).parent / "templates" / "fonts"
+  font_regular = (font_dir / "DejaVuSans.ttf").resolve().as_posix()
+  font_bold = (font_dir / "DejaVuSans-Bold.ttf").resolve().as_posix()
 
   # Encode logo as base64 for embedding
   logo_path = Path(__file__).parent / "templates" / "logo.svg"
@@ -565,6 +568,8 @@ def export_pdf(inquiry: Inquiry) -> bytes:
       "created_at": created_at,
       "status_bg": status_bg,
       "logo_b64": logo_b64,
+      "font_regular": font_regular,
+      "font_bold": font_bold,
     }
   )
 

@@ -18,6 +18,7 @@ from inquiries.operations import (
   create_inquiry,
   delete_inquiry,
   get_inquiry,
+  export_pdf,
   list_inquiries_for_scope,
   list_inquiries_for_user,
   update_inquiry,
@@ -238,6 +239,26 @@ class TestUpdateInquiry:
     data = InquiryUpdate(scope=["admin", "board"])
     result = update_inquiry(inq, data, [], mock_repo, mock_user_repo)
     assert result is not None
+
+
+# ---------------------------------------------------------------------------
+# export_pdf
+# ---------------------------------------------------------------------------
+
+
+class TestExportPdf:
+  @patch("xhtml2pdf.pisa.CreatePDF")
+  def test_uses_bundled_fonts(self, mock_create_pdf):
+    inq = _make_inquiry(description="Текст на кирилица")
+    mock_create_pdf.return_value = None
+
+    pdf_bytes = export_pdf(inq)
+
+    assert pdf_bytes == b""
+    html = mock_create_pdf.call_args.args[0]
+    assert "DejaVuSans.ttf" in html
+    assert "DejaVuSans-Bold.ttf" in html
+    assert "/usr/share/fonts/truetype/dejavu" not in html
 
 
 # ---------------------------------------------------------------------------
