@@ -18,7 +18,8 @@ function matchesSearch(entry: SharedFileAuditEntry, query: string): boolean {
   return terms.every(
     (term) =>
       (entry.file_name ?? "").toLowerCase().includes(term) ||
-      (entry.labels ?? []).some((lbl) => lbl.toLowerCase().includes(term))
+      (entry.labels ?? []).some((lbl) => lbl.toLowerCase().includes(term)) ||
+      (entry.shared_with_name ?? "").toLowerCase().includes(term)
   );
 }
 
@@ -63,13 +64,12 @@ export default function SharedFilesAudit() {
   return (
     <AdminLayout title="Споделени файлове">
       <div className="space-y-4">
-        {/* Title + search bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <h3 className="text-lg font-semibold">Споделени файлове ({entries.length})</h3>
-          <div className="relative w-full sm:w-64">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Търсене по ime или етикет..."
+              placeholder="Търсене по име, етикет или споделен с..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);

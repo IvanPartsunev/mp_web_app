@@ -138,27 +138,10 @@ export default function DocumentsManagement() {
   return (
     <AdminLayout title="Управление на документи">
       <div className="space-y-4">
-        {/* Title + search bar — same pattern as Control/Board list pages */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <h3 className="text-lg font-semibold">
             Списък с документи ({filteredFiles.length} {filteredFiles.length === 1 ? "документ" : "документа"})
           </h3>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Търсене по ime или етикет..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              className="pl-8"
-            />
-          </div>
-        </div>
-
-        {/* Type filter */}
-        <div>
           <Select
             value={selectedFileType}
             onValueChange={(v) => {
@@ -177,6 +160,18 @@ export default function DocumentsManagement() {
               ))}
             </SelectContent>
           </Select>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Търсене по име или етикет..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="pl-8"
+            />
+          </div>
         </div>
 
         {loading ? (
