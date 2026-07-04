@@ -31,6 +31,7 @@ from files.operations import (
   get_shared_files_audit,
   get_uploads_repository,
   notify_shared_users,
+  notify_upload,
   revoke_share,
   update_file_metadata,
   upload_file,
@@ -67,8 +68,7 @@ async def file_create(
     for file in files:
       file_metadata = FileMetadataFull(file_type=file_type, allowed_to=allowed_to, uploaded_by=user.id)
       result = upload_file(file_metadata=file_metadata, file=file, user_id=user.id, repo=repo)
-      if result.allowed_to:
-        background_tasks.add_task(notify_shared_users, result, user_repo)
+      background_tasks.add_task(notify_upload, result, user_repo)
       results.append(result)
     return results
   except MissingAllowedUsersError as e:

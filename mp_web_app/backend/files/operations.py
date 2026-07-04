@@ -28,6 +28,17 @@ BUCKET = os.environ.get("UPLOADS_BUCKET")
 UPLOADS_TABLE_NAME = os.environ.get("UPLOADS_TABLE_NAME")
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
+# Maps each FileType value to its Bulgarian display name and frontend route path
+FILE_TYPE_DISPLAY: dict[str, dict] = {
+  "governing_documents": {"bg": "Нормативни документи", "route": "governing-documents"},
+  "forms":               {"bg": "Бланки",               "route": "forms"},
+  "minutes":             {"bg": "Протоколи",             "route": "minutes"},
+  "transcripts":         {"bg": "Стенограми",            "route": "transcripts"},
+  "accounting":          {"bg": "Счетоводни документи",  "route": "accounting-documents"},
+  "others":              {"bg": "Други документи",       "route": "others"},
+  "private_documents":   {"bg": "Лични документи",       "route": "mydocuments"},
+}
+
 
 @lru_cache
 def get_allowed_file_extensions():
@@ -458,7 +469,7 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository, actor
 
 
 def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
-  """Send a file share notification email to each user in file_metadata.allowed_to."""
+  """Send a personal share notification email to each user in file_metadata.allowed_to."""
   from mail.operations import send_file_share_notification
   from users.operations import get_user_by_id
 
@@ -478,6 +489,59 @@ def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserReposito
     except Exception as e:
       print(f"Failed to send file share notification to user {user_id}: {e}")
       continue
+
+
+def notify_upload(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
+  """Broadcast an upload notification to eligible subscribed users, then send personal share emails if needed.
+
+  Routing rules:
+  - private_documents: no broadcast; personal share only (handled by allowed_to list)
+  - accounting: broadcast to governance roles (board, control, accountant, admin) only
+  - all other types: broadcast to all subscribed users
+
+  After broadcasting, if allowed_to is non-empty, also sends personal share emails.
+  """
+  from mail.operations import send_upload_notification
+  from users.operations import get_subscribed_users
+
+  file_type = file_metadata.file_type.value
+  file_info = FILE_TYPE_DISPLAY.get(file_type, {"bg": file_type, "route": "home"})
+  category_bg = file_info["bg"]
+  documents_link = f"{FRONTEND_BASE_URL}/{file_info['route']}"
+
+  governance_roles = {
+    UserRole.BOARD.value,
+    UserRole.CONTROL.value,
+    UserRole.ACCOUNTANT.value,
+    UserRole.ADMIN.value,
+  }
+
+  # private_documents: skip broadcast entirely — only personal share emails apply
+  if file_type != FileType.private_documents.value:
+    try:
+      subscribed_users = get_subscribed_users(user_repo)
+    except Exception as e:
+      print(f"Failed to fetch subscribed users for upload notification: {e}")
+      subscribed_users = []
+
+    for user in subscribed_users:
+      # Accounting files: governance roles only
+      if file_type == FileType.accounting.value and user.role not in governance_roles:
+        continue
+      try:
+        send_upload_notification(
+          email=user.email,
+          file_name=file_metadata.file_name,
+          category_bg=category_bg,
+          documents_link=documents_link,
+        )
+      except Exception as e:
+        print(f"Failed to send upload notification to {user.email}: {e}")
+        continue
+
+  # Always send personal share emails to users explicitly listed in allowed_to
+  if file_metadata.allowed_to:
+    notify_shared_users(file_metadata, user_repo)
 
 
 def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> list[FileMetadata]:

@@ -316,3 +316,141 @@ class TestAddShare:
     call_kwargs = repo.table.update_item.call_args.kwargs
     assert call_kwargs["ExpressionAttributeValues"][":new_ids"] == ["uid-a"]
     assert result == ["uid-a"]
+
+
+class TestNotifyUpload:
+  def _make_file_meta(self, file_type, allowed_to=None):
+    from files.models import FileMetadataFull, FileType
+    return FileMetadataFull(
+      id="file-1",
+      file_name="document.pdf",
+      file_type=FileType(file_type),
+      bucket="test-bucket",
+      key=f"{file_type}/document.pdf",
+      uploaded_by="admin-1",
+      created_at="2024-01-01T00:00:00",
+      allowed_to=allowed_to,
+    )
+
+  def _make_user(self, role, email):
+    user = Mock()
+    user.role = role
+    user.email = email
+    user.id = f"user-{email}"
+    return user
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_broadcasts_to_all_subscribers_for_regular_file_type(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    users = [
+      self._make_user("regular", "a@example.com"),
+      self._make_user("board", "b@example.com"),
+    ]
+    mock_get_users.return_value = users
+    file_meta = self._make_file_meta("minutes")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    assert mock_send_upload.call_count == 2
+    emails = {c.kwargs["email"] for c in mock_send_upload.call_args_list}
+    assert emails == {"a@example.com", "b@example.com"}
+    mock_notify_shared.assert_not_called()
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_accounting_excludes_regular_users(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    users = [
+      self._make_user("regular", "regular@example.com"),
+      self._make_user("board", "board@example.com"),
+      self._make_user("control", "control@example.com"),
+      self._make_user("accountant", "accountant@example.com"),
+      self._make_user("admin", "admin@example.com"),
+    ]
+    mock_get_users.return_value = users
+    file_meta = self._make_file_meta("accounting")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    emails = {c.kwargs["email"] for c in mock_send_upload.call_args_list}
+    assert "regular@example.com" not in emails
+    assert {"board@example.com", "control@example.com", "accountant@example.com", "admin@example.com"} == emails
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_private_documents_skips_broadcast(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    file_meta = self._make_file_meta("private_documents", allowed_to=["uid-1"])
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_get_users.assert_not_called()
+    mock_send_upload.assert_not_called()
+    mock_notify_shared.assert_called_once_with(file_meta, user_repo)
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_calls_notify_shared_users_when_allowed_to_set(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = []
+    file_meta = self._make_file_meta("minutes", allowed_to=["uid-1", "uid-2"])
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_notify_shared.assert_called_once_with(file_meta, user_repo)
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_does_not_call_notify_shared_when_allowed_to_empty(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = []
+    file_meta = self._make_file_meta("minutes", allowed_to=None)
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_notify_shared.assert_not_called()
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_upload_notification_includes_correct_category_and_link(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = [self._make_user("regular", "user@example.com")]
+    file_meta = self._make_file_meta("governing_documents")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    call_kwargs = mock_send_upload.call_args.kwargs
+    assert call_kwargs["category_bg"] == "Нормативни документи"
+    assert call_kwargs["documents_link"].endswith("/governing-documents")
+    assert call_kwargs["file_name"] == "document.pdf"
