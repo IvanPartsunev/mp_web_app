@@ -87,3 +87,12 @@ class ProductRepository(BaseRepository):
 
   def convert_item_to_object(self, item: dict[str, Any]):
     return Product(**item)
+
+
+class InquiryRepository(BaseRepository):
+  """Convert a DynamoDB item to an Inquiry model."""
+
+  def convert_item_to_object(self, item: dict[str, Any]):
+    from inquiries.models import Inquiry
+
+    return Inquiry(**item)

@@ -175,3 +175,25 @@ def construct_unsubscribe_link(user_id: str, email: EmailStr | str, request: Req
 def construct_reset_link(user_id: str, email: EmailStr | str):
   token = generate_reset_token(user_id, email)
   return f"{FRONTEND_BASE_URL}/new-password?token={token}"
+
+
+def send_inquiry_notification(
+  email: str,
+  recipient_name: str,
+  inquiry_title: str,
+  status_bg: str,
+  inquiry_link: str,
+) -> None:
+  """Send an inquiry creation or status-change notification email."""
+  subject = f"ГПК Мурджов Пожар – запитване: {inquiry_title}"
+  html_body = render_template(
+    "inquiry_notification.html",
+    recipient_name=recipient_name,
+    inquiry_title=inquiry_title,
+    status_bg=status_bg,
+    inquiry_link=inquiry_link,
+  )
+  try:
+    send_email_ses(to_address=email, subject=subject, html_body=html_body)
+  except Exception as e:
+    raise EmailSendError(f"Failed to send inquiry notification: {e}")

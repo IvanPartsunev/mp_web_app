@@ -32,6 +32,10 @@ const AccountingDocuments = lazy(() => import("@/pages/documents/AccountingDocum
 const Others = lazy(() => import("@/pages/documents/Others"));
 const MyDocuments = lazy(() => import("@/pages/documents/MyDocuments"));
 const AdminPanel = lazy(() => import("@/pages/admin/AdminPanel"));
+const CreateInquiry = lazy(() => import("@/pages/inquiries/CreateInquiry"));
+const MyInquiries = lazy(() => import("@/pages/inquiries/MyInquiries"));
+const AddressedToMe = lazy(() => import("@/pages/inquiries/AddressedToMe"));
+const InquiryDetail = lazy(() => import("@/pages/inquiries/InquiryDetail"));
 
 function App() {
   return (
@@ -142,6 +146,40 @@ function App() {
               element={
                 <PageLoadingWrapper loadingText="Зареждане на админ панела...">
                   <AdminPanel />
+                </PageLoadingWrapper>
+              }
+            />
+
+            {/* Inquiry routes */}
+            <Route
+              path="inquiries/create"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане...">
+                  <CreateInquiry />
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="inquiries/mine"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на запитванията...">
+                  <MyInquiries />
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="inquiries/addressed-to-me"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на запитванията...">
+                  <AddressedToMe />
+                </PageLoadingWrapper>
+              }
+            />
+            <Route
+              path="inquiries/:id"
+              element={
+                <PageLoadingWrapper loadingText="Зареждане на запитването...">
+                  <InquiryDetail />
                 </PageLoadingWrapper>
               }
             />

@@ -14,6 +14,13 @@ All notable changes to the GPK "Murdjov Pozhar" web platform are documented here
 - `parse_sizes` public function in `products/operations.py` for parsing JSON size strings
 - `value` field on `ProductSize` model to support free-text size descriptions
 - Inquiry module: full CRUD, scoped access, file attachments, PDF export, email notifications
+  - `CreateInquiry` page with drag-and-drop file upload (max 5 MB), type selection (молба / запитване / сигнал), scope targeting (admin / board / control), co-author / follower selection with search
+  - `MyInquiries` page listing inquiries authored or co-authored by the current user
+  - `InquiriesTable` shared component with status badges and Bulgarian status labels
+  - `InquiryDetail` page with status lifecycle, entry number assignment, file management, and close/resolve flow with closing record
+  - Admin view (`inquiries/all`) and scoped view (`inquiries/addressed-to-me`) for board and control members
+  - React Query hooks: `useMyInquiries`, `useAddressedToMe`, `useAllInquiries`, `useInquiry`, `useCreateInquiry`, `useUpdateInquiry`, `useAddInquiryFiles`, `useAssignEntryNumber`, `useCloseInquiry`, `useDeleteInquiry`
+  - Backend: `inquiries` router with create, read, update, delete, file attachment, entry number, and close endpoints; scoped access enforcement per role
 - File labels feature: label tagging for documents with combobox UI and existing-label suggestions
 - Upload notifications: email broadcasts to subscribers when new files are uploaded
 - Backend tests for members, products, files, mail, and users operations (150 tests total)
