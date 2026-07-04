@@ -1,0 +1,4 @@
+# Deployment constraints — pins packages that have broken/missing binary wheels
+# on the Lambda build target (manylinux2014_x86_64 + pip --only-binary).
+# pillow==12.3.0 has no binary wheels yet; 12.2.0 is the last available.
+pillow==12.2.0
