@@ -27,7 +27,7 @@
       }}
       td, th {{
         padding: 7px 12px;
-        font-size: 11pt;
+        font-size: 9.5pt;
         border: 1px solid #e5e7eb;
         vertical-align: middle;
       }}
@@ -38,9 +38,9 @@
       .label {{
         background-color: #f3f4f6;
         color: #555;
-        font-size: 10pt;
+        font-size: 9.5pt;
         font-weight: normal;
-        width: 28%;
+        width: 45%;
       }}
       .section-header {{
         background-color: #f0fdf4;
@@ -51,12 +51,12 @@
         padding: 6px 12px;
       }}
       .org-name {{
-        font-size: 18pt;
+        font-size: 13pt;
         font-weight: bold;
         color: #16a34a;
       }}
       .type-cell {{
-        font-size: 12pt;
+        font-size: 10pt;
         font-weight: bold;
         color: #333;
         text-transform: uppercase;
@@ -64,7 +64,7 @@
         letter-spacing: 1px;
         border: none;
         border-bottom: 2px solid #16a34a;
-        padding: 8px 12px;
+        padding: 5px 12px;
       }}
       .plain {{
         font-size: 11pt;
@@ -89,13 +89,19 @@
   <body>
     <table>
 
-      <!-- Row 1: logo | org name -->
+      <!-- Row 1: logo + org name in same cell -->
       <tr>
-        <td class="no-border" style="width: 60px; border-bottom: 2px solid #16a34a;">
-          <img src="data:image/svg+xml;base64,{logo_b64}" width="52" height="45" />
-        </td>
-        <td class="no-border" style="border-bottom: 2px solid #16a34a; padding-left: 10px;">
-          <div class="org-name">ГПК Мурджов Пожар</div>
+        <td class="no-border" colspan="2" style="border-bottom: 2px solid #16a34a; padding: 6px 0;">
+          <table style="width: auto; border-collapse: collapse;">
+            <tr>
+              <td style="border: none; padding: 0 8px 0 0; width: 56px;">
+                <img src="data:image/svg+xml;base64,{logo_b64}" width="50" height="43" />
+              </td>
+              <td style="border: none; padding: 12px 0 0 0;">
+                <div class="org-name">ГПК Мурджов Пожар</div>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
 
