@@ -28,6 +28,17 @@ BUCKET = os.environ.get("UPLOADS_BUCKET")
 UPLOADS_TABLE_NAME = os.environ.get("UPLOADS_TABLE_NAME")
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
+# Maps each FileType value to its Bulgarian display name and frontend route path
+FILE_TYPE_DISPLAY: dict[str, dict] = {
+  "governing_documents": {"bg": "Нормативни документи", "route": "governing-documents"},
+  "forms": {"bg": "Бланки", "route": "forms"},
+  "minutes": {"bg": "Протоколи", "route": "minutes"},
+  "transcripts": {"bg": "Стенограми", "route": "transcripts"},
+  "accounting": {"bg": "Счетоводни документи", "route": "accounting-documents"},
+  "others": {"bg": "Други документи", "route": "others"},
+  "private_documents": {"bg": "Лични документи", "route": "mydocuments"},
+}
+
 
 @lru_cache
 def get_allowed_file_extensions():
@@ -65,6 +76,30 @@ def _enrich_with_user_names(files_metadata: list[FileMetadata]):
       fm.uploaded_by_name = users_map.get(fm.uploaded_by, fm.uploaded_by)
 
 
+def get_existing_labels(repo: FileMetadataRepository) -> list[str]:
+  """Scan uploads table and return a sorted deduplicated list of all label strings."""
+  try:
+    items: list[dict] = []
+    response = repo.table.scan(ProjectionExpression="labels")
+    items.extend(response.get("Items", []))
+    while "LastEvaluatedKey" in response:
+      response = repo.table.scan(
+        ProjectionExpression="labels",
+        ExclusiveStartKey=response["LastEvaluatedKey"],
+      )
+      items.extend(response.get("Items", []))
+  except Exception as e:
+    raise MetadataError(f"Failed to scan labels: {e}")
+
+  label_set: set[str] = set()
+  for item in items:
+    for lbl in item.get("labels") or []:
+      if lbl and lbl.strip():
+        label_set.add(lbl.strip())
+
+  return sorted(label_set)
+
+
 def get_uploads_repository():
   return FileMetadataRepository(UPLOADS_TABLE_NAME)
 
@@ -98,6 +133,7 @@ def create_file_metadata(
     "created_at": file_metadata.created_at,
     "updated_at": file_metadata.created_at,
     "updated_by": user_id,
+    "labels": file_metadata.labels if file_metadata.labels else None,
   }
   try:
     repo.table.put_item(Item=file_metadata_item)
@@ -164,6 +200,9 @@ def update_file_metadata(
   old_key: str = item.get("key", "")
   new_file_type = request.file_type.value
 
+  # Build label SET/REMOVE expression fragment
+  has_labels = bool(request.labels)
+
   if old_file_type != new_file_type and old_key:
     s3 = boto3.client("s3")
     # Build new key: replace first path segment with new file_type
@@ -175,28 +214,44 @@ def update_file_metadata(
     except Exception as e:
       raise MetadataError(f"Failed to move S3 object: {e}")
 
+    expr_values: dict = {
+      ":fn": request.file_name,
+      ":ft": new_file_type,
+      ":key": new_key,
+      ":ua": now,
+      ":ub": user_id,
+    }
+    update_expr = "SET file_name = :fn, file_type = :ft, #k = :key, updated_at = :ua, updated_by = :ub"
+    if has_labels:
+      update_expr += ", labels = :lbl"
+      expr_values[":lbl"] = request.labels
+    else:
+      update_expr += " REMOVE labels"
+
     repo.table.update_item(
       Key={"id": file_id},
-      UpdateExpression="SET file_name = :fn, file_type = :ft, #k = :key, updated_at = :ua, updated_by = :ub",
+      UpdateExpression=update_expr,
       ExpressionAttributeNames={"#k": "key"},
-      ExpressionAttributeValues={
-        ":fn": request.file_name,
-        ":ft": new_file_type,
-        ":key": new_key,
-        ":ua": now,
-        ":ub": user_id,
-      },
+      ExpressionAttributeValues=expr_values,
     )
   else:
+    expr_values = {
+      ":fn": request.file_name,
+      ":ft": new_file_type,
+      ":ua": now,
+      ":ub": user_id,
+    }
+    update_expr = "SET file_name = :fn, file_type = :ft, updated_at = :ua, updated_by = :ub"
+    if has_labels:
+      update_expr += ", labels = :lbl"
+      expr_values[":lbl"] = request.labels
+    else:
+      update_expr += " REMOVE labels"
+
     repo.table.update_item(
       Key={"id": file_id},
-      UpdateExpression="SET file_name = :fn, file_type = :ft, updated_at = :ua, updated_by = :ub",
-      ExpressionAttributeValues={
-        ":fn": request.file_name,
-        ":ft": new_file_type,
-        ":ua": now,
-        ":ub": user_id,
-      },
+      UpdateExpression=update_expr,
+      ExpressionAttributeValues=expr_values,
     )
 
   updated = repo.table.get_item(Key={"id": file_id})["Item"]
@@ -410,6 +465,7 @@ def get_shared_files_audit(repo: FileMetadataRepository, user_repo: UserReposito
           created_at=created_at,
           shared_with_id=recipient_id,
           shared_with_name=users_map.get(recipient_id, recipient_id),
+          labels=item.get("labels") or None,
         )
       )
 
@@ -458,7 +514,7 @@ def revoke_share(file_id: str, user_id: str, repo: FileMetadataRepository, actor
 
 
 def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
-  """Send a file share notification email to each user in file_metadata.allowed_to."""
+  """Send a personal share notification email to each user in file_metadata.allowed_to."""
   from mail.operations import send_file_share_notification
   from users.operations import get_user_by_id
 
@@ -478,6 +534,59 @@ def notify_shared_users(file_metadata: FileMetadataFull, user_repo: UserReposito
     except Exception as e:
       print(f"Failed to send file share notification to user {user_id}: {e}")
       continue
+
+
+def notify_upload(file_metadata: FileMetadataFull, user_repo: UserRepository) -> None:
+  """Broadcast an upload notification to eligible subscribed users, then send personal share emails if needed.
+
+  Routing rules:
+  - private_documents: no broadcast; personal share only (handled by allowed_to list)
+  - accounting: broadcast to governance roles (board, control, accountant, admin) only
+  - all other types: broadcast to all subscribed users
+
+  After broadcasting, if allowed_to is non-empty, also sends personal share emails.
+  """
+  from mail.operations import send_upload_notification
+  from users.operations import get_subscribed_users
+
+  file_type = file_metadata.file_type.value
+  file_info = FILE_TYPE_DISPLAY.get(file_type, {"bg": file_type, "route": "home"})
+  category_bg = file_info["bg"]
+  documents_link = f"{FRONTEND_BASE_URL}/{file_info['route']}"
+
+  governance_roles = {
+    UserRole.BOARD.value,
+    UserRole.CONTROL.value,
+    UserRole.ACCOUNTANT.value,
+    UserRole.ADMIN.value,
+  }
+
+  # private_documents: skip broadcast entirely — only personal share emails apply
+  if file_type != FileType.private_documents.value:
+    try:
+      subscribed_users = get_subscribed_users(user_repo)
+    except Exception as e:
+      print(f"Failed to fetch subscribed users for upload notification: {e}")
+      subscribed_users = []
+
+    for user in subscribed_users:
+      # Accounting files: governance roles only
+      if file_type == FileType.accounting.value and user.role not in governance_roles:
+        continue
+      try:
+        send_upload_notification(
+          email=user.email,
+          file_name=file_metadata.file_name,
+          category_bg=category_bg,
+          documents_link=documents_link,
+        )
+      except Exception as e:
+        print(f"Failed to send upload notification to {user.email}: {e}")
+        continue
+
+  # Always send personal share emails to users explicitly listed in allowed_to
+  if file_metadata.allowed_to:
+    notify_shared_users(file_metadata, user_repo)
 
 
 def get_files_shared_with_user(user_id: str, repo: FileMetadataRepository) -> list[FileMetadata]:

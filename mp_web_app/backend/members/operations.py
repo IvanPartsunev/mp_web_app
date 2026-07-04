@@ -121,14 +121,16 @@ def _normalize_members(new_members_list: list[dict[str, Any]]):
 
     normalized_members_list.append(
       {
-        "first_name": member["first_name"].capitalize(),
-        "middle_name": member["middle_name"].capitalize(),
-        "last_name": member["last_name"].capitalize(),
+        "first_name": (member["first_name"] or "").capitalize(),
+        "middle_name": (member["middle_name"] or "").capitalize(),
+        "last_name": (member["last_name"] or "").capitalize(),
         "phone": phone,
         "email": email,
         "member_code": member["member_code"],
         "member_code_valid": True,
         "proxy": member["proxy"].lower() in ["1", "yes", "true"],
+        "board": member["board"].lower() in ["1", "yes", "true"],
+        "control": member["control"].lower() in ["1", "yes", "true"],
         "is_deleted": False,
       }
     )
@@ -214,18 +216,30 @@ def delete_member(member_code: str, repo: MemberRepository) -> bool:
     raise DatabaseError(f"Database error: {e.response['Error']['Message']}")
 
 
-def list_members(repo: MemberRepository, proxy_only: bool = False) -> list[Member]:
-  """List all members or filter by proxy status. Excludes soft-deleted members."""
+def list_members(
+  repo: MemberRepository, proxy_only: bool = False, board_only: bool = False, control_only: bool = False
+) -> list[Member]:
+  """List all members or filter by proxy status, board status or control status. Excludes soft-deleted members."""
   try:
     members = _get_members_from_db(repo)
     member_objects = [repo.convert_item_to_object(member) for member in members]
     active = sorted(
       (m for m in member_objects if not m.is_deleted),
-      key=lambda m: (m.first_name.lower(), m.middle_name.lower() if m.middle_name else "", m.last_name.lower()),
+      key=lambda m: (
+        m.first_name.lower() if m.first_name else "",
+        m.middle_name.lower() if m.middle_name else "",
+        m.last_name.lower() if m.last_name else "",
+      ),
     )
 
     if proxy_only:
       return [m for m in active if m.proxy]
+
+    if board_only:
+      return [m for m in active if m.board]
+
+    if control_only:
+      return [m for m in active if m.control]
 
     return active
   except ClientError as e:
@@ -242,7 +256,7 @@ def members_list_to_csv(repo: MemberRepository) -> io.BytesIO:
       (m.get("last_name") or "").lower(),
     ),
   )
-  fieldnames = ["member_code", "first_name", "middle_name", "last_name", "email", "phone", "proxy"]
+  fieldnames = ["member_code", "first_name", "middle_name", "last_name", "email", "phone", "proxy", "board", "control"]
 
   buf = io.StringIO()
   writer = csv.DictWriter(buf, fieldnames=fieldnames, extrasaction="ignore", lineterminator="\n")
@@ -256,7 +270,9 @@ def members_list_to_csv(repo: MemberRepository) -> io.BytesIO:
         "last_name": item.get("last_name", ""),
         "email": item.get("email") or "",
         "phone": (item.get("phone") or "").replace("+359", "0"),
-        "proxy": "true" if item.get("proxy") else "false",
+        "proxy": "yes" if item.get("proxy") else "no",
+        "board": "yes" if item.get("board") else "no",
+        "control": "yes" if item.get("control") else "no",
       }
     )
 

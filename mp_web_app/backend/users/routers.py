@@ -3,7 +3,7 @@ from pydantic import EmailStr
 from starlette.responses import RedirectResponse
 
 from app_config import FRONTEND_BASE_URL
-from auth.operations import decode_token, get_current_user, is_token_expired, role_required
+from auth.operations import decode_token, is_token_expired, role_required
 from database.repositories import MemberRepository, UserRepository
 from mail.operations import construct_verification_link, send_verification_email
 from members.operations import get_member_repository, is_member_code_valid, update_member_code
@@ -16,8 +16,6 @@ from users.operations import (
   get_user_by_id,
   get_user_repository,
   list_users,
-  redact_user_names,
-  redact_user_phone,
   update_user,
   update_user_password,
 )
@@ -27,7 +25,7 @@ user_router = APIRouter(tags=["users"])
 
 
 @user_router.get("/me", response_model=User, status_code=status.HTTP_200_OK)
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(current_user: User = Depends(role_required([UserRole.REGULAR_USER, UserRole.ACCOUNTANT]))):
   """Get current authenticated user information."""
   return current_user
 
@@ -157,7 +155,9 @@ async def user_redact_names(
   """Redact (clear) a user's first and last name (ADMIN only)."""
   try:
     existing_user = get_user_by_id(user_id, user_repo)
-    return redact_user_names(user_id, existing_user.email, user_repo)
+    return update_user(
+      user_id, existing_user.email, UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), user_repo
+    )
   except UserNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:
@@ -173,7 +173,7 @@ async def user_redact_phone(
   """Redact (clear) a user's phone number (ADMIN only)."""
   try:
     existing_user = get_user_by_id(user_id, user_repo)
-    return redact_user_phone(user_id, existing_user.email, user_repo)
+    return update_user(user_id, existing_user.email, UserUpdate(phone=None), user_repo)
   except UserNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   except DatabaseError as e:

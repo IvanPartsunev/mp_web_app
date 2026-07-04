@@ -5,20 +5,15 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {User as UserIcon, Mail, Phone, Search} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useMembers} from "@/hooks/useMembers";
-import {useAuth} from "@/context/AuthContext";
 import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES} from "@/lib/tableUtils";
 import {HERO_STYLES, SECTION_STYLES} from "@/lib/styles";
 import {usePagination} from "@/hooks/usePagination";
 import {TablePagination} from "@/components/table-pagination";
 import {RoleBadge} from "@/components/role-badge";
 
-export default function Proxies() {
-  const {data: members = [], isLoading: loading, error: queryError} = useMembers("proxy");
-  const error = queryError ? "Неуспешно зареждане на пълномощниците" : null;
-  const {isLoggedIn, user} = useAuth();
-  const isAdmin = user?.role === "admin";
-  const isBoardOrControl = user?.role === "board" || user?.role === "control";
-  const canSeePhone = isAdmin || isBoardOrControl;
+export default function Control() {
+  const {data: members = [], isLoading: loading, error: queryError} = useMembers("control");
+  const error = queryError ? "Неуспешно зареждане на контролния съвет" : null;
 
   const [search, setSearch] = useState("");
 
@@ -55,7 +50,7 @@ export default function Proxies() {
         <div className={HERO_STYLES.overlay} />
         <div className={HERO_STYLES.container}>
           <div className={HERO_STYLES.content}>
-            <h1 className={HERO_STYLES.title}>Пълномощници</h1>
+            <h1 className={HERO_STYLES.title}>Контролен съвет</h1>
           </div>
         </div>
       </section>
@@ -65,7 +60,7 @@ export default function Proxies() {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <CardTitle>
-                Списък на пълномощниците ({filteredMembers.length}
+                Членове на контролния съвет ({filteredMembers.length}
                 {search && ` от ${members.length}`})
               </CardTitle>
               <div className="relative w-full sm:w-64">
@@ -102,22 +97,18 @@ export default function Proxies() {
                         </TableHead>
                         <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.name}`}>Презиме</TableHead>
                         <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.name}`}>Фамилия</TableHead>
-                        {isLoggedIn && (
-                          <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.email}`}>
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4" />
-                              Имейл
-                            </div>
-                          </TableHead>
-                        )}
-                        {canSeePhone && (
-                          <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.phone}`}>
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4" />
-                              Телефон
-                            </div>
-                          </TableHead>
-                        )}
+                        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.email}`}>
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            Имейл
+                          </div>
+                        </TableHead>
+                        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.phone}`}>
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            Телефон
+                          </div>
+                        </TableHead>
                         <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.small}`}>Роля</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -130,10 +121,8 @@ export default function Proxies() {
                           <TableCell className={TABLE_STYLES.cellBase}>{member.first_name}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.middle_name || "-"}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>{member.last_name}</TableCell>
-                          {isLoggedIn && <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>}
-                          {canSeePhone && (
-                            <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>
-                          )}
+                          <TableCell className={TABLE_STYLES.cellBase}>{member.email || "-"}</TableCell>
+                          <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>
                           <TableCell className={TABLE_STYLES.cellBase}>
                             <RoleBadge proxy={member.proxy} board={member.board} control={member.control} />
                           </TableCell>

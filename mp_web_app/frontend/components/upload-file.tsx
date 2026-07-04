@@ -6,6 +6,8 @@ import {Label} from "@/components/ui/label";
 import {useNavigate} from "react-router-dom";
 import {useToast} from "@/components/ui/use-toast";
 import apiClient from "@/context/apiClient";
+import {useFileLabels} from "@/hooks/useFiles";
+import {LabelsComboField} from "@/components/labels-combofield";
 
 type User = {
   id: string;
@@ -46,6 +48,10 @@ export default function UploadFile() {
 
   // Get user role
   const [userRole, setUserRole] = useState<string>("");
+
+  // Labels state
+  const [labels, setLabels] = useState<string[]>([]);
+  const {data: existingLabels = []} = useFileLabels();
 
   // Frontend guard: only allow admins and accountants to access this page
   useEffect(() => {
@@ -123,6 +129,7 @@ export default function UploadFile() {
       const fd = new FormData();
       fd.append("file_type", fileType);
       selectedUserIds.forEach((id) => fd.append("allowed_to", id));
+      labels.forEach((lbl) => fd.append("labels", lbl));
       files.forEach((f) => fd.append("files", f));
 
       await apiClient.post(`files/create`, fd, {
@@ -137,6 +144,7 @@ export default function UploadFile() {
       setFiles([]);
       setFileType(fileTypeOptions[0]?.value ?? "");
       setSelectedUserIds([]);
+      setLabels([]);
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.response?.data?.message || err?.message || "Неуспех при качване.";
       toast({
@@ -215,6 +223,20 @@ export default function UploadFile() {
                   {userRole === "accountant"
                     ? "Счетоводителите могат да качват само счетоводни документи."
                     : "Използвайте валидна стойност според FileType в бекенда."}
+                </p>
+              </div>
+
+              <div className="grid gap-3">
+                <Label>Етикети (по избор)</Label>
+                <LabelsComboField
+                  value={labels}
+                  onChange={setLabels}
+                  existingLabels={existingLabels}
+                  disabled={submitting}
+                  placeholder="Изберете или въведете етикет"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Добавете един или повече етикети за по-лесно намиране на документа.
                 </p>
               </div>
 

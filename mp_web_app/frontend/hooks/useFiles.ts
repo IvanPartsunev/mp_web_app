@@ -1,6 +1,6 @@
 // hooks/useFiles.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient, {adminApiClient} from "@/context/apiClient";
+import apiClient from "@/context/apiClient";
 
 export type FileType =
   | "governing_documents"
@@ -19,6 +19,7 @@ export interface FileMetadata {
   uploaded_by_name?: string | null;
   created_at?: string | null;
   allowed_to?: string[] | null;
+  labels?: string[] | null;
 }
 
 export interface SharedFileAuditEntry {
@@ -30,6 +31,7 @@ export interface SharedFileAuditEntry {
   created_at: string | null;
   shared_with_id: string;
   shared_with_name: string | null;
+  labels?: string[] | null;
 }
 
 // Query key factory
@@ -38,9 +40,10 @@ export const fileKeys = {
   lists: () => [...fileKeys.all, "list"] as const,
   list: (fileType?: FileType) => [...fileKeys.lists(), {fileType}] as const,
   sharedAudit: () => [...fileKeys.all, "shared-audit"] as const,
+  labels: () => [...fileKeys.all, "labels"] as const,
 };
 
-// Fetch files by type (documents page — 5 minute cache)
+// Fetch files by type (documents page)
 export function useFiles(fileType: FileType, options?: {enabled?: boolean}) {
   return useQuery({
     queryKey: fileKeys.list(fileType),
@@ -51,12 +54,11 @@ export function useFiles(fileType: FileType, options?: {enabled?: boolean}) {
       });
       return response.data ?? [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: options?.enabled ?? true,
   });
 }
 
-// Fetch all files (admin) — always fresh, bypasses browser HTTP cache via X-Admin-Request header
+// Fetch all files (admin)
 export function useAllFiles() {
   return useQuery({
     queryKey: fileKeys.lists(),
@@ -74,7 +76,7 @@ export function useAllFiles() {
       const allFiles: FileMetadata[] = [];
       for (const type of fileTypes) {
         try {
-          const response = await adminApiClient.get<FileMetadata[]>("files/list", {
+          const response = await apiClient.get<FileMetadata[]>("files/list", {
             params: {file_type: type},
           });
           if (response.data) {
@@ -86,7 +88,6 @@ export function useAllFiles() {
       }
       return allFiles;
     },
-    staleTime: 0, // admin panel — always fetch fresh data
   });
 }
 
@@ -95,8 +96,18 @@ export function useUpdateFileMetadata() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({id, file_name, file_type}: {id: string; file_name: string; file_type: FileType}) => {
-      const response = await adminApiClient.patch<FileMetadata>(`files/${id}/metadata`, {file_name, file_type});
+    mutationFn: async ({
+      id,
+      file_name,
+      file_type,
+      labels,
+    }: {
+      id: string;
+      file_name: string;
+      file_type: FileType;
+      labels?: string[] | null;
+    }) => {
+      const response = await apiClient.patch<FileMetadata>(`files/${id}/metadata`, {file_name, file_type, labels});
       return response.data;
     },
     onSuccess: () => {
@@ -127,19 +138,17 @@ export function useSharedWithMe() {
       const response = await apiClient.get<FileMetadata[]>("files/shared-with-me");
       return response.data ?? [];
     },
-    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Fetch shared files audit (admin only) — always fresh, bypasses browser HTTP cache
+// Fetch shared files audit (admin only)
 export function useSharedFilesAudit() {
   return useQuery({
     queryKey: fileKeys.sharedAudit(),
     queryFn: async () => {
-      const response = await adminApiClient.get<SharedFileAuditEntry[]>("files/shared-audit");
+      const response = await apiClient.get<SharedFileAuditEntry[]>("files/shared-audit");
       return response.data ?? [];
     },
-    staleTime: 0,
   });
 }
 
@@ -163,13 +172,24 @@ export function useShareFile() {
 
   return useMutation({
     mutationFn: async ({fileId, userIds}: {fileId: string; userIds: string[]}) => {
-      const response = await adminApiClient.patch<{allowed_to: string[]}>(`files/${fileId}/share`, {
+      const response = await apiClient.patch<{allowed_to: string[]}>(`files/${fileId}/share`, {
         user_ids: userIds,
       });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: fileKeys.all});
+    },
+  });
+}
+
+// Fetch all existing label strings (admin / accountant only)
+export function useFileLabels() {
+  return useQuery({
+    queryKey: fileKeys.labels(),
+    queryFn: async () => {
+      const response = await apiClient.get<string[]>("files/labels");
+      return response.data ?? [];
     },
   });
 }

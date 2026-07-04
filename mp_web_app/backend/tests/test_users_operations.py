@@ -200,3 +200,68 @@ class TestDeleteUser:
       delete_user("test@example.com", mock_repo)
 
     mock_repo.table.delete_item.assert_not_called()
+
+
+class TestRedactUserNames:
+  @patch("users.operations.get_user_by_email")
+  def test_redacts_first_and_last_name(self, mock_get_user):
+    mock_user = Mock()
+    mock_user.id = "user123"
+    mock_get_user.return_value = mock_user
+
+    mock_repo = Mock()
+    redacted_user = Mock()
+    mock_repo.table.update_item.return_value = {"Attributes": {}}
+    mock_repo.convert_item_to_object.return_value = redacted_user
+
+    result = update_user(
+      "user123", "test@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo
+    )
+
+    assert result == redacted_user
+    call_args = mock_repo.table.update_item.call_args[1]
+    assert call_args["ExpressionAttributeValues"][":first_name"] == "[ЗАЛИЧЕНО]"
+    assert call_args["ExpressionAttributeValues"][":last_name"] == "[ЗАЛИЧЕНО]"
+
+  @patch("users.operations.get_user_by_email")
+  def test_raises_user_not_found(self, mock_get_user):
+    mock_get_user.return_value = None
+
+    mock_repo = Mock()
+
+    with pytest.raises(UserNotFoundError):
+      update_user(
+        "user123", "missing@example.com", UserUpdate(first_name="[ЗАЛИЧЕНО]", last_name="[ЗАЛИЧЕНО]"), mock_repo
+      )
+
+    mock_repo.table.update_item.assert_not_called()
+
+
+class TestRedactUserPhone:
+  @patch("users.operations.get_user_by_email")
+  def test_sets_phone_to_none(self, mock_get_user):
+    mock_user = Mock()
+    mock_user.id = "user123"
+    mock_get_user.return_value = mock_user
+
+    mock_repo = Mock()
+    redacted_user = Mock()
+    mock_repo.table.update_item.return_value = {"Attributes": {}}
+    mock_repo.convert_item_to_object.return_value = redacted_user
+
+    result = update_user("user123", "test@example.com", UserUpdate(phone=None), mock_repo)
+
+    assert result == redacted_user
+    call_args = mock_repo.table.update_item.call_args[1]
+    assert call_args["ExpressionAttributeValues"][":phone"] is None
+
+  @patch("users.operations.get_user_by_email")
+  def test_raises_user_not_found(self, mock_get_user):
+    mock_get_user.return_value = None
+
+    mock_repo = Mock()
+
+    with pytest.raises(UserNotFoundError):
+      update_user("user123", "missing@example.com", UserUpdate(phone=None), mock_repo)
+
+    mock_repo.table.update_item.assert_not_called()

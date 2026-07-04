@@ -8,6 +8,7 @@ from files.operations import (
   _check_file_allowed_to_user,
   _create_file_name,
   _validate_metadata,
+  get_existing_labels,
   notify_shared_users,
 )
 
@@ -316,3 +317,220 @@ class TestAddShare:
     call_kwargs = repo.table.update_item.call_args.kwargs
     assert call_kwargs["ExpressionAttributeValues"][":new_ids"] == ["uid-a"]
     assert result == ["uid-a"]
+
+
+class TestNotifyUpload:
+  def _make_file_meta(self, file_type, allowed_to=None):
+    from files.models import FileMetadataFull, FileType
+
+    return FileMetadataFull(
+      id="file-1",
+      file_name="document.pdf",
+      file_type=FileType(file_type),
+      bucket="test-bucket",
+      key=f"{file_type}/document.pdf",
+      uploaded_by="admin-1",
+      created_at="2024-01-01T00:00:00",
+      allowed_to=allowed_to,
+    )
+
+  def _make_user(self, role, email):
+    user = Mock()
+    user.role = role
+    user.email = email
+    user.id = f"user-{email}"
+    return user
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_broadcasts_to_all_subscribers_for_regular_file_type(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    users = [
+      self._make_user("regular", "a@example.com"),
+      self._make_user("board", "b@example.com"),
+    ]
+    mock_get_users.return_value = users
+    file_meta = self._make_file_meta("minutes")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    assert mock_send_upload.call_count == 2
+    emails = {c.kwargs["email"] for c in mock_send_upload.call_args_list}
+    assert emails == {"a@example.com", "b@example.com"}
+    mock_notify_shared.assert_not_called()
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_accounting_excludes_regular_users(self, mock_get_users, mock_send_upload, mock_notify_shared):
+    from files.operations import notify_upload
+
+    users = [
+      self._make_user("regular", "regular@example.com"),
+      self._make_user("board", "board@example.com"),
+      self._make_user("control", "control@example.com"),
+      self._make_user("accountant", "accountant@example.com"),
+      self._make_user("admin", "admin@example.com"),
+    ]
+    mock_get_users.return_value = users
+    file_meta = self._make_file_meta("accounting")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    emails = {c.kwargs["email"] for c in mock_send_upload.call_args_list}
+    assert "regular@example.com" not in emails
+    assert {"board@example.com", "control@example.com", "accountant@example.com", "admin@example.com"} == emails
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_private_documents_skips_broadcast(self, mock_get_users, mock_send_upload, mock_notify_shared):
+    from files.operations import notify_upload
+
+    file_meta = self._make_file_meta("private_documents", allowed_to=["uid-1"])
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_get_users.assert_not_called()
+    mock_send_upload.assert_not_called()
+    mock_notify_shared.assert_called_once_with(file_meta, user_repo)
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_calls_notify_shared_users_when_allowed_to_set(self, mock_get_users, mock_send_upload, mock_notify_shared):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = []
+    file_meta = self._make_file_meta("minutes", allowed_to=["uid-1", "uid-2"])
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_notify_shared.assert_called_once_with(file_meta, user_repo)
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_does_not_call_notify_shared_when_allowed_to_empty(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = []
+    file_meta = self._make_file_meta("minutes", allowed_to=None)
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    mock_notify_shared.assert_not_called()
+
+  @patch("files.operations.notify_shared_users")
+  @patch("mail.operations.send_upload_notification")
+  @patch("users.operations.get_subscribed_users")
+  def test_upload_notification_includes_correct_category_and_link(
+    self, mock_get_users, mock_send_upload, mock_notify_shared
+  ):
+    from files.operations import notify_upload
+
+    mock_get_users.return_value = [self._make_user("regular", "user@example.com")]
+    file_meta = self._make_file_meta("governing_documents")
+    user_repo = Mock()
+
+    notify_upload(file_meta, user_repo)
+
+    call_kwargs = mock_send_upload.call_args.kwargs
+    assert call_kwargs["category_bg"] == "Нормативни документи"
+    assert call_kwargs["documents_link"].endswith("/governing-documents")
+    assert call_kwargs["file_name"] == "document.pdf"
+
+
+class TestGetExistingLabels:
+  def _make_repo(self, scan_pages: list[list[dict]]):
+    """Build a mock repo whose table.scan returns paginated results."""
+    repo = Mock()
+    responses = []
+    for i, page in enumerate(scan_pages):
+      resp: dict = {"Items": page}
+      if i < len(scan_pages) - 1:
+        resp["LastEvaluatedKey"] = {"id": f"last-key-{i}"}
+      responses.append(resp)
+    repo.table.scan.side_effect = responses
+    return repo
+
+  def test_returns_empty_list_when_no_items(self):
+    repo = self._make_repo([[]])
+
+    result = get_existing_labels(repo)
+
+    assert result == []
+
+  def test_returns_empty_list_when_items_have_no_labels(self):
+    repo = self._make_repo([[{"id": "f1"}, {"id": "f2", "labels": None}]])
+
+    result = get_existing_labels(repo)
+
+    assert result == []
+
+  def test_collects_labels_from_single_page(self):
+    repo = self._make_repo(
+      [
+        [
+          {"id": "f1", "labels": ["beta", "alpha"]},
+          {"id": "f2", "labels": ["gamma"]},
+        ]
+      ]
+    )
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta", "gamma"]
+
+  def test_deduplicates_labels_across_items(self):
+    repo = self._make_repo(
+      [
+        [
+          {"id": "f1", "labels": ["alpha", "beta"]},
+          {"id": "f2", "labels": ["beta", "gamma"]},
+        ]
+      ]
+    )
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta", "gamma"]
+
+  def test_collects_labels_across_paginated_results(self):
+    repo = self._make_repo(
+      [
+        [{"id": "f1", "labels": ["alpha"]}],
+        [{"id": "f2", "labels": ["beta"]}],
+      ]
+    )
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha", "beta"]
+
+  def test_ignores_empty_string_labels(self):
+    repo = self._make_repo([[{"id": "f1", "labels": ["alpha", "", "  "]}]])
+
+    result = get_existing_labels(repo)
+
+    assert result == ["alpha"]
+
+  def test_raises_metadata_error_on_scan_failure(self):
+    from files.exceptions import MetadataError
+
+    repo = Mock()
+    repo.table.scan.side_effect = Exception("DynamoDB down")
+
+    with pytest.raises(MetadataError):
+      get_existing_labels(repo)

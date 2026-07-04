@@ -10,10 +10,20 @@ import {ShareFileDialog} from "@/components/share-file-dialog";
 import {useToast} from "@/components/ui/use-toast";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {TABLE_STYLES, COLUMN_WIDTHS, DEFAULT_PAGE_SIZE} from "@/lib/tableUtils";
-import {useAllFiles, useDeleteFile, useUpdateFileMetadata, FileMetadata, FileType} from "@/hooks/useFiles";
+import {
+  useAllFiles,
+  useDeleteFile,
+  useUpdateFileMetadata,
+  useFileLabels,
+  FileMetadata,
+  FileType,
+} from "@/hooks/useFiles";
 import type {ApiError} from "@/lib/errorUtils";
 import {TablePagination} from "@/components/table-pagination";
-import {Pencil, Trash2, Forward} from "lucide-react";
+import {ExpandableLabelCell} from "@/components/expandable-label-cell";
+import {LabelsComboField} from "@/components/labels-combofield";
+import {ExpandableNameCell} from "@/components/expandable-name-cell";
+import {Pencil, Trash2, Forward, Search} from "lucide-react";
 
 const FILE_TYPES = [
   {value: "all", label: "Всички документи"},
@@ -28,17 +38,29 @@ const FILE_TYPES = [
 
 const EDITABLE_FILE_TYPES = FILE_TYPES.filter((t) => t.value !== "all");
 
+function matchesSearch(file: FileMetadata, query: string): boolean {
+  if (!query.trim()) return true;
+  const terms = query.trim().toLowerCase().split(/\s+/);
+  return terms.every(
+    (term) =>
+      (file.file_name ?? "").toLowerCase().includes(term) ||
+      (file.labels ?? []).some((lbl) => lbl.toLowerCase().includes(term))
+  );
+}
+
 export default function DocumentsManagement() {
   const {data: files = [], isLoading: loading} = useAllFiles();
   const deleteMutation = useDeleteFile();
   const updateMutation = useUpdateFileMetadata();
+  const {data: existingLabels = []} = useFileLabels();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileMetadata | null>(null);
-  const [editForm, setEditForm] = useState({file_name: "", file_type: "" as FileType});
+  const [editForm, setEditForm] = useState({file_name: "", file_type: "" as FileType, labels: [] as string[]});
   const [shareTarget, setShareTarget] = useState<FileMetadata | null>(null);
   const [selectedFileType, setSelectedFileType] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
 
   const {toast} = useToast();
@@ -49,12 +71,11 @@ export default function DocumentsManagement() {
       if (!b.created_at) return -1;
       const dateDiff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (dateDiff !== 0) return dateDiff;
-      // Secondary sort by id for stability when created_at values are equal
       return (a.id ?? "").localeCompare(b.id ?? "");
     });
-    if (selectedFileType === "all") return sorted;
-    return sorted.filter((f) => f.file_type === selectedFileType);
-  }, [selectedFileType, files]);
+    const byType = selectedFileType === "all" ? sorted : sorted.filter((f) => f.file_type === selectedFileType);
+    return byType.filter((f) => matchesSearch(f, searchQuery));
+  }, [selectedFileType, searchQuery, files]);
 
   const totalPages = Math.max(1, Math.ceil(filteredFiles.length / DEFAULT_PAGE_SIZE));
   const pagedFiles = filteredFiles.slice((page - 1) * DEFAULT_PAGE_SIZE, page * DEFAULT_PAGE_SIZE);
@@ -66,14 +87,23 @@ export default function DocumentsManagement() {
 
   const openEditDialog = (file: FileMetadata) => {
     setSelectedFile(file);
-    setEditForm({file_name: file.file_name ?? "", file_type: file.file_type as FileType});
+    setEditForm({
+      file_name: file.file_name ?? "",
+      file_type: file.file_type as FileType,
+      labels: file.labels ?? [],
+    });
     setEditDialogOpen(true);
   };
 
   const handleEdit = () => {
     if (!selectedFile?.id) return;
     updateMutation.mutate(
-      {id: selectedFile.id, file_name: editForm.file_name, file_type: editForm.file_type},
+      {
+        id: selectedFile.id,
+        file_name: editForm.file_name,
+        file_type: editForm.file_type,
+        labels: editForm.labels.length > 0 ? editForm.labels : null,
+      },
       {
         onSuccess: () => {
           toast({title: "Успех", description: "Документът е обновен успешно"});
@@ -90,7 +120,6 @@ export default function DocumentsManagement() {
 
   const handleDelete = async () => {
     if (!selectedFile?.id) return;
-
     deleteMutation.mutate(selectedFile.id, {
       onSuccess: () => {
         toast({title: "Успех", description: "Документът е изтрит успешно"});
@@ -116,8 +145,10 @@ export default function DocumentsManagement() {
   return (
     <AdminLayout title="Управление на документи">
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <h3 className="text-lg font-semibold">Списък с документи</h3>
+        <div className="flex flex-wrap items-center gap-4">
+          <h3 className="text-lg font-semibold">
+            Списък с документи ({filteredFiles.length} {filteredFiles.length === 1 ? "документ" : "документа"})
+          </h3>
           <Select
             value={selectedFileType}
             onValueChange={(v) => {
@@ -125,7 +156,7 @@ export default function DocumentsManagement() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[320px]">
+            <SelectTrigger className="w-[260px]">
               <SelectValue placeholder="Изберете тип документ" />
             </SelectTrigger>
             <SelectContent sideOffset={5}>
@@ -136,16 +167,27 @@ export default function DocumentsManagement() {
               ))}
             </SelectContent>
           </Select>
-          <span className="text-sm text-muted-foreground">
-            ({filteredFiles.length} {filteredFiles.length === 1 ? "документ" : "документа"})
-          </span>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Търсене по име или етикет..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="pl-8"
+            />
+          </div>
         </div>
 
         {loading ? (
           <LoadingSpinner />
         ) : filteredFiles.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            Няма налични документи{selectedFileType !== "all" ? " от този тип" : ""}
+            {searchQuery
+              ? "Няма намерени резултати."
+              : `Няма налични документи${selectedFileType !== "all" ? " от този тип" : ""}`}
           </p>
         ) : (
           <div className={TABLE_STYLES.scrollWrapper}>
@@ -153,10 +195,11 @@ export default function DocumentsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.rowNumber}`}>№</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[320px]`}>Файл</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Тип</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headCenter} w-[210px]`}>Качен от</TableHead>
-                  <TableHead className={`${TABLE_STYLES.headBase} w-[120px]`}>Дата</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[300px]`}>Файл</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[200px]`}>Етикети</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[110px]`}>Тип</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headCenter} w-[180px]`}>Качен от</TableHead>
+                  <TableHead className={`${TABLE_STYLES.headBase} w-[100px]`}>Дата</TableHead>
                   <TableHead className={`${TABLE_STYLES.headCenter} w-[90px]`}>Действия</TableHead>
                 </TableRow>
               </TableHeader>
@@ -166,8 +209,11 @@ export default function DocumentsManagement() {
                     <TableCell className={TABLE_STYLES.rowNumberCell}>
                       {(page - 1) * DEFAULT_PAGE_SIZE + index + 1}
                     </TableCell>
-                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium w-[320px] min-w-[200px]`}>
-                      <span className="block truncate pr-4">{file.file_name}</span>
+                    <TableCell className={`${TABLE_STYLES.cellBase} font-medium w-[300px] min-w-[200px]`}>
+                      <ExpandableNameCell name={file.file_name} />
+                    </TableCell>
+                    <TableCell className="w-[200px] min-w-[200px] max-w-[200px] py-2">
+                      <ExpandableLabelCell labels={file.labels} />
                     </TableCell>
                     <TableCell className={TABLE_STYLES.cellBase}>
                       <span className="text-sm text-muted-foreground">{getFileTypeLabel(file.file_type)}</span>
@@ -223,7 +269,7 @@ export default function DocumentsManagement() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Редактирай документ</DialogTitle>
-              <DialogDescription>Променете името или типа на документа</DialogDescription>
+              <DialogDescription>Променете името, типа или етикетите на документа</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -250,6 +296,17 @@ export default function DocumentsManagement() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Етикети</label>
+                <div className="mt-1.5">
+                  <LabelsComboField
+                    value={editForm.labels}
+                    onChange={(labels) => setEditForm({...editForm, labels})}
+                    existingLabels={existingLabels}
+                    disabled={updateMutation.isPending}
+                  />
+                </div>
               </div>
               <Button onClick={handleEdit} className="w-full" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "Запазване..." : "Запази"}

@@ -1,6 +1,6 @@
 // hooks/useUsers.ts
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import apiClient, {adminApiClient} from "@/context/apiClient";
+import apiClient from "@/context/apiClient";
 
 export interface User {
   id?: string;
@@ -22,43 +22,16 @@ export const userKeys = {
   all: ["users"] as const,
   lists: () => [...userKeys.all, "list"] as const,
   list: () => [...userKeys.lists()] as const,
-  board: () => [...userKeys.all, "board"] as const,
-  control: () => [...userKeys.all, "control"] as const,
 };
 
-// Fetch all users (admin) — always fresh, bypasses browser HTTP cache via X-Admin-Request header
+// Fetch all users (admin)
 export function useUsersList() {
   return useQuery({
     queryKey: userKeys.list(),
     queryFn: async () => {
-      const response = await adminApiClient.get<User[]>("users/list");
+      const response = await apiClient.get<User[]>("users/list");
       return response.data ?? [];
     },
-    staleTime: 0, // admin panel — always fetch fresh data
-  });
-}
-
-// Fetch board members — 5 minute cache
-export function useBoardMembers() {
-  return useQuery({
-    queryKey: userKeys.board(),
-    queryFn: async () => {
-      const response = await apiClient.get<User[]>("users/board");
-      return response.data ?? [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Fetch control members — 5 minute cache
-export function useControlMembers() {
-  return useQuery({
-    queryKey: userKeys.control(),
-    queryFn: async () => {
-      const response = await apiClient.get<User[]>("users/control");
-      return response.data ?? [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
@@ -91,13 +64,13 @@ export function useDeleteUser() {
   });
 }
 
-// Redact user phone mutation
+// Redact user phone — clears phone via update
 export function useRedactUserPhone() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.patch(`users/redact-phone/${id}`);
+      const response = await apiClient.put(`users/update/${id}`, {phone: null});
       return response.data;
     },
     onSuccess: () => {
@@ -106,13 +79,13 @@ export function useRedactUserPhone() {
   });
 }
 
-// Redact user names mutation
+// Redact user names — clears first/last name via update
 export function useRedactUserNames() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.patch(`users/redact-names/${id}`);
+      const response = await apiClient.put(`users/update/${id}`, {first_name: "[ЗАЛИЧЕНО]", last_name: "[ЗАЛИЧЕНО]"});
       return response.data;
     },
     onSuccess: () => {

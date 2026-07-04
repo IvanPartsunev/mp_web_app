@@ -162,38 +162,6 @@ def list_users(repo: UserRepository) -> list[User]:
   return [repo.convert_item_to_object(item) for item in response["Items"]]
 
 
-def redact_user_names(user_id: str, user_email: EmailStr | str, repo: UserRepository) -> User:
-  """Remove a user's first and last name from DynamoDB."""
-  existing_user = get_user_by_email(user_email, repo)
-  if not existing_user:
-    raise UserNotFoundError(user_email)
-
-  response = repo.table.update_item(
-    Key={"id": user_id},
-    UpdateExpression="SET #first_name = :redacted, #last_name = :redacted, #updated_at = :updated_at",
-    ExpressionAttributeNames={"#first_name": "first_name", "#last_name": "last_name", "#updated_at": "updated_at"},
-    ExpressionAttributeValues={":redacted": "[ЗАЛИЧЕНО]", ":updated_at": datetime.now().isoformat()},
-    ReturnValues="ALL_NEW",
-  )
-  return repo.convert_item_to_object(response["Attributes"])
-
-
-def redact_user_phone(user_id: str, user_email: EmailStr | str, repo: UserRepository) -> User:
-  """Remove a user's phone number from DynamoDB."""
-  existing_user = get_user_by_email(user_email, repo)
-  if not existing_user:
-    raise UserNotFoundError(user_email)
-
-  response = repo.table.update_item(
-    Key={"id": user_id},
-    UpdateExpression="SET #phone = :phone, #updated_at = :updated_at",
-    ExpressionAttributeNames={"#phone": "phone", "#updated_at": "updated_at"},
-    ExpressionAttributeValues={":phone": None, ":updated_at": datetime.now().isoformat()},
-    ReturnValues="ALL_NEW",
-  )
-  return repo.convert_item_to_object(response["Attributes"])
-
-
 def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate, repo: UserRepository) -> User:
   """Update a user in DynamoDB. Raises UserNotFoundError if not found."""
 
@@ -227,14 +195,19 @@ def update_user(user_id: str, user_email: EmailStr | str, user_data: UserUpdate,
     expression_attribute_values[":email"] = user_data.email
     expression_attribute_names["#email"] = "email"
 
-  if user_data.phone is not None:
-    try:
-      phone = validate_phone(user_data.phone)
-    except ValueError as e:
-      raise ValidationError(f"Error when creating {user_data.email}: {e}")
-    update_expression_parts.append("#phone = :phone")
-    expression_attribute_values[":phone"] = phone
-    expression_attribute_names["#phone"] = "phone"
+  if user_data.phone is not None or "phone" in user_data.model_fields_set:
+    if user_data.phone is None:
+      update_expression_parts.append("#phone = :phone")
+      expression_attribute_values[":phone"] = None
+      expression_attribute_names["#phone"] = "phone"
+    else:
+      try:
+        phone = validate_phone(user_data.phone)
+      except ValueError as e:
+        raise ValidationError(f"Error when creating {user_data.email}: {e}")
+      update_expression_parts.append("#phone = :phone")
+      expression_attribute_values[":phone"] = phone
+      expression_attribute_names["#phone"] = "phone"
 
   if user_data.role is not None:
     update_expression_parts.append("#role = :role")

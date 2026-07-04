@@ -3,13 +3,15 @@ from pydantic import BaseModel, EmailStr
 
 class Member(BaseModel):
   first_name: str
-  middle_name: str | None = None
+  middle_name: str
   last_name: str
   email: EmailStr | None
   phone: str | None
   member_code: str
   member_code_valid: bool = True
   proxy: bool = False
+  board: bool = False
+  control: bool = False
   is_deleted: bool = False
 
 
@@ -17,9 +19,34 @@ class MemberPublic(BaseModel):
   """Public member model - only shows first and last name."""
 
   first_name: str
-  middle_name: str | None = None
+  middle_name: str
   last_name: str
-  proxy: bool = False
+  proxy: bool
+  board: bool
+  control: bool
+
+
+class MemberProxy(BaseModel):
+  """Public member model - only shows first and last name."""
+
+  first_name: str
+  middle_name: str
+  last_name: str
+  email: EmailStr | None
+  proxy: bool
+  board: bool
+  control: bool
+
+
+class MemberGovernance(BaseModel):
+  first_name: str
+  middle_name: str
+  last_name: str
+  email: EmailStr | None
+  phone: str | None
+  proxy: bool
+  board: bool
+  control: bool
 
 
 class MemberUpdate(BaseModel):

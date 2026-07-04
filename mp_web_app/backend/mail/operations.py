@@ -2,6 +2,7 @@ from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 import boto3
@@ -12,6 +13,17 @@ from pydantic import EmailStr
 from app_config import FRONTEND_BASE_URL, SesSettings
 from auth.operations import generate_activation_token, generate_reset_token, generate_unsubscribe_token
 from mail.exceptions import EmailSendError
+
+_TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+def render_template(template_name: str, **kwargs) -> str:
+  """Load an HTML template from mail/templates/ and substitute variables."""
+  template_path = _TEMPLATES_DIR / template_name
+  if not template_path.exists():
+    raise FileNotFoundError(f"Email template not found: {template_name}")
+  content = template_path.read_text(encoding="utf-8")
+  return content.format_map(kwargs)
 
 
 @lru_cache
@@ -76,47 +88,9 @@ def send_verification_email(
   verification_link: str,
 ):
   subject = "Потвърдете регистрацията си в ГПК Мурджов Пожар"
-
-  html_body = f"""
-    <!DOCTYPE html>
-    <html lang="bg">
-      <head>
-        <meta charset="UTF-8">
-        <title>Потвърдете Вашия акаунт</title>
-      </head>
-      <body style="margin:0;padding:0;background-color:#f8f9fa;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
-          <tr>
-            <td align="center">
-              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
-                <tr>
-                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
-                    <p style="margin:0 0 16px 0;">Здравейте,</p>
-                    <p style="margin:0 0 24px 0;">Моля, потвърдете Вашия акаунт, като натиснете бутона по-долу:</p>
-                    <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
-                      Кликнете тук
-                    </a>
-                    <p style="margin:24px 0 0 0;">Ако не сте заявили регистрация, моля игнорирайте този имейл.</p>
-                    <p style="margin:24px 0 0 0;font-size:13px;">С уважение, от екипа на<br>ГПК "Мурджов пожар"<br>с. Славейно</p>
-                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
-                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-    """
+  html_body = render_template("verification.html", verification_link=verification_link)
   try:
-    send_email_ses(
-      to_address=email,
-      subject=subject,
-      html_body=html_body,
-    )
+    send_email_ses(to_address=email, subject=subject, html_body=html_body)
   except Exception as e:
     raise EmailSendError(f"Failed to send email: {e}")
 
@@ -128,46 +102,14 @@ def send_news_notification(
   news_link: str,
 ):
   unsubscribe_link = construct_unsubscribe_link(user_id, email, request)
-
-  subject = "ГПК Мурджов Пожар"
-
-  html_body = f"""
-    <!DOCTYPE html>
-    <html lang="bg">
-      <head>
-        <meta charset="UTF-8">
-        <title>Нова новина в сайта на ГПК Мурджов Пожар</title>
-      </head>
-      <body style="margin:0;padding:0;background-color:#f8f9fa;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
-          <tr>
-            <td align="center">
-              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
-                <tr>
-                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
-                    <p style="margin:0 0 16px 0;">Здравейте,</p>
-                    <p style="margin:0 0 24px 0;">Има нова новина на нашия сайт! Можете да я прочетете, като натиснете бутона по-долу:</p>
-                    <a href="{news_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
-                      Кликнете тук
-                    </a>
-                    <p style="margin:24px 0 0 0;">Ако не сте заявили абонамент за новини, моля игнорирайте този имейл.</p>
-                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
-                      Това е автоматично съобщение, моля не отговаряйте на този имейл.<br>
-                      Ако не желаете да получавате повече новини, <a href="{unsubscribe_link}" style="color:#16a34a;">отпишете се тук</a>.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-    """
+  subject = "ГПК Мурджов Пожар – нова новина"
+  html_body = render_template("news_notification.html", news_link=news_link, unsubscribe_link=unsubscribe_link)
   try:
     send_email_ses(
-      to_address=email, subject=subject, html_body=html_body, headers={"List-Unsubscribe": f"<{unsubscribe_link}>"}
+      to_address=email,
+      subject=subject,
+      html_body=html_body,
+      headers={"List-Unsubscribe": f"<{unsubscribe_link}>"},
     )
   except Exception:
     raise EmailSendError("Failed to send email")
@@ -178,47 +120,9 @@ def send_reset_email(
   verification_link: str,
 ):
   subject = "Рестартирайте паролата си в ГПК Мурджов Пожар"
-
-  html_body = f"""
-    <!DOCTYPE html>
-    <html lang="bg">
-      <head>
-        <meta charset="UTF-8">
-        <title>Промяна на парола</title>
-      </head>
-      <body style="margin:0;padding:0;background-color:#f8f9fa;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
-          <tr>
-            <td align="center">
-              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
-                <tr>
-                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
-                    <p style="margin:0 0 16px 0;">Здравейте,</p>
-                    <p style="margin:0 0 24px 0;">Моля, за да рестартирате вашата парола натиснете бутона по-долу:</p>
-                    <a href="{verification_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
-                      Кликнете тук
-                    </a>
-                    <p style="margin:24px 0 0 0;">Ако не сте заявили рестартиране, моля игнорирайте този имейл.</p>
-                    <p style="margin:24px 0 0 0;font-size:13px;">С уважение, от екипа на<br>ГПК "Мурджов пожар"<br>с. Славейно</p>
-                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
-                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-    """
+  html_body = render_template("reset_password.html", verification_link=verification_link)
   try:
-    send_email_ses(
-      to_address=email,
-      subject=subject,
-      html_body=html_body,
-    )
+    send_email_ses(to_address=email, subject=subject, html_body=html_body)
   except Exception as e:
     raise EmailSendError(f"Failed to send email: {e}")
 
@@ -228,45 +132,33 @@ def send_file_share_notification(
   file_name: str,
   download_link: str,
 ) -> None:
-  """Send a Bulgarian-language email notifying a user that a file was shared with them."""
+  """Send a personal email notifying a user that a file was shared specifically with them."""
   subject = "ГПК Мурджов Пожар – споделен файл"
-
-  html_body = f"""
-    <!DOCTYPE html>
-    <html lang="bg">
-      <head>
-        <meta charset="UTF-8">
-        <title>Споделен файл – ГПК Мурджов Пожар</title>
-      </head>
-      <body style="margin:0;padding:0;background-color:#f8f9fa;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8f9fa;">
-          <tr>
-            <td align="center">
-              <table width="480" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;padding:32px 24px;margin:40px auto;">
-                <tr>
-                  <td style="font-family:Arial,sans-serif;color:#222;font-size:16px;text-align:left;padding:0;">
-                    <p style="margin:0 0 16px 0;">Здравейте,</p>
-                    <p style="margin:0 0 24px 0;">Файлът „{file_name}" беше споделен с Вас. Можете да го изтеглите, като натиснете бутона по-долу:</p>
-                    <a href="{download_link}"
-                       style="display:inline-block;padding:12px 28px;background-color:#16a34a;color:#fff;text-decoration:none;border-radius:5px;font-size:16px;font-weight:bold;letter-spacing:1px;margin-bottom:24px;">
-                      Изтеглете файла
-                    </a>
-                    <p style="margin:32px 0 0 0;font-size:13px;color:#888;text-align:left;">
-                      Това е автоматично съобщение, моля не отговаряйте на този имейл.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-    """
+  html_body = render_template("share_notification.html", file_name=file_name, download_link=download_link)
   try:
     send_email_ses(to_address=email, subject=subject, html_body=html_body)
   except Exception as e:
     raise EmailSendError(f"Failed to send file share notification: {e}")
+
+
+def send_upload_notification(
+  email: str,
+  file_name: str,
+  category_bg: str,
+  documents_link: str,
+) -> None:
+  """Send a broadcast email notifying a subscribed user that a new file was uploaded."""
+  subject = f"ГПК Мурджов Пожар – нов файл в {category_bg}"
+  html_body = render_template(
+    "upload_notification.html",
+    file_name=file_name,
+    category_bg=category_bg,
+    documents_link=documents_link,
+  )
+  try:
+    send_email_ses(to_address=email, subject=subject, html_body=html_body)
+  except Exception as e:
+    raise EmailSendError(f"Failed to send upload notification: {e}")
 
 
 def construct_verification_link(user_id: str, email: EmailStr | str, request: Request) -> str:

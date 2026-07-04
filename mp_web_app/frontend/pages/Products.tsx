@@ -1,6 +1,10 @@
-import {ProductsTable} from "@/components/products-table";
+import {ProductCard} from "@/components/product-card";
+import {useProducts} from "@/hooks/useProducts";
+import {LoadingSpinner} from "@/components/ui/loading-spinner";
 
 export default function Products() {
+  const {data: products = [], isLoading, error} = useProducts();
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -16,7 +20,23 @@ export default function Products() {
       </section>
 
       {/* Content */}
-      <ProductsTable title="" />
+      <div className="container mx-auto px-4 py-10">
+        {isLoading && <LoadingSpinner />}
+
+        {error && <p className="text-center text-red-600 py-8">Възникна грешка при зареждане.</p>}
+
+        {!isLoading && !error && products.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">Няма налични продукти.</p>
+        )}
+
+        {!isLoading && !error && products.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {products.map((product) => (
+              <ProductCard key={product.id ?? product.name} product={product} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
