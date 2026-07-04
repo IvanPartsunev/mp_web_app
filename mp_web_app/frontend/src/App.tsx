@@ -20,8 +20,8 @@ import NewPassword from "@/pages/authentication/NewPassword";
 import Unsubscribe from "@/pages/Unsubscribe";
 
 // Lazy imports for pages that make API calls
-const Board = lazy(() => import("@/pages/about-us/Board"));
-const Control = lazy(() => import("@/pages/about-us/Control"));
+const Board = lazy(() => import("@/pages/lists/Board"));
+const Control = lazy(() => import("@/pages/lists/Control"));
 const Proxies = lazy(() => import("@/pages/lists/Proxies"));
 const Cooperative = lazy(() => import("@/pages/lists/CooperativeMembers"));
 const GoverningDocuments = lazy(() => import("@/pages/documents/GoverningDocuments"));

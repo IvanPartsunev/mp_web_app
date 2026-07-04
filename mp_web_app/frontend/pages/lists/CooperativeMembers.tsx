@@ -2,7 +2,7 @@ import {useState, useMemo} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {User as UserIcon, Mail, Phone, CheckCircle, Search} from "lucide-react";
+import {User as UserIcon, Mail, Phone, Search} from "lucide-react";
 import {LoadingSpinner} from "@/components/ui/loading-spinner";
 import {useMembers} from "@/hooks/useMembers";
 import {useAuth} from "@/context/AuthContext";
@@ -10,9 +10,10 @@ import {TABLE_STYLES, COLUMN_WIDTHS, EMPTY_MESSAGES} from "@/lib/tableUtils";
 import {HERO_STYLES, SECTION_STYLES} from "@/lib/styles";
 import {usePagination} from "@/hooks/usePagination";
 import {TablePagination} from "@/components/table-pagination";
+import {RoleBadge} from "@/components/role-badge";
 
 export default function CooperativeMembers() {
-  const {data: members = [], isLoading: loading} = useMembers({proxy_only: false}, 30 * 60 * 1000);
+  const {data: members = [], isLoading: loading} = useMembers("members", 30 * 60 * 1000);
   const {user} = useAuth();
   const isAdmin = user?.role === "admin";
   const isBoardOrControl = user?.role === "board" || user?.role === "control";
@@ -25,7 +26,6 @@ export default function CooperativeMembers() {
     if (!words.length) return members;
     return members.filter((m) => {
       const nameParts = [m.first_name, m.middle_name, m.last_name].filter(Boolean).map((p) => p!.toLowerCase());
-      // Every query word must match the start of at least one distinct name part
       const usedIndices = new Set<number>();
       return words.every((word) => {
         const idx = nameParts.findIndex((part, i) => !usedIndices.has(i) && part.startsWith(word));
@@ -115,14 +115,7 @@ export default function CooperativeMembers() {
                             </TableHead>
                           </>
                         )}
-                        {isAdmin && (
-                          <>
-                            <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>Код</TableHead>
-                            <TableHead className={`${TABLE_STYLES.headCenter} ${COLUMN_WIDTHS.small}`}>
-                              Използван
-                            </TableHead>
-                          </>
-                        )}
+                        <TableHead className={`${TABLE_STYLES.headBase} ${COLUMN_WIDTHS.small}`}>Роля</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -140,28 +133,9 @@ export default function CooperativeMembers() {
                               <TableCell className={TABLE_STYLES.cellBase}>{member.phone || "-"}</TableCell>
                             </>
                           )}
-                          {isAdmin && (
-                            <>
-                              <TableCell className={TABLE_STYLES.cellCenter}>
-                                {member.member_code ? (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm bg-muted border border-border">
-                                    {member.member_code}
-                                  </span>
-                                ) : (
-                                  "-"
-                                )}
-                              </TableCell>
-                              <TableCell className={TABLE_STYLES.cellCenter}>
-                                {member.member_code ? (
-                                  !member.member_code_valid ? (
-                                    <CheckCircle className="h-4 w-4 text-green-600 mx-auto" />
-                                  ) : null
-                                ) : (
-                                  "-"
-                                )}
-                              </TableCell>
-                            </>
-                          )}
+                          <TableCell className={TABLE_STYLES.cellBase}>
+                            <RoleBadge proxy={member.proxy} board={member.board} control={member.control} />
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

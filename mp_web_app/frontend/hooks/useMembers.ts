@@ -1,81 +1,41 @@
 // hooks/useMembers.ts
-import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {useQuery, useQueryClient} from "@tanstack/react-query";
 import apiClient, {adminApiClient} from "@/context/apiClient";
 
+export type MemberEndpoint = "members" | "proxy" | "board" | "control";
+
 export interface Member {
-  member_code: string;
   first_name: string;
   middle_name?: string;
   last_name: string;
   email?: string;
   phone?: string;
-  role?: string;
-  proxy?: boolean;
-  member_code_valid?: boolean;
+  proxy: boolean;
+  board: boolean;
+  control: boolean;
 }
 
 // Query key factory
 export const memberKeys = {
   all: ["members"] as const,
-  lists: () => [...memberKeys.all, "list"] as const,
-  list: (filters?: {proxy_only?: boolean; role?: string}) => [...memberKeys.lists(), filters] as const,
+  list: (endpoint: MemberEndpoint) => ["members", "list", endpoint] as const,
 };
 
-// Fetch members list — pass staleTime=0 and admin=true for admin panel, default 5min for public pages
-export function useMembers(filters?: {proxy_only?: boolean; role?: string}, staleTime = 5 * 60 * 1000, admin = false) {
+// Fetch members list by endpoint
+export function useMembers(endpoint: MemberEndpoint, staleTime = 5 * 60 * 1000, admin = false) {
   const client = admin ? adminApiClient : apiClient;
   return useQuery({
-    queryKey: memberKeys.list(filters),
+    queryKey: memberKeys.list(endpoint),
     queryFn: async () => {
-      const response = await client.get<Member[]>("members/list", {
-        params: filters,
-      });
+      const response = await client.get<Member[]>(`members/list/${endpoint}`);
       return response.data ?? [];
     },
-    staleTime, // 0 for admin, callers can pass longer value for public pages
+    staleTime,
   });
 }
 
-// Create member mutation
-export function useCreateMember() {
+// Invalidate all member list queries
+export function useInvalidateMembers() {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (member: Omit<Member, "member_code">) => {
-      const response = await apiClient.post("members/create", member);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
-    },
-  });
-}
-
-// Update member mutation
-export function useUpdateMember() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({member_code, ...member}: Member) => {
-      const response = await apiClient.put(`members/update/${member_code}`, member);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
-    },
-  });
-}
-
-// Delete member mutation
-export function useDeleteMember() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (member_code: string) => {
-      await apiClient.delete(`members/delete/${member_code}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: memberKeys.lists()});
-    },
-  });
+  return () => queryClient.invalidateQueries({queryKey: memberKeys.all});
 }

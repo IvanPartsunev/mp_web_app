@@ -22,8 +22,6 @@ export const userKeys = {
   all: ["users"] as const,
   lists: () => [...userKeys.all, "list"] as const,
   list: () => [...userKeys.lists()] as const,
-  board: () => [...userKeys.all, "board"] as const,
-  control: () => [...userKeys.all, "control"] as const,
 };
 
 // Fetch all users (admin) — always fresh, bypasses browser HTTP cache via X-Admin-Request header
@@ -35,30 +33,6 @@ export function useUsersList() {
       return response.data ?? [];
     },
     staleTime: 0, // admin panel — always fetch fresh data
-  });
-}
-
-// Fetch board members — 5 minute cache
-export function useBoardMembers() {
-  return useQuery({
-    queryKey: userKeys.board(),
-    queryFn: async () => {
-      const response = await apiClient.get<User[]>("users/board");
-      return response.data ?? [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Fetch control members — 5 minute cache
-export function useControlMembers() {
-  return useQuery({
-    queryKey: userKeys.control(),
-    queryFn: async () => {
-      const response = await apiClient.get<User[]>("users/control");
-      return response.data ?? [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
