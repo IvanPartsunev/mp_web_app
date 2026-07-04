@@ -118,6 +118,7 @@ export default function InquiryDetail() {
   const canDelete = isAdmin || isAuthor;
   const isSent = inquiry.status === "sent";
   const isInProgress = inquiry.status === "in_progress";
+  const isFinalStatus = ["closed", "finished", "failed"].includes(inquiry.status);
   const isPastSent = !isSent;
 
   const openEditForm = () => {
@@ -338,7 +339,7 @@ export default function InquiryDetail() {
                   Добави файлове
                 </Button>
               )}
-              {canClose && (
+              {canClose && !isFinalStatus && (
                 <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
                   Затвори
                 </Button>
