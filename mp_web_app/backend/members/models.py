@@ -26,6 +26,18 @@ class MemberPublic(BaseModel):
   control: bool = False
 
 
+class MemberProxy(BaseModel):
+  """Public member model - only shows first and last name."""
+
+  first_name: str
+  middle_name: str | None = None
+  last_name: str
+  email: EmailStr | None
+  proxy: bool = False
+  board: bool = False
+  control: bool = False
+
+
 class MemberUpdate(BaseModel):
   email: EmailStr | None = None
   phone: str | None = None
