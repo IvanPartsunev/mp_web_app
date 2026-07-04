@@ -1,5 +1,4 @@
 import os
-from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
@@ -92,6 +91,21 @@ def get_product(repo: ProductRepository, product_id: str) -> Product:
   return product
 
 
+def parse_sizes(sizes_json: str) -> list[ProductSize]:
+  """Parse a JSON string into a list of ProductSize objects."""
+  if not sizes_json or sizes_json.strip() == "":
+    return []
+  import json
+
+  try:
+    data = json.loads(sizes_json)
+  except (json.JSONDecodeError, ValueError):
+    raise ValueError("Invalid sizes format: expected a JSON array")
+  if not isinstance(data, list):
+    raise ValueError("Invalid sizes format: expected a JSON array")
+  return [ProductSize(**item) for item in data]
+
+
 def _serialize_sizes(sizes: list[ProductSize]) -> list[dict]:
   return [{k: v for k, v in s.model_dump().items() if v is not None or k == "label"} for s in sizes]
 
@@ -99,9 +113,6 @@ def _serialize_sizes(sizes: list[ProductSize]) -> list[dict]:
 def create_product(
   name: str,
   description: str | None,
-  width: Decimal | None,
-  height: Decimal | None,
-  length: Decimal | None,
   sizes: list[ProductSize],
   picture: UploadFile | None,
   repo: ProductRepository,
@@ -114,9 +125,6 @@ def create_product(
     "id": str(uuid4()),
     "name": name,
     "description": description,
-    "width": width,
-    "height": height,
-    "length": length,
     "sizes": _serialize_sizes(sizes),
     "picture_s3_key": s3_key,
   }

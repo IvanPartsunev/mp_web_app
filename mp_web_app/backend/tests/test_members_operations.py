@@ -222,7 +222,10 @@ class TestUpdateMember:
     mock_get.return_value = make_member()
 
     # Patch validate_email to simulate a validation failure after pydantic accepts the field
-    with patch("members.operations.validate_email", side_effect=ValueError("Invalid email format")), pytest.raises(ValidationError, match="Invalid email"):
+    with (
+      patch("members.operations.validate_email", side_effect=ValueError("Invalid email format")),
+      pytest.raises(ValidationError, match="Invalid email"),
+    ):
       update_member("CODE001", MemberUpdate(email="user@example.com"), mock_repo)
 
   @patch("members.operations.get_member_by_code")
