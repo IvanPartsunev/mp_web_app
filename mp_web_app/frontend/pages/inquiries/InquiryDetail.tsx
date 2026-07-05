@@ -120,6 +120,7 @@ export default function InquiryDetail() {
   const isInProgress = inquiry.status === "in_progress";
   const isFinalStatus = ["closed", "finished", "failed"].includes(inquiry.status);
   const isPastSent = !isSent;
+  const canAddFiles = (isAuthor || isCoAuthor || isScopeUser || isAdmin) && (isSent || isInProgress);
 
   const openEditForm = () => {
     setEditTitle(inquiry.title);
@@ -297,10 +298,36 @@ export default function InquiryDetail() {
             {inquiry.file_s3_keys.length > 0 && (
               <div>
                 <h2 className="text-base font-semibold mb-2">Прикачени файлове</h2>
-                <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-                  {inquiry.file_s3_keys.map((k) => (
-                    <li key={k}>{k.split("/").pop()}</li>
-                  ))}
+                <ul className="text-sm space-y-1 list-disc list-inside">
+                  {inquiry.file_s3_keys.map((k) => {
+                    const segment = k.split("/").pop() ?? k;
+                    // Strip the UUID prefix (everything before and including the first "_")
+                    const displayName = segment.includes("_") ? segment.split("_").slice(1).join("_") : segment;
+                    const fileKey = segment;
+                    return (
+                      <li key={k}>
+                        <button
+                          className="text-primary underline underline-offset-2 hover:text-primary/80 text-left"
+                          onClick={async () => {
+                            try {
+                              const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {responseType: "blob"});
+                              const url = URL.createObjectURL(new Blob([res.data]));
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = displayName;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            } catch (err: any) {
+                              const detail = err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
+                              toast({title: "Грешка при изтегляне", description: String(detail), variant: "destructive"});
+                            }
+                          }}
+                        >
+                          {displayName}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -326,6 +353,37 @@ export default function InquiryDetail() {
                     <dt className="text-muted-foreground">Причина</dt>
                     <dd className="whitespace-pre-wrap">{inquiry.closing_record.reason}</dd>
                   </div>
+                  {inquiry.closing_record.pdf_s3_key && (() => {
+                    const segment = inquiry.closing_record.pdf_s3_key.split("/").pop() ?? "";
+                    const displayName = segment.includes("_") ? segment.split("_").slice(1).join("_") : segment;
+                    const fileKey = segment;
+                    return (
+                      <div className="col-span-2">
+                        <dt className="text-muted-foreground mb-1">Прикачен файл</dt>
+                        <dd>
+                          <button
+                            className="text-primary underline underline-offset-2 hover:text-primary/80 text-left text-sm"
+                            onClick={async () => {
+                              try {
+                                const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {responseType: "blob"});
+                                const url = URL.createObjectURL(new Blob([res.data]));
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = displayName;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              } catch (err: any) {
+                                const detail = err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
+                                toast({title: "Грешка при изтегляне", description: String(detail), variant: "destructive"});
+                              }
+                            }}
+                          >
+                            {displayName}
+                          </button>
+                        </dd>
+                      </div>
+                    );
+                  })()}
                 </dl>
               </div>
             )}
@@ -334,7 +392,7 @@ export default function InquiryDetail() {
 
             {/* Actions */}
             <div className="flex flex-wrap items-center gap-3">
-              {isAuthor && isSent && (
+              {canAddFiles && (
                 <Button variant="outline" onClick={() => setShowAddFiles(true)}>
                   Добави файлове
                 </Button>
