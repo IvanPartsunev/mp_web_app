@@ -310,7 +310,9 @@ export default function InquiryDetail() {
                           className="text-primary underline underline-offset-2 hover:text-primary/80 text-left"
                           onClick={async () => {
                             try {
-                              const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {responseType: "blob"});
+                              const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {
+                                responseType: "blob",
+                              });
                               const url = URL.createObjectURL(new Blob([res.data]));
                               const a = document.createElement("a");
                               a.href = url;
@@ -318,8 +320,13 @@ export default function InquiryDetail() {
                               a.click();
                               URL.revokeObjectURL(url);
                             } catch (err: any) {
-                              const detail = err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
-                              toast({title: "Грешка при изтегляне", description: String(detail), variant: "destructive"});
+                              const detail =
+                                err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
+                              toast({
+                                title: "Грешка при изтегляне",
+                                description: String(detail),
+                                variant: "destructive",
+                              });
                             }
                           }}
                         >
@@ -353,37 +360,45 @@ export default function InquiryDetail() {
                     <dt className="text-muted-foreground">Причина</dt>
                     <dd className="whitespace-pre-wrap">{inquiry.closing_record.reason}</dd>
                   </div>
-                  {inquiry.closing_record.pdf_s3_key && (() => {
-                    const segment = inquiry.closing_record.pdf_s3_key.split("/").pop() ?? "";
-                    const displayName = segment.includes("_") ? segment.split("_").slice(1).join("_") : segment;
-                    const fileKey = segment;
-                    return (
-                      <div className="col-span-2">
-                        <dt className="text-muted-foreground mb-1">Прикачен файл</dt>
-                        <dd>
-                          <button
-                            className="text-primary underline underline-offset-2 hover:text-primary/80 text-left text-sm"
-                            onClick={async () => {
-                              try {
-                                const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {responseType: "blob"});
-                                const url = URL.createObjectURL(new Blob([res.data]));
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = displayName;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              } catch (err: any) {
-                                const detail = err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
-                                toast({title: "Грешка при изтегляне", description: String(detail), variant: "destructive"});
-                              }
-                            }}
-                          >
-                            {displayName}
-                          </button>
-                        </dd>
-                      </div>
-                    );
-                  })()}
+                  {inquiry.closing_record.pdf_s3_key &&
+                    (() => {
+                      const segment = inquiry.closing_record.pdf_s3_key.split("/").pop() ?? "";
+                      const displayName = segment.includes("_") ? segment.split("_").slice(1).join("_") : segment;
+                      const fileKey = segment;
+                      return (
+                        <div className="col-span-2">
+                          <dt className="text-muted-foreground mb-1">Прикачен файл</dt>
+                          <dd>
+                            <button
+                              className="text-primary underline underline-offset-2 hover:text-primary/80 text-left text-sm"
+                              onClick={async () => {
+                                try {
+                                  const res = await apiClient.get(`inquiries/${inquiry.id}/files/${fileKey}`, {
+                                    responseType: "blob",
+                                  });
+                                  const url = URL.createObjectURL(new Blob([res.data]));
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = displayName;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                } catch (err: any) {
+                                  const detail =
+                                    err?.response?.data?.detail ?? err?.message ?? "Неуспешно изтегляне на файла.";
+                                  toast({
+                                    title: "Грешка при изтегляне",
+                                    description: String(detail),
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              {displayName}
+                            </button>
+                          </dd>
+                        </div>
+                      );
+                    })()}
                 </dl>
               </div>
             )}
@@ -410,7 +425,11 @@ export default function InquiryDetail() {
                     onChange={(e) => setEntryInput(e.target.value)}
                     className="w-32"
                   />
-                  <Button onClick={handleAssignNumber} disabled={!entryInput.trim() || assigningNumber}>
+                  <Button
+                    variant="outline-blue"
+                    onClick={handleAssignNumber}
+                    disabled={!entryInput.trim() || assigningNumber}
+                  >
                     Регистрирай
                   </Button>
                 </div>
@@ -533,7 +552,7 @@ export default function InquiryDetail() {
               <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>
                 Отказ
               </Button>
-              <Button type="submit" disabled={updating}>
+              <Button variant="outline-primary" type="submit" disabled={updating}>
                 Запази
               </Button>
             </DialogFooter>
@@ -568,7 +587,11 @@ export default function InquiryDetail() {
               <Button type="button" variant="outline" onClick={() => setShowAddFiles(false)}>
                 Отказ
               </Button>
-              <Button type="submit" disabled={!newFiles.length || !!newFilesError || addingFiles}>
+              <Button
+                variant="outline-primary"
+                type="submit"
+                disabled={!newFiles.length || !!newFilesError || addingFiles}
+              >
                 Качи
               </Button>
             </DialogFooter>
@@ -636,7 +659,7 @@ export default function InquiryDetail() {
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
               Отказ
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+            <Button variant="outline-red" onClick={handleDelete} disabled={deleting}>
               Изтрий
             </Button>
           </DialogFooter>

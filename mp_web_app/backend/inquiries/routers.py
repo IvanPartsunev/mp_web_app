@@ -16,7 +16,6 @@ from inquiries.operations import (
   create_inquiry,
   delete_inquiry,
   export_pdf,
-  get_file_download_url,
   get_inquiry,
   get_inquiry_repository,
   get_user_repository,
@@ -165,7 +164,7 @@ async def inquiry_download_file(
   mime_type, _ = mimetypes.guess_type(filename)
   content_type = mime_type or "application/octet-stream"
   safe_ascii = filename.encode("ascii", errors="replace").decode("ascii")
-  content_disposition = f'attachment; filename="{safe_ascii}"; filename*=UTF-8\'\'{quote(filename)}'
+  content_disposition = f"attachment; filename=\"{safe_ascii}\"; filename*=UTF-8''{quote(filename)}"
 
   try:
     s3 = boto3.client("s3")
