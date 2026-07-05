@@ -92,7 +92,11 @@ def _check_file_sizes(files: list[UploadFile]) -> None:
 
 
 def _upload_inquiry_files(files: list[UploadFile], inquiry_id: str) -> list[str]:
-  """Upload files to S3 under inquiries/{inquiry_id}/ and return their keys."""
+  """Upload files to S3 under inquiries/{inquiry_id}/ and return their keys.
+
+  Each key is prefixed with a full UUID to avoid collisions:
+  ``inquiries/{inquiry_id}/{uuid}_{original_name}``.
+  """
   if not files:
     return []
   s3 = boto3.client("s3")
@@ -138,6 +142,24 @@ def _delete_inquiry_folder(inquiry_id: str) -> None:
       s3.delete_objects(Bucket=BUCKET, Delete={"Objects": keys})
   except ClientError:
     pass
+
+
+def get_file_download_url(s3_key: str, expires_in: int = 300) -> str:
+  """Return a presigned S3 URL for downloading the given key (valid for *expires_in* seconds)."""
+  s3 = boto3.client("s3")
+  # Derive the original filename: strip the UUID prefix + underscore
+  filename = s3_key.split("/")[-1]
+  if "_" in filename:
+    filename = filename.split("_", 1)[1]
+  return s3.generate_presigned_url(
+    "get_object",
+    Params={
+      "Bucket": BUCKET,
+      "Key": s3_key,
+      "ResponseContentDisposition": f'attachment; filename="{filename}"',
+    },
+    ExpiresIn=expires_in,
+  )
 
 
 def _sort_inquiries(inquiries: list[Inquiry]) -> list[Inquiry]:

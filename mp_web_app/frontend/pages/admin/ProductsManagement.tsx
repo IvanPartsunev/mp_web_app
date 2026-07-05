@@ -522,7 +522,12 @@ export default function ProductsManagement() {
               onRemove={() => setFormData({...formData, remove_picture: !formData.remove_picture})}
               removePicture={formData.remove_picture}
             />
-            <Button onClick={handleEdit} className="w-full" disabled={!formData.name || updateMutation.isPending}>
+            <Button
+              variant="outline-primary"
+              onClick={handleEdit}
+              className="w-full"
+              disabled={!formData.name || updateMutation.isPending}
+            >
               {updateMutation.isPending ? "Запазване..." : "Запази"}
             </Button>
           </DialogContent>
@@ -564,7 +569,7 @@ export default function ProductsManagement() {
                     ))}
                   </ul>
                   <Button
-                    variant="destructive"
+                    variant="outline-red"
                     className="w-full"
                     onClick={handleDeleteOrphans}
                     disabled={deleteOrphansMutation.isPending}

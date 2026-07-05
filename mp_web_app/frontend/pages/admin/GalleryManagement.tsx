@@ -378,7 +378,12 @@ export default function GalleryManagement() {
                   disabled={updateMutation.isPending}
                 />
               </div>
-              <Button onClick={handleEdit} className="w-full" disabled={updateMutation.isPending}>
+              <Button
+                variant="outline-primary"
+                onClick={handleEdit}
+                className="w-full"
+                disabled={updateMutation.isPending}
+              >
                 {updateMutation.isPending ? "Запазване..." : "Запази"}
               </Button>
             </div>

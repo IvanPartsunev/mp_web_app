@@ -137,7 +137,7 @@ export default function NewsManagement() {
             <DialogTrigger asChild>
               <Button variant="outline-primary">Създай новина</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>Създай нова новина</DialogTitle>
                 <DialogDescription>Попълнете формата за да създадете нова новина</DialogDescription>
@@ -157,7 +157,8 @@ export default function NewsManagement() {
                     value={formData.content}
                     onChange={(e) => setFormData({...formData, content: e.target.value})}
                     placeholder="Въведете съдържание"
-                    rows={6}
+                    className="max-h-64 overflow-y-auto resize-none"
+                    rows={10}
                   />
                 </div>
                 <div>
@@ -252,7 +253,7 @@ export default function NewsManagement() {
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Редактирай новина</DialogTitle>
               <DialogDescription>Редактирайте детайлите на новината</DialogDescription>
@@ -267,7 +268,8 @@ export default function NewsManagement() {
                 <Textarea
                   value={formData.content}
                   onChange={(e) => setFormData({...formData, content: e.target.value})}
-                  rows={6}
+                  className="max-h-64 overflow-y-auto resize-none"
+                  rows={10}
                 />
               </div>
               <div>

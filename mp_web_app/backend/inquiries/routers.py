@@ -31,17 +31,12 @@ inquiry_router = APIRouter(tags=["inquiries"])
 USERS_TABLE_NAME = os.environ.get("USERS_TABLE_NAME")
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
 def _parse_inquiry_create(
   title: str = Form(...),
   description: str = Form(...),
   inquiry_type: str = Form(...),
-  scope: str = Form(...),  # JSON-encoded list e.g. '["admin","board"]'
-  co_authors: str = Form("[]"),  # JSON-encoded list of user IDs
+  scope: str = Form(...),
+  co_authors: str = Form("[]"),
 ) -> InquiryCreate:
   try:
     scope_list = json.loads(scope)
@@ -61,7 +56,6 @@ def _parse_inquiry_create(
 
 
 def _check_visibility(inquiry: Inquiry, user_id: str, user_role: str) -> None:
-  """Raise 403 if the user has no reason to see this inquiry."""
   if user_role == UserRole.ADMIN:
     return
   if inquiry.author_id == user_id:
@@ -71,11 +65,6 @@ def _check_visibility(inquiry: Inquiry, user_id: str, user_role: str) -> None:
   if user_role in (inquiry.scope or []):
     return
   raise HTTPException(status_code=403, detail="You do not have access to this inquiry")
-
-
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
 
 
 @inquiry_router.post("/create", response_model=Inquiry, status_code=status.HTTP_201_CREATED)
@@ -135,6 +124,60 @@ async def inquiries_all(
   return list_all_inquiries(repo, user_repo)
 
 
+# File download — registered before /{inquiry_id} to prevent route shadowing
+@inquiry_router.get("/{inquiry_id}/files/{file_key:path}", status_code=status.HTTP_200_OK)
+async def inquiry_download_file(
+  inquiry_id: str,
+  file_key: str,
+  repo: InquiryRepository = Depends(get_inquiry_repository),
+  user=Depends(
+    role_required([UserRole.REGULAR_USER, UserRole.BOARD, UserRole.CONTROL, UserRole.ACCOUNTANT, UserRole.ADMIN])
+  ),
+):
+  """Stream the file from S3 through the backend — avoids S3 CORS issues."""
+  import mimetypes
+  from urllib.parse import quote
+
+  import boto3
+  from botocore.exceptions import ClientError
+  from fastapi.responses import StreamingResponse
+
+  from inquiries.operations import BUCKET
+
+  try:
+    inquiry = get_inquiry(inquiry_id, repo)
+  except InquiryNotFoundError as e:
+    raise HTTPException(status_code=404, detail=str(e))
+
+  _check_visibility(inquiry, user.id, user.role)
+
+  full_key = f"inquiries/{inquiry_id}/{file_key}"
+  closing_pdf_key = inquiry.closing_record.pdf_s3_key if inquiry.closing_record else None
+  if full_key not in (inquiry.file_s3_keys or []) and full_key != closing_pdf_key:
+    raise HTTPException(status_code=404, detail="File not found")
+
+  # Strip UUID prefix to get the original filename
+  filename = file_key.split("/")[-1]
+  if "_" in filename:
+    filename = filename.split("_", 1)[1]
+
+  mime_type, _ = mimetypes.guess_type(filename)
+  content_type = mime_type or "application/octet-stream"
+  safe_ascii = filename.encode("ascii", errors="replace").decode("ascii")
+  content_disposition = f"attachment; filename=\"{safe_ascii}\"; filename*=UTF-8''{quote(filename)}"
+
+  try:
+    s3 = boto3.client("s3")
+    s3_obj = s3.get_object(Bucket=BUCKET, Key=full_key)
+    return StreamingResponse(
+      s3_obj["Body"].iter_chunks(chunk_size=65536),
+      media_type=content_type,
+      headers={"Content-Disposition": content_disposition},
+    )
+  except ClientError as e:
+    raise HTTPException(status_code=500, detail=f"Could not retrieve file: {e.response['Error']['Message']}")
+
+
 @inquiry_router.get("/{inquiry_id}", response_model=Inquiry, status_code=status.HTTP_200_OK)
 async def inquiry_get(
   inquiry_id: str,
@@ -149,7 +192,6 @@ async def inquiry_get(
   except InquiryNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
   _check_visibility(inquiry, user.id, user.role)
-  # Enrich names before returning
   from inquiries.operations import _enrich_inquiry
 
   _enrich_inquiry(inquiry, user_repo)
@@ -225,13 +267,17 @@ async def inquiry_add_files(
   except InquiryNotFoundError as e:
     raise HTTPException(status_code=404, detail=str(e))
 
-  if inquiry.author_id != user.id and user.role != UserRole.ADMIN:
-    raise HTTPException(status_code=403, detail="Only the author can add files to this inquiry")
-
   from inquiries.models import InquiryStatus
 
-  if inquiry.status != InquiryStatus.SENT:
-    raise HTTPException(status_code=400, detail="Files can only be added while the inquiry is in 'sent' status")
+  is_author = inquiry.author_id == user.id
+  is_co_author = user.id in (inquiry.co_authors or [])
+  is_scope_user = user.role in (inquiry.scope or [])
+  if not (is_author or is_co_author or is_scope_user or user.role == UserRole.ADMIN):
+    raise HTTPException(status_code=403, detail="You do not have permission to add files to this inquiry")
+
+  allowed_statuses = {InquiryStatus.SENT, InquiryStatus.IN_PROGRESS}
+  if inquiry.status not in allowed_statuses:
+    raise HTTPException(status_code=400, detail="Files can only be added while the inquiry is sent or in progress")
 
   try:
     return add_inquiry_files(inquiry, files, repo)
@@ -278,8 +324,7 @@ async def inquiry_export_pdf(
 
   from inquiries.models import InquiryStatus
 
-  non_exportable = {InquiryStatus.SENT}
-  if inquiry.status in non_exportable:
+  if inquiry.status in {InquiryStatus.SENT}:
     raise HTTPException(status_code=400, detail="PDF export is only available after the entry number is assigned")
 
   from inquiries.operations import _enrich_inquiry
